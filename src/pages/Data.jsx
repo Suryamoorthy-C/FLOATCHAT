@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Reveal from '../components/Reveal';
 import { api, normaliseFloat } from '../api';
 import { Link } from '../router';
 import { CONSOLE_PATH } from '../routes';
@@ -83,8 +84,9 @@ export default function Data() {
   const loading = state.phase === 'loading';
 
   return (
-    <div className="page">
+    <div className="page" id="data">
       <div className="container">
+        <Reveal>
         <header className="page-head">
           <p className="eyebrow">Live data</p>
           <h1 className="page-head__title">The fleet, as the current window reports it.</h1>
@@ -99,6 +101,7 @@ export default function Data() {
             <span>Mode · {state.live ? 'live' : 'cached'}</span>
           </p>
         </header>
+        </Reveal>
       </div>
 
       <section className="section" aria-labelledby="fleet-title">
@@ -211,14 +214,14 @@ export default function Data() {
           {!loading && state.anomalies.length > 0 && (
             <ul className="spec-list">
               {state.anomalies.map((anomaly, index) => (
-                <li className="spec" key={`${anomaly.float_id}-${index}`}>
+                <Reveal as="li" className="spec" key={`${anomaly.float_id}-${index}`} delay={(index % 3) * 90} >
                   <p className="spec__index">{anomaly.severity ?? 'moderate'}</p>
                   <h3 className="spec__title">{anomaly.title ?? 'Untitled signal'}</h3>
                   <p className="spec__body">
                     Platform {anomaly.float_id} · value {num(anomaly.value, 2)}
                     {anomaly.region ? ` · ${anomaly.region}` : ''}
                   </p>
-                </li>
+                </Reveal>
               ))}
             </ul>
           )}
