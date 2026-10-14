@@ -23,8 +23,8 @@ const ConsolePage = lazy(() => import('./pages/Console'));
 /**
  * Old route paths still resolve, but they scroll instead of redirecting: the
  * whole site is one page with the sections stacked (home → platform → live
- * data → pearl zones → docs). Footer deep-links like /data#anomalies land on
- * the right anchor the same way.
+ * data → docs). Footer deep-links like /data#anomalies land on the right
+ * anchor the same way.
  */
 const ROUTE_SECTION = {
   '/': 'home',
