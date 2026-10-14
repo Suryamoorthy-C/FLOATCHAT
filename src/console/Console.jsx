@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Globe from 'globe.gl'
+import Globe3D from '../components/Globe3D'
 import {
   Activity, ArrowUp, ChevronDown, Database, Download, Gauge, Loader2, Menu,
   Pause, Play, RefreshCw, RotateCcw, Send, Thermometer, Waves, X, Zap, Target,
@@ -70,8 +70,6 @@ function mergeProfiles(tempRes, salRes) {
 /* ------------------------------------------------------------------ */
 
 function App() {
-  const globeRef = useRef(null)
-  const globeInstance = useRef(null)
   const chatFeedRef = useRef(null)
 
   const [mode, setMode] = useState('telemetry')
@@ -170,94 +168,7 @@ function App() {
     if (trajRes) setTrajectory({ points: trajRes.points || [], source: trajRes.source, live: trajRes.live })
   }, [])
 
-  /* --------------------------- globe init -------------------------- */
-  useEffect(() => {
-    if (!globeRef.current) return
-    const g = Globe()(globeRef.current)
-      .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
-      .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-      .backgroundColor('rgba(0,0,0,0)')
-      .showAtmosphere(true)
-      .atmosphereColor('#00f2fe')
-      .atmosphereAltitude(0.22)
-      .showGraticules(true)
-      .pointsData([])
-      .pointLat('lat')
-      .pointLng('lng')
-      .pointColor((f) => colorFor(f, mode, anomalyIds))
-      .pointAltitude((f) => (selected?.id === f.id ? 0.09 : 0.025))
-      .pointRadius((f) => (selected?.id === f.id ? 0.36 : 0.19))
-      .pointLabel(
-        (f) =>
-          `${f.id} · ${f.region}<br/>T ${f.temp != null ? f.temp.toFixed(1) : '—'}°C · S ${f.sal != null ? f.sal.toFixed(2) : '—'} PSU${f.anomaly ? '<br/><b>⚠ outlier</b>' : ''}`,
-      )
-      .onPointClick((f) => selectFloat(f))
-      .onGlobeClick(() => setSelected(null))
-      /* trajectory path */
-      .pathsData([])
-      .pathPoints((d) => d)
-      .pathPointLat((p) => p[0])
-      .pathPointLng((p) => p[1])
-      .pathColor(() => ['#ffc857', '#00f2fe'])
-      .pathStroke(2)
-      .pathDashLength(0.5)
-      .pathDashGap(0.25)
-      .pathDashAnimateTime(14000)
-      /* anomaly / selection pulses */
-      .ringsData([])
-      .ringLat('lat')
-      .ringLng('lng')
-      .ringAltitude(0.012)
-      .ringColor(() => (t) => `rgba(255,200,87,${Math.sqrt(1 - t)})`)
-      .ringMaxRadius(3.2)
-      .ringPropagationSpeed(1.6)
-      .ringRepeatPeriod(900)
-
-    const controls = g.controls()
-    controls.autoRotate = rotating
-    controls.autoRotateSpeed = 0.45
-    controls.enableDamping = true
-    g.pointOfView({ lat: 14, lng: 80, altitude: 2.2 })
-    globeInstance.current = g
-
-    const ro = new ResizeObserver(() => {
-      if (!globeRef.current) return
-      g.width(globeRef.current.clientWidth)
-      g.height(globeRef.current.clientHeight)
-    })
-    ro.observe(globeRef.current)
-    return () => ro.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   /* --------------------------- globe sync -------------------------- */
-  useEffect(() => { globeInstance.current?.pointsData(floats) }, [floats])
-
-  useEffect(() => {
-    const g = globeInstance.current
-    if (!g) return
-    g.pointColor((f) => colorFor(f, mode, anomalyIds))
-    g.ringsData(floats.filter((f) => f.anomaly || selected?.id === f.id).map((f) => ({ lat: f.lat, lng: f.lng })))
-  }, [mode, anomalyIds, selected, floats])
-
-  useEffect(() => {
-    const g = globeInstance.current
-    if (!g) return
-    g.pointAltitude((f) => (selected?.id === f.id ? 0.09 : 0.025))
-    g.pointRadius((f) => (selected?.id === f.id ? 0.36 : 0.19))
-  }, [selected])
-
-  useEffect(() => {
-    const g = globeInstance.current
-    if (!g) return
-    const pts = trajectory?.points || []
-    g.pathsData(pts.length > 1 ? [pts.map((p) => [p.lat, p.lon])] : [])
-  }, [trajectory])
-
-  useEffect(() => {
-    const g = globeInstance.current
-    if (g) g.controls().autoRotate = rotating
-  }, [rotating])
 
   /* --------------------------- depth sweep ------------------------- */
   useEffect(() => {
@@ -326,7 +237,6 @@ function App() {
   const selectFloat = useCallback((f) => {
     setSelected(f)
     loadDetail(f?.id)
-    if (f) globeInstance.current?.pointOfView({ lat: f.lat, lng: f.lng, altitude: 1.6 }, 900)
   }, [loadDetail])
 
   /* ---------------------------- derived ---------------------------- */
@@ -468,7 +378,14 @@ function App() {
         {/* ---------------- GLOBE ---------------- */}
         <section className="glass globe-side">
           <span className="corner tl" /><span className="corner tr" /><span className="corner bl" /><span className="corner br" />
-          <div ref={globeRef} className="globe-canvas" />
+          <Globe3D
+            markers={floats}
+            mode={mode}
+            rotating={rotating}
+            selectedId={selected?.id}
+            path={(trajectory?.points || []).map((p) => [p.lat, p.lon])}
+            onMarkerClick={selectFloat}
+          />
           <div className="depth-hud">
             <small>ACTIVE DEPTH LAYER</small>
             <b>{String(depth).padStart(4, '0')} <em>m</em></b>
@@ -477,7 +394,7 @@ function App() {
             <button className={rotating ? 'active' : ''} onClick={() => setRotating((v) => !v)} title="Auto-rotate">
               <RotateCcw size={13} />
             </button>
-            <button onClick={() => { setDepth(0); setSelected(null); setProfile(null); setTrajectory(null); globeInstance.current?.pointOfView({ lat: 14, lng: 80, altitude: 2.2 }, 900) }} title="Reset view">
+            <button onClick={() => { setDepth(0); setSelected(null); setProfile(null); setTrajectory(null) }} title="Reset view">
               <Target size={13} />
             </button>
           </div>

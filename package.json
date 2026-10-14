@@ -9,11 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
     "@vitejs/plugin-react": "latest",
-    "globe.gl": "^2.46.2",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "three": "^0.186.1",
     "typescript": "latest",
     "vite": "latest"
   }
