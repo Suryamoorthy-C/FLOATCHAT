@@ -3,6 +3,7 @@ import ParticleText from '../components/ParticleText';
 import RippleDistortion from '../components/RippleDistortion';
 import WarpText from '../components/WarpText';
 import MagicBento from '../components/MagicBento';
+import ArgoExplodedView from '../components/ArgoExplodedView';
 import Reveal from '../components/Reveal';
 import { Link } from '../router';
 import { CONSOLE_PATH } from '../routes';
@@ -129,6 +130,8 @@ export default function Home() {
           <span aria-hidden="true" />
         </button>
       </section>
+
+      <ArgoExplodedView />
 
       <BentoShowcase />
 
