@@ -71,6 +71,8 @@ function mergeProfiles(tempRes, salRes) {
 
 function App() {
   const chatFeedRef = useRef(null)
+  const fleetRequestRef = useRef(0)
+  const detailRequestRef = useRef(0)
 
   const [mode, setMode] = useState('telemetry')
   const [depth, setDepth] = useState(0)
@@ -107,6 +109,7 @@ function App() {
 
   /* --------------------------- data load --------------------------- */
   const loadFleet = useCallback(async ({ refresh = false, status = 'all' } = {}) => {
+    const requestId = ++fleetRequestRef.current
     setLoading(true)
     try {
       const [fleetRes, anomalyRes, statsRes, healthRes] = await Promise.all([
@@ -119,6 +122,7 @@ function App() {
       const ids = new Set((anomalyRes?.data || []).map((a) => String(a.float_id)))
       const rows = (fleetRes?.data || []).length ? fleetRes.data : FALLBACK_FLOATS
 
+      if (requestId !== fleetRequestRef.current) return
       setFloats(rows.map((row) => normaliseFloat(row, ids)))
       setFleet({
         live: Boolean(fleetRes?.live),
@@ -131,13 +135,14 @@ function App() {
       setStats(statsRes || null)
       setHealth(healthRes || null)
     } catch {
+      if (requestId !== fleetRequestRef.current) return
       setFloats(FALLBACK_FLOATS.map((f) => normaliseFloat(f)))
       setFleet({ live: false, source: 'demo fallback · API offline', fetchedAt: null })
       setAnomalies([])
       setStats(null)
       setHealth(null)
     } finally {
-      setLoading(false)
+      if (requestId === fleetRequestRef.current) setLoading(false)
     }
   }, [])
 
@@ -148,6 +153,7 @@ function App() {
 
   /* -------------------- profile + trajectory load ------------------- */
   const loadDetail = useCallback(async (floatId) => {
+    const requestId = ++detailRequestRef.current
     if (!floatId) { setProfile(null); setTrajectory(null); return }
     setProfile(null)
     setTrajectory(null)
@@ -156,6 +162,7 @@ function App() {
       api.profile({ float_id: floatId, param: 'salinity' }).catch(() => null),
       api.trajectory(floatId).catch(() => null),
     ])
+    if (requestId !== detailRequestRef.current) return
     if (tempRes || salRes) {
       setProfile({
         rows: mergeProfiles(tempRes, salRes),
@@ -239,6 +246,14 @@ function App() {
     loadDetail(f?.id)
   }, [loadDetail])
 
+  const resetView = useCallback(() => {
+    detailRequestRef.current += 1
+    setDepth(0)
+    setSelected(null)
+    setProfile(null)
+    setTrajectory(null)
+  }, [])
+
   /* ---------------------------- derived ---------------------------- */
   const focus = useMemo(() => {
     if (selected) {
@@ -309,7 +324,13 @@ function App() {
         <button className="icon-btn" onClick={() => loadFleet({ refresh: true, status: statusFilter })} title="Refresh live window">
           {loading ? <Loader2 size={16} className="spin" /> : <RefreshCw size={16} />}
         </button>
-        <button className="mobile-menu"><Menu size={18} /></button>
+        <button
+          className="mobile-menu"
+          type="button"
+          aria-label="Jump to live metrics"
+          title="Jump to live metrics"
+          onClick={() => document.querySelector('.metrics-side')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        ><Menu size={18} /></button>
       </header>
 
       <main className="command-layout">
@@ -394,7 +415,7 @@ function App() {
             <button className={rotating ? 'active' : ''} onClick={() => setRotating((v) => !v)} title="Auto-rotate">
               <RotateCcw size={13} />
             </button>
-            <button onClick={() => { setDepth(0); setSelected(null); setProfile(null); setTrajectory(null) }} title="Reset view">
+            <button onClick={resetView} title="Reset view">
               <Target size={13} />
             </button>
           </div>
