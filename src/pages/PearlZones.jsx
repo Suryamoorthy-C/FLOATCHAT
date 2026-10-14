@@ -28,10 +28,10 @@ const DEMO_SAMPLES = {
 };
 
 const ZONES = [
-  { id: 'z1', name: 'North shelf', ppi: 89, status: 'high-suitability', alert: 2 },
-  { id: 'z2', name: 'East channel', ppi: 93, status: 'high-suitability', alert: 3 },
-  { id: 'z3', name: 'South pocket', ppi: 66, status: 'promising', alert: 7 },
-  { id: 'z4', name: 'West ridge', ppi: 100, status: 'high-suitability', alert: 0 },
+  { id: 'z1', name: 'North shelf' },
+  { id: 'z2', name: 'East channel' },
+  { id: 'z3', name: 'South pocket' },
+  { id: 'z4', name: 'West ridge' },
 ];
 
 const INITIAL_METRICS = [
@@ -73,9 +73,8 @@ export default function PearlZones() {
       zoneId: zone.id,
       lat: sample.lat,
       lng: sample.lon,
-      ppi: zone.ppi,
-      status: zone.status,
-      region: `${zone.name} · PPI ${zone.ppi}`,
+    status: 'insufficient-data',
+    region: `${zone.name} · illustrative record`,
       temp: sample.water_temp_c,
       sal: sample.salinity_psu,
       anomaly: sample.dissolved_oxygen_mg_l < 5 || sample.turbidity_ntu > 10,
@@ -110,8 +109,8 @@ export default function PearlZones() {
     return () => { active = false; };
   }, [species, selectedZone.id]);
 
-  const displayScore = activeResult ? activeResult.index : selectedZone.ppi;
-  const displayClass = activeResult?.zone_class ?? selectedZone.status;
+  const displayScore = activeResult?.index ?? null;
+  const displayClass = activeResult?.zone_class ?? 'insufficient-data';
   const metrics = INITIAL_METRICS.map((metric) => {
     const scored = activeResult?.parameter_scores?.[metric.key];
     const raw = selectedSample[metric.key];
@@ -127,8 +126,6 @@ export default function PearlZones() {
     };
   });
   const alerts = activeResult ? activeResult.warnings.filter((warning) => warning.severity === 'critical' || warning.severity === 'warning') : [];
-  const criticalCount = alerts.filter((item) => item.severity === 'critical').length;
-  const watchCount = alerts.filter((item) => item.severity === 'warning').length;
 
   function toggleLayer(key) {
     setLayers((current) => ({ ...current, [key]: !current[key] }));
@@ -139,7 +136,7 @@ export default function PearlZones() {
       <div className="pearl-shell">
         <header className="pearl-topline">
           <div>
-            <p className="pearl-eyebrow">AGRO-FLOAT / OCEAN INTELLIGENCE</p>
+            <p className="pearl-eyebrow">ARGO / OCEAN INTELLIGENCE</p>
             <h1>Pearl zone analytics</h1>
             <p className="pearl-subtitle">A sensor-led suitability screen for pearl-oyster cultivation areas.</p>
           </div>
@@ -147,7 +144,7 @@ export default function PearlZones() {
             <label className="pearl-select-label" htmlFor="species-select">Species profile</label>
             <select id="species-select" value={species} onChange={(event) => setSpecies(event.target.value)}>
               <option value="pinctada_maxima">Pinctada maxima</option>
-              <option value="pinctada_fucata">Pinctada fucata · research center</option>
+              <option value="pinctada_fucata">Pinctada fucata · controlled study</option>
             </select>
             <span className="pearl-demo-pill"><i />{dataMode}</span>
           </div>
@@ -155,7 +152,7 @@ export default function PearlZones() {
 
         <div className="pearl-notice" role="note">
           <span className="pearl-notice-mark">i</span>
-          <span><strong>Illustrative demo:</strong> sample readings and map geometry are not live farm observations or navigation data. PPI is environmental suitability, not predicted pearl yield.</span>
+          <span><strong>Illustrative demo:</strong> the four records and map geometry are static UI samples, not live farm observations or navigation data. PPI is an environmental screen, not measured suitability or predicted pearl yield.</span>
         </div>
 
         <section className="pearl-kpis" aria-label="Area overview">
@@ -164,9 +161,9 @@ export default function PearlZones() {
             <strong>{busy ? '···' : displayScore == null ? '—' : Math.round(displayScore)}</strong>
             <span className="pearl-kpi-foot"><i className={`zone-dot ${displayClass}`} />{displayClass.replaceAll('-', ' ')}</span>
           </article>
-          <article className="pearl-kpi"><span className="pearl-kpi-label">SUITABLE AREA</span><strong>12.4 <small>km²</small></strong><span className="pearl-kpi-foot">Demo grid · high / promising</span></article>
-          <article className="pearl-kpi"><span className="pearl-kpi-label">ILLUSTRATIVE SAMPLES</span><strong>04 <small>/ 04</small></strong><span className="pearl-kpi-foot">Four static demo records</span></article>
-          <article className="pearl-kpi pearl-kpi--alert"><span className="pearl-kpi-label">ACTIVE WARNINGS</span><strong>{alerts.length.toString().padStart(2, '0')}</strong><span className="pearl-kpi-foot">{criticalCount} critical · {watchCount} watch</span></article>
+          <article className="pearl-kpi"><span className="pearl-kpi-label">CULTURE DEPTH GUIDE</span><strong>≈15 <small>m</small></strong><span className="pearl-kpi-foot">FAO starting point · local bathymetry required</span></article>
+          <article className="pearl-kpi"><span className="pearl-kpi-label">REGIONAL HABITAT SIGNAL</span><strong>&lt;40 <small>m</small></strong><span className="pearl-kpi-foot">91.8% of observations in one WA study</span></article>
+          <article className="pearl-kpi pearl-kpi--alert"><span className="pearl-kpi-label">SCREENING FLAGS</span><strong>{alerts.length.toString().padStart(2, '0')}</strong><span className="pearl-kpi-foot">Illustrative sample · not field alerts</span></article>
         </section>
 
         <section className="pearl-workspace">
@@ -201,7 +198,7 @@ export default function PearlZones() {
               <div className="pearl-map-time">Updated {formatAge(selectedSample.observed_at)}</div>
             </div>
             <div className="pearl-zone-pills" aria-label="Select a zone">
-              {ZONES.map((zone) => <button key={zone.id} className={selectedZone.id === zone.id ? 'selected' : ''} type="button" onClick={() => setSelectedZone(zone)}><span className={`zone-dot ${zone.status}`} />{zone.name}<b>{zone.ppi}</b></button>)}
+              {ZONES.map((zone) => <button key={zone.id} className={selectedZone.id === zone.id ? 'selected' : ''} type="button" onClick={() => setSelectedZone(zone)}><span className="zone-dot" />{zone.name}<b>—</b></button>)}
             </div>
           </div>
 
@@ -224,15 +221,22 @@ export default function PearlZones() {
 
         <section className="pearl-bottom-grid">
           <div className="pearl-lower-card">
-            <div className="pearl-panel-head"><div><span className="pearl-panel-kicker">DECISION SUPPORT</span><h2>What is shaping this score</h2></div><span className="pearl-count-pill">{alerts.length} alerts</span></div>
+            <div className="pearl-panel-head"><div><span className="pearl-panel-kicker">DECISION SUPPORT</span><h2>What is shaping this screen</h2></div><span className="pearl-count-pill">{alerts.length} flags</span></div>
             <div className="pearl-alert-list">
               {alerts.slice(0, 3).map((alert, index) => <article className={`pearl-alert pearl-alert--${alert.severity}`} key={alert.code || `${alert.metric}-${index}`}><span className="pearl-alert-symbol">{alert.severity === 'critical' ? '!' : '↗'}</span><div><strong>{alert.metric === 'dissolved_oxygen_mg_l' ? 'Oxygen watch' : alert.metric === 'water_temp_c' ? 'Temperature outside target' : alert.metric || 'Parameter warning'}</strong><p>{alert.message}</p></div><span className="pearl-alert-state">{alert.severity}</span></article>)}
             </div>
           </div>
           <div className="pearl-lower-card pearl-method-card">
-            <div className="pearl-panel-head"><div><span className="pearl-panel-kicker">MODEL PROVENANCE</span><h2>How this is scored</h2></div><span className="pearl-version">PPI 0.1.0</span></div>
-            <p>Weighted, per-parameter suitability bands with QC/outlier exclusion. Missing metrics reduce coverage; they are never filled with zero.</p>
-            <p>{thresholds?.profile_note || (species === 'pinctada_fucata' ? 'Research-derived response-surface center; confirm location, stage, and production objective.' : 'Indo-Pacific tropical screening defaults; not a locally validated yield model.')}</p>
+            <div className="pearl-panel-head"><div><span className="pearl-panel-kicker">MODEL PROVENANCE</span><h2>How this is screened</h2></div><span className="pearl-version">PPI 0.1.0</span></div>
+            <p>Weighted, per-parameter screening bands with QC/outlier exclusion. Missing metrics reduce coverage; they are never filled with zero.</p>
+            <p>{thresholds?.profile_note || (species === 'pinctada_fucata' ? 'Controlled-study response-surface center; not a field suitability map or yield model.' : 'Indo-Pacific tropical screening defaults informed by FAO guidance and a Western Australia habitat study; not a locally validated yield model.')}</p>
+            <div className="pearl-research-context">
+              <strong>Research context</strong>
+              <p>FAO guidance describes sheltered sites, clear water, sufficient current exchange, and about 15 m as a starting culture depth—not a universal optimum. [1]</p>
+              <p>An AIMS-linked Western Australia survey found <i>P. maxima</i> from 28–76 m, with 91.8% of observations shallower than 40 m and strong association with flat habitat. [2]</p>
+              <p>Core Argo measures temperature, salinity, and pressure to about 2,000 m; oxygen, pH, and chlorophyll require BGC sensors, so nearshore farm decisions still need local monitoring. [3]</p>
+              <span><a href="https://www.fao.org/4/ab726e/AB726E06.htm" target="_blank" rel="noreferrer">[1] FAO farm guidance</a><a href="https://doi.org/10.3389/fmars.2021.679749" target="_blank" rel="noreferrer">[2] AIMS-linked habitat study</a><a href="https://www.aoml.noaa.gov/argo/" target="_blank" rel="noreferrer">[3] NOAA Argo scope</a></span>
+            </div>
             <div className="pearl-method-footer"><span>PROFILE <b>{species.replaceAll('_', ' ')}</b></span><span>MODEL <b>{activeResult?.model_version || 'ppi-0.1.0'}</b></span></div>
             <details className="pearl-evidence-details">
               <summary>Threshold evidence and source links</summary>

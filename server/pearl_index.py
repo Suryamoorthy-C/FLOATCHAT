@@ -12,13 +12,13 @@ from statistics import median
 from typing import Any
 
 MODEL_VERSION = "ppi-0.1.0"
-PROFILE_VERSION = "indo-pacific-pinctada-maxima-0.1"
+PROFILE_VERSION = "indo-pacific-pinctada-maxima-0.2"
 _SOURCES = [
     {"id": "1", "title": "FAO Pearl Oyster Farming, Chapter VI", "url": "https://www.fao.org/4/ab726e/AB726E06.htm"},
-    {"id": "2", "title": "Pinctada maxima culture site suitability study", "url": "https://cyberleninka.ru/article/n/suitability-area-analysis-for-the-development-of-pearl-oysters-pinctada-maxima-culture-using-geospatial-approaches"},
-    {"id": "3", "title": "Pinctada maxima and P. margaritifera in contrasting culture environments", "url": "https://hero.epa.gov/reference/7879934/"},
-    {"id": "4", "title": "Pinctada fucata salinity-stress response", "url": "https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2021.792179/full"},
-    {"id": "5", "title": "Pinctada fucata temperature-salinity response-surface study", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9751112/"},
+    {"id": "2", "title": "Distribution of the Pearl Oyster Pinctada maxima off Eighty Mile Beach, Western Australia", "url": "https://doi.org/10.3389/fmars.2021.679749"},
+    {"id": "3", "title": "NOAA AOML Argo Program overview", "url": "https://www.aoml.noaa.gov/argo/"},
+    {"id": "4", "title": "Physical Responses of Pinctada fucata to Salinity Stress", "url": "https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2021.792179/full"},
+    {"id": "5", "title": "Combined effects of temperature and salinity on Pinctada fucata physiology", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9751112/"},
 ]
 
 # Weights are explicit MVP assumptions, not fitted biological coefficients.
@@ -27,54 +27,54 @@ _BASE_METRICS: dict[str, dict[str, Any]] = {
         "label": "Water temperature", "unit": "°C", "ideal": (26.0, 30.0),
         "outer": (20.0, 34.0), "weight": 0.19, "physical": (-3.0, 50.0),
         "critical": lambda v: v < 20.0 or v > 32.0,
-        "rationale": "Tropical P. maxima screening band; validate by site and life stage.",
+        "rationale": "Provisional tropical screening band; published temperature responses vary by species, life stage, season, and region. Validate locally.",
     },
     "depth_m": {
         "label": "Culture depth", "unit": "m", "ideal": (15.0, 20.0),
         "outer": (5.0, 35.0), "weight": 0.16, "physical": (0.0, 12000.0),
         "critical": lambda v: v < 3.0 or v > 100.0,
-        "rationale": "Approximate pressure-derived depth; site bathymetry is required.",
+        "rationale": "FAO identifies about 15 m as a culture-depth starting point; local bathymetry, gear, currents, and life stage are required.",
     },
     "salinity_psu": {
         "label": "Salinity", "unit": "PSU", "ideal": (32.0, 35.0),
         "outer": (24.0, 50.0), "weight": 0.18, "physical": (0.0, 70.0),
         "critical": lambda v: v < 24.0 or v > 50.0,
-        "rationale": "32–35 PSU is a local P. maxima culture-screening target; broad tolerance is short-term only.",
+        "rationale": "Screening band only. FAO reports short-duration tolerance across a much wider range; growth and pearl outcomes require local calibration.",
     },
     "dissolved_oxygen_mg_l": {
         "label": "Dissolved oxygen", "unit": "mg/L", "ideal": (6.0, math.inf),
         "outer": (2.0, math.inf), "weight": 0.18, "physical": (0.0, 40.0),
         "critical": lambda v: v < 4.0,
-        "rationale": "Use ≥6 mg/L as the initial target; no universal upper growth optimum is asserted; alert urgently below 4 mg/L.",
+        "rationale": "Initial oxygen screen only; no universal upper growth optimum is asserted. Confirm sensor method, depth, temperature, and local farm outcomes.",
     },
     "ph": {
         "label": "pH", "unit": "pH", "ideal": (7.8, 8.6),
         "outer": (7.0, 9.2), "weight": 0.12, "physical": (0.0, 14.0),
         "critical": lambda v: v < 7.5 or v > 9.0,
-        "rationale": "Published local suitability range; preserve seawater-scale/calibration metadata.",
+        "rationale": "Screening band for seawater pH; not a universal P. maxima production range and not a substitute for alkalinity or carbonate-system measurements.",
     },
     "turbidity_ntu": {
         "label": "Turbidity", "unit": "NTU", "ideal": (0.0, 5.0),
         "outer": (0.0, 25.0), "weight": 0.08, "physical": (0.0, 10000.0),
         "critical": lambda v: v > 15.0,
-        "rationale": "Provisional engineering band only; calibrate against local suspended solids and Secchi depth.",
+        "rationale": "FAO links clear water and low silt load with pearl-oyster condition; NTU is a provisional proxy and must be calibrated against local suspended solids and Secchi depth.",
     },
     "chlorophyll_a_ug_l": {
         "label": "Chlorophyll-a", "unit": "µg/L", "ideal": (0.25, 5.0),
         "outer": (0.0, 25.0), "weight": 0.09, "physical": (0.0, 500.0),
         "critical": lambda v: v > 25.0,
-        "rationale": "Low-confidence food/bloom proxy; profile band is provisional and region-dependent.",
+        "rationale": "Low-confidence food-availability proxy; chlorophyll-a is region- and season-dependent and is not a direct feed or pearl-yield measure.",
     },
 }
 
 _METRIC_EVIDENCE = {
-    "water_temp_c": {"source_refs": ["2", "3"], "evidence_quality": "medium"},
+    "water_temp_c": {"source_refs": ["1", "2"], "evidence_quality": "medium"},
     "depth_m": {"source_refs": ["1", "2"], "evidence_quality": "medium"},
-    "salinity_psu": {"source_refs": ["1", "2"], "evidence_quality": "medium"},
-    "dissolved_oxygen_mg_l": {"source_refs": ["2", "4"], "evidence_quality": "medium"},
-    "ph": {"source_refs": ["2", "4"], "evidence_quality": "low"},
-    "turbidity_ntu": {"source_refs": ["1", "3"], "evidence_quality": "low"},
-    "chlorophyll_a_ug_l": {"source_refs": ["2"], "evidence_quality": "low"},
+    "salinity_psu": {"source_refs": ["1"], "evidence_quality": "medium"},
+    "dissolved_oxygen_mg_l": {"source_refs": ["1", "3"], "evidence_quality": "low"},
+    "ph": {"source_refs": ["3", "4"], "evidence_quality": "low"},
+    "turbidity_ntu": {"source_refs": ["1"], "evidence_quality": "medium"},
+    "chlorophyll_a_ug_l": {"source_refs": ["2", "3"], "evidence_quality": "low"},
 }
 _PROFILE_EVIDENCE_OVERRIDES = {
     "pinctada_fucata": {
@@ -89,7 +89,7 @@ _SPECIES = {
         "scientific_name": "Pinctada maxima",
         "profile_version": PROFILE_VERSION,
         "metrics": _BASE_METRICS,
-        "profile_note": "Indo-Pacific tropical screening defaults; not a locally validated yield model.",
+        "profile_note": "Indo-Pacific tropical screening defaults informed by FAO farm guidance and a Western Australia habitat study; not a locally validated yield model.",
     },
     "pinctada_fucata": {
         "common_name": "Akoya pearl oyster",
@@ -106,7 +106,7 @@ _SPECIES = {
                 "rationale": "Narrow band around a controlled-study physiological response-surface center; not field- or pearl-yield validated.",
             },
         },
-        "profile_note": "Research-derived response-surface center; confirm location, stage, and production objective before operational use.",
+        "profile_note": "Controlled-study response-surface center for P. fucata; the experiment is not a field suitability map or yield model. Confirm location, stage, and production objective.",
     },
 }
 

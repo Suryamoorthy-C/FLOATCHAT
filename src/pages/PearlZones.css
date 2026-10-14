@@ -224,3 +224,5 @@
   overflow-wrap:anywhere;
   line-height:1.45;
 }
+
+.pearl-research-context{margin:12px 0 10px;padding:10px 11px;border:1px solid rgba(45,226,210,.14);border-radius:8px;background:rgba(45,226,210,.025);color:#8399a8;font-size:8px;line-height:1.5}.pearl-research-context strong{display:block;margin-bottom:6px;color:#69ded1;font:8px 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase}.pearl-research-context p{margin:5px 0}.pearl-research-context a{display:inline-block;margin:5px 10px 0 0;color:#5ccfc6;font:7px 'JetBrains Mono',monospace}.pearl-research-context i{color:#b9d7dc}
