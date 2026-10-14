@@ -68,7 +68,8 @@ export default function Header() {
             items={SECTIONS.map(section => ({ label: section.label }))}
             activeIndex={active}
             onChange={go}
-            theme="light"
+            theme="dark"
+            frame={false}
             size="md"
             particleCount={12}
             spread={48}

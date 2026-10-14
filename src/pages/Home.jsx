@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ParticleText from '../components/ParticleText';
 import RippleDistortion from '../components/RippleDistortion';
+import WarpText from '../components/WarpText';
 import MagicBento from '../components/MagicBento';
 import Reveal from '../components/Reveal';
 import { Link } from '../router';
@@ -82,10 +83,24 @@ export default function Home() {
           </Reveal>
 
           <Reveal variant="up" delay={160} persistKey="home-hero-copy">
-            <p className="home-hero__headline">Ask the ocean a question.</p>
+            <WarpText
+              className="home-hero__warp"
+              text="Ask the ocean a question."
+              color="#c1ff00"
+              warpStrength={0.08}
+              warpScale={1.7}
+              speed={0.55}
+              pointerInfluence={0.42}
+              pointerStrength={0.38}
+              refraction={0.018}
+              ripple
+              fontSize="clamp(2rem, 7vw, 5rem)"
+              fontWeight={800}
+              letterSpacing="-0.045em"
+              style={{ height: isNarrow ? '120px' : '156px' }}
+            />
             <p className="home-hero__sub">
               Plain-language answers over live Argo float data, with citations on every claim.
-              Move your cursor — the water ripples, the letters breathe.
             </p>
           </Reveal>
 
@@ -117,32 +132,6 @@ export default function Home() {
 
       <BentoShowcase />
 
-      <section className="section section--dark home-provenance" aria-labelledby="provenance-title">
-        <div className="container home-provenance__inner">
-          <Reveal variant="right">
-            <div>
-              <p className="eyebrow home-provenance__eyebrow">Provenance</p>
-              <h2 className="section__title" id="provenance-title">
-                Every number traces back to its source.
-              </h2>
-            </div>
-          </Reveal>
-          <Reveal variant="left" delay={120}>
-            <p className="home-provenance__body">
-              Core Argo floats profile temperature and salinity from the surface to about 2,000 m.
-              FloatChat reports the source, fetch time and live-versus-cached mode beside the data,
-              so a fallback value cannot be mistaken for a live reading. Learn more from the{' '}
-              <a href="https://www.aoml.noaa.gov/argo/" target="_blank" rel="noreferrer noopener">
-                NOAA Argo programme
-              </a>{' '}
-              and the{' '}
-              <a href="https://globalocean.noaa.gov/research/argo-program/" target="_blank" rel="noreferrer noopener">
-                NOAA Global Ocean Monitoring and Observing programme
-              </a>.
-            </p>
-          </Reveal>
-        </div>
-      </section>
     </>
   );
 }
@@ -204,8 +193,7 @@ function BentoShowcase() {
       title: 'Profiles and anomalies',
       description:
         'Pull a full 0–2,000 m temperature and salinity profile for any float, and surface the outliers automatically.',
-      visual: 'automation',
-      colSpan: 2
+      visual: 'profiles',
     },
     {
       label: 'Citations',
@@ -218,8 +206,7 @@ function BentoShowcase() {
       label: 'Fleet right now',
       title: status === 'error' ? 'Live window unreachable' : 'Fleet right now',
       description: fleetDescription,
-      visual: 'collaboration',
-      colSpan: 2
+      visual: 'collaboration'
     },
     {
       label: 'Console',
@@ -227,6 +214,31 @@ function BentoShowcase() {
       description: 'Full globe, depth sweep, trajectories and the anomaly strip.',
       visual: 'integration',
       href: CONSOLE_PATH
+    },
+    {
+      label: 'Provenance',
+      colSpan: 2,
+      content: (
+        <div className="home-provenance-card">
+          <div className="magic-bento__header">
+            <span className="magic-bento__label">Provenance</span>
+          </div>
+          <h3>Every number traces back to its source.</h3>
+          <p>
+            Core Argo floats profile temperature and salinity from the surface to about 2,000 m.
+            FloatChat reports the source, fetch time and live-versus-cached mode beside the data,
+            so a fallback value cannot be mistaken for a live reading.
+          </p>
+          <div className="home-provenance-card__links">
+            <a href="https://www.aoml.noaa.gov/argo/" target="_blank" rel="noreferrer noopener">
+              NOAA Argo programme <span aria-hidden="true">↗</span>
+            </a>
+            <a href="https://globalocean.noaa.gov/research/argo-program/" target="_blank" rel="noreferrer noopener">
+              NOAA Global Ocean Monitoring and Observing programme <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+      )
     }
   ];
 
@@ -242,9 +254,10 @@ function BentoShowcase() {
         <Reveal variant="up" delay={120}>
           <MagicBento
             items={items}
+            className="discover"
             columns={4}
-            rowHeight={250}
-            gap={12}
+            rowHeight={264}
+            gap={16}
             radius={20}
             theme="light"
             glowColor="#1A2FFB"

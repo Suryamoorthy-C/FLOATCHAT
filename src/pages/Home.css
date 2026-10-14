@@ -80,17 +80,16 @@
   min-height: 100%;
 }
 
-.home-hero__headline {
-  margin: 0;
-  font-size: clamp(1.6rem, 3.8vw, 2.8rem);
-  line-height: 1.05;
-  letter-spacing: var(--tracking-tight);
-  font-weight: var(--font-weight-medium);
-  text-wrap: balance;
+.home-hero__warp {
+  width: min(100%, 1020px);
+  min-height: 0;
+  height: clamp(120px, 17vw, 164px);
+  margin-inline: auto;
 }
 
 .home-hero__sub {
-  margin: var(--space-4) auto 0;
+  margin: 0;
+  margin-block-start: var(--space-4);
   max-width: 52ch;
   color: rgba(228, 230, 239, 0.82);
   font-size: var(--text-sm);
@@ -207,26 +206,54 @@
 
 .stat--loading .stat__value { color: var(--color-text-quiet); }
 
-.home-provenance__inner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--space-16);
-  align-items: start;
+.home-provenance-card {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.home-provenance__eyebrow { color: var(--color-on-dark-accent); }
-.home-provenance .section__title { margin-block-end: 0; }
-.home-provenance__body {
+.home-provenance-card h3 {
   margin: 0;
-  font-size: var(--text-base);
-  line-height: var(--leading-base);
-  color: var(--color-on-dark-muted);
+  color: var(--mb-ink);
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.home-provenance-card p {
+  margin: 0;
+  color: var(--mb-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.home-provenance-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-block-start: auto;
+  padding-block-start: 4px;
+}
+
+.home-provenance-card__links a {
+  color: #4f6d00;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.home-provenance-card__links a:hover {
+  color: #263700;
 }
 
 @media (max-width: 860px) {
   .home-hero { min-height: 96svh; }
   .home-hero__particles { block-size: clamp(150px, 42vw, 205px); }
-  .home-provenance__inner { grid-template-columns: minmax(0, 1fr); gap: var(--space-14); }
+  .home-hero__warp { height: 132px; }
 }
 
 @media (max-width: 520px) {
@@ -237,9 +264,10 @@
   .home-hero__scroll span { animation: none; }
 }
 
-/* ---- MagicBento showcase: capabilities + fleet in one grid ---- */
+/* ---- MagicBento showcase: capabilities, fleet and provenance ---- */
 .home-bento .magic-bento { margin-block-start: var(--space-14); }
 .home-bento .section__title { margin-block-end: 0; }
+.home-bento .discover { align-items: stretch; }
 
 /* Scroll cue is now a button (no hash change, no redirect). */
 button.home-hero__scroll {
