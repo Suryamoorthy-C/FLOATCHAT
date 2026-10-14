@@ -74,14 +74,16 @@ function GlobeMarker({ marker, radius, color, selected, onClick }) {
         <meshBasicMaterial color={color} />
       </mesh>
       <group position={top}>
-        <Html transform center sprite distanceFactor={8} occlude>
+        <Html transform center sprite distanceFactor={8} style={{ pointerEvents: 'auto' }}>
           <button
             type="button"
             className={'argo-marker' + (selected ? ' is-selected' : '') + (hovered ? ' is-hovered' : '')}
             style={{ '--marker-color': color }}
             aria-label={`Select ${label}`}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
+            onPointerEnter={() => setHovered(true)}
+            onPointerLeave={() => setHovered(false)}
+            onFocus={() => setHovered(true)}
+            onBlur={() => setHovered(false)}
             onClick={() => onClick(marker)}
           >
             <span className="argo-marker__dot" />

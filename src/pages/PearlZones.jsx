@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Globe3D from '../components/Globe3D';
 import { api } from '../api';
 import './PearlZones.css';
 
@@ -63,6 +64,19 @@ export default function PearlZones() {
 
   const selectedSample = { ...DEMO_SAMPLES[selectedZone.id], species };
   const activeResult = result?.device_id === selectedSample.device_id && result?.species_profile === species ? result : null;
+  const pearlMarkers = useMemo(() => ZONES.map((zone) => {
+    const sample = DEMO_SAMPLES[zone.id];
+    return {
+      id: sample.device_id,
+      zoneId: zone.id,
+      lat: sample.lat,
+      lng: sample.lon,
+      region: `${zone.name} · PPI ${zone.ppi}`,
+      temp: sample.water_temp_c,
+      sal: sample.salinity_psu,
+      anomaly: sample.dissolved_oxygen_mg_l < 5 || sample.turbidity_ntu > 10,
+    };
+  }), []);
 
   useEffect(() => {
     let active = true;
@@ -149,6 +163,26 @@ export default function PearlZones() {
           <article className="pearl-kpi"><span className="pearl-kpi-label">SUITABLE AREA</span><strong>12.4 <small>km²</small></strong><span className="pearl-kpi-foot">Demo grid · high / promising</span></article>
           <article className="pearl-kpi"><span className="pearl-kpi-label">ILLUSTRATIVE SAMPLES</span><strong>04 <small>/ 04</small></strong><span className="pearl-kpi-foot">Four static demo records</span></article>
           <article className="pearl-kpi pearl-kpi--alert"><span className="pearl-kpi-label">ACTIVE WARNINGS</span><strong>{alerts.length.toString().padStart(2, '0')}</strong><span className="pearl-kpi-foot">{criticalCount} critical · {watchCount} watch</span></article>
+        </section>
+
+        <section className="pearl-globe-panel" aria-labelledby="pearl-globe-title">
+          <div className="pearl-panel-head">
+            <div><span className="pearl-panel-kicker">GLOBAL FLOAT CONTEXT / SENSOR LOCATIONS</span><h2 id="pearl-globe-title">Pearl zone sensor globe</h2></div>
+            <span className="pearl-globe-status"><i />{layers.floats ? '4 AGRO-FLOATS VISIBLE' : 'FLOAT LAYER HIDDEN'}</span>
+          </div>
+          <div className="pearl-globe-stage">
+            <Globe3D
+              markers={layers.floats ? pearlMarkers : []}
+              mode="salinity"
+              rotating
+              selectedId={selectedSample.device_id}
+              onMarkerClick={(marker) => {
+                const zone = ZONES.find((item) => item.id === marker.zoneId);
+                if (zone) setSelectedZone(zone);
+              }}
+            />
+            <div className="pearl-globe-caption">Hover a marker for device, PPI, temperature, and salinity · click to select its zone</div>
+          </div>
         </section>
 
         <section className="pearl-workspace">
