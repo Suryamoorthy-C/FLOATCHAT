@@ -207,7 +207,7 @@
      --------------------------------------------------------------- */
   function sampleWord(text) {
     const FONT_PX = 260;
-    const font = `700 ${FONT_PX}px \"Space Grotesk\", Inter, system-ui, sans-serif`;
+    const font = `700 ${FONT_PX}px "Space Grotesk", Inter, system-ui, sans-serif`;
     const probe = document.createElement('canvas').getContext('2d');
     probe.font = font;
     const textW = Math.ceil(probe.measureText(text).width);
@@ -318,7 +318,7 @@
       colors[i * 3 + 1] = col.g;
       colors[i * 3 + 2] = col.b;
 
-      // stagger left→right so the word \"lands\" as a wave
+      // stagger left→right so the word "lands" as a wave
       delays[i] = (p.nx + 0.5) * 0.45 + Math.random() * 0.12;
     }
 
