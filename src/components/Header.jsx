@@ -3,6 +3,7 @@ import GooeyNav from './GooeyNav';
 import SpecularButton from './SpecularButton';
 import { Link } from '../router';
 import { CONSOLE_PATH, GITHUB_URL } from '../routes';
+import { scrollToElement } from '../smoothScroll';
 import './Header.css';
 
 /**
@@ -56,9 +57,7 @@ export default function Header() {
   const go = index => {
     setActive(index);
     setMobileOpen(false);
-    document
-      .getElementById(SECTIONS[index].id)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToElement(document.getElementById(SECTIONS[index].id), { duration: 0.95 });
   };
 
   return (

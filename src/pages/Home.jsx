@@ -9,6 +9,7 @@ import { Link } from '../router';
 import { CONSOLE_PATH } from '../routes';
 import { api } from '../api';
 import { useMediaQuery } from '../hooks';
+import { scrollToElement } from '../smoothScroll';
 import './Home.css';
 import './HomeGlass.css';
 
@@ -136,7 +137,7 @@ export default function Home() {
           size="icon"
           className="home-hero__scroll"
           aria-label="Scroll to capabilities"
-          onClick={() => document.getElementById('capabilities')?.scrollIntoView({ behavior: 'smooth' })}
+          onClick={() => scrollToElement(document.getElementById('capabilities'), { duration: 0.95 })}
         >
           <span aria-hidden="true" />
         </SpecularButton>

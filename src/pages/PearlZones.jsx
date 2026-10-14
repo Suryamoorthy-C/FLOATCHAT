@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api';
 import './PearlZones.css';
 
@@ -55,14 +55,33 @@ function formatAge(timestamp) {
 }
 
 export default function PearlZones() {
+  const globeHostRef = useRef(null);
   const [species, setSpecies] = useState('pinctada_maxima');
   const [selectedZone, setSelectedZone] = useState(ZONES[0]);
   const [layers, setLayers] = useState({ suitability: true, depth: true, floats: true });
   const [globeKey, setGlobeKey] = useState(0);
+  const [globeReady, setGlobeReady] = useState(false);
   const [result, setResult] = useState(null);
   const [thresholds, setThresholds] = useState(null);
   const [dataMode, setDataMode] = useState('DEMO');
   const [busy, setBusy] = useState(true);
+
+  useEffect(() => {
+    const host = globeHostRef.current;
+    if (!host || globeReady) return undefined;
+    if (!('IntersectionObserver' in window)) {
+      setGlobeReady(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      setGlobeReady(true);
+      observer.disconnect();
+    }, { rootMargin: '400px 0px' });
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, [globeReady]);
 
   const selectedSample = { ...DEMO_SAMPLES[selectedZone.id], species };
   const activeResult = result?.device_id === selectedSample.device_id && result?.species_profile === species ? result : null;
@@ -172,25 +191,29 @@ export default function PearlZones() {
               <div><span className="pearl-panel-kicker">3D GLOBE / INDONESIAN SEAS · DEMO</span><h2>Environmental suitability</h2></div>
               <button className="pearl-map-reset" type="button" onClick={() => { setSelectedZone(ZONES[0]); setGlobeKey((key) => key + 1); }}>Reset view</button>
             </div>
-            <div className="pearl-map pearl-globe-stage">
-              <Suspense fallback={<div className="globe-loading">INITIALIZING PEARL GLOBE…</div>}>
-                <Globe3D
-                  key={globeKey}
-                  markers={layers.floats ? pearlMarkers : []}
-                  mode={layers.suitability ? 'suitability' : 'telemetry'}
-                  rotating
-                  rotationSpeed={0.00012}
-                  showGraticules={layers.depth}
-                  centerLongitude={117}
-                  screenSpaceLabels
-                  pixelRatio={2}
-                  selectedId={selectedSample.device_id}
-                  onMarkerClick={(marker) => {
-                    const zone = ZONES.find((item) => item.id === marker.zoneId);
-                    if (zone) setSelectedZone(zone);
-                  }}
-                />
-              </Suspense>
+            <div className="pearl-map pearl-globe-stage" ref={globeHostRef}>
+              {globeReady ? (
+                <Suspense fallback={<div className="globe-loading">INITIALIZING PEARL GLOBE…</div>}>
+                  <Globe3D
+                    key={globeKey}
+                    markers={layers.floats ? pearlMarkers : []}
+                    mode={layers.suitability ? 'suitability' : 'telemetry'}
+                    rotating
+                    rotationSpeed={0.00012}
+                    showGraticules={layers.depth}
+                    centerLongitude={117}
+                    screenSpaceLabels
+                    pixelRatio={2}
+                    selectedId={selectedSample.device_id}
+                    onMarkerClick={(marker) => {
+                      const zone = ZONES.find((item) => item.id === marker.zoneId);
+                      if (zone) setSelectedZone(zone);
+                    }}
+                  />
+                </Suspense>
+              ) : (
+                <div className="globe-loading" aria-busy="true">INITIALIZING PEARL GLOBE…</div>
+              )}
               <div className="pearl-globe-caption">DRAG TO ROTATE · SCROLL TO ZOOM · DEMO COORDINATES · NOT FOR NAVIGATION</div>
             </div>
             <div className="pearl-layer-row" aria-label="Map layers">

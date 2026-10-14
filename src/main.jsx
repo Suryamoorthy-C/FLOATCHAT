@@ -9,7 +9,7 @@ import Data from './pages/Data';
 import Docs from './pages/Docs';
 import PearlZones from './pages/PearlZones';
 import { useRoute, useSection } from './router';
-
+import { scrollToElement, scrollToPosition, startSmoothScroll } from './smoothScroll';
 import './theme/tokens.css';
 import './theme/base.css';
 // The shell's own views use the shared page primitives, so make that guarantee
@@ -41,7 +41,7 @@ function skipToMain(event) {
   const main = document.getElementById('main');
   if (!main) return;
   main.focus();
-  main.scrollIntoView({ block: 'start' });
+  scrollToElement(main);
 }
 
 function ConsoleFallback() {
@@ -61,11 +61,16 @@ function App() {
   const section = useSection();
 
   useEffect(() => {
+    if (path === '/console') return undefined;
+    return startSmoothScroll();
+  }, [path]);
+
+  useEffect(() => {
     if (path === '/console') return;
     const id = section || ROUTE_SECTION[path] || 'home';
     const target = document.getElementById(id);
     if (!target) return;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToElement(target, { duration: 0.95 });
 
     // Live content above this section can expand after the first scroll starts.
     // Re-align the Pearl Zones route once layout settles, unless the visitor has
@@ -77,7 +82,7 @@ function App() {
       if (cancelled || !window.location.hash.startsWith('#/pearl-zones')) return;
       const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
       const top = target.getBoundingClientRect().top + window.scrollY - margin;
-      window.scrollTo(0, Math.max(0, top));
+      scrollToPosition(Math.max(0, top), { duration: 0.35 });
     }, 1200);
     const userEvents = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
     userEvents.forEach((eventName) => window.addEventListener(eventName, cancelCorrection, { once: true, passive: true }));
