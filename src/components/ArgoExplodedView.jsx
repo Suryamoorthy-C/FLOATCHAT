@@ -21,24 +21,37 @@ const STAGES = [
 
 function useScrollProgress(sectionRef) {
   const [progress, setProgress] = useState(0);
+  const targetProgress = useRef(0);
+  const animationFrame = useRef(0);
 
   useEffect(() => {
-    let frame = 0;
     const update = () => {
-      frame = 0;
       const section = sectionRef.current;
       if (!section) return;
       const range = Math.max(1, section.offsetHeight - window.innerHeight);
-      setProgress(clamp01(-section.getBoundingClientRect().top / range));
+      targetProgress.current = clamp01(-section.getBoundingClientRect().top / range);
+    };
+    const animate = () => {
+      setProgress(current => {
+        const next = current + (targetProgress.current - current) * 0.13;
+        if (Math.abs(next - targetProgress.current) > 0.0005) {
+          animationFrame.current = requestAnimationFrame(animate);
+        } else {
+          animationFrame.current = 0;
+        }
+        return next;
+      });
     };
     const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(update);
+      update();
+      if (!animationFrame.current) animationFrame.current = requestAnimationFrame(animate);
     };
     update();
+    animationFrame.current = requestAnimationFrame(animate);
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     return () => {
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(animationFrame.current);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
@@ -268,6 +281,32 @@ function Callout({ label, detail, point, anchor, visible, tone = 'cyan' }) {
   );
 }
 
+function Hotspot({ label, detail, position, tone = 'cyan' }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Html position={position} distanceFactor={8} transform={false} zIndexRange={[20, 0]}>
+      <div
+        className={`argo-hotspot argo-hotspot--${tone}${open ? ' is-open' : ''}`}
+        onPointerEnter={() => setOpen(true)}
+        onPointerLeave={() => setOpen(false)}
+      >
+        <button
+          type="button"
+          aria-label={`${label}: ${detail}`}
+          aria-expanded={open}
+          onClick={() => setOpen(value => !value)}
+        >
+          <span aria-hidden="true" />
+        </button>
+        <div className="argo-hotspot__panel" role="status">
+          <strong>{label}</strong>
+          <span>{detail}</span>
+        </div>
+      </div>
+    </Html>
+  );
+}
+
 function FloatAssembly({ progress }) {
   const group = useRef();
   const explode = smoothstep(0.16, 0.48, progress) * (1 - smoothstep(0.78, 0.98, progress));
@@ -293,6 +332,12 @@ function FloatAssembly({ progress }) {
       <PumpAssembly explode={explode} />
       <Ballast explode={explode} />
       <LowerSensor explode={explode} />
+      <Hotspot label="CTD sensor" detail="Conductivity, temperature and pressure observations." position={[0, 2.52, 0.08]} />
+      <Hotspot label="Controller" detail="Runs the mission schedule and packages observations." position={[0.28, 1.42, 0.18]} />
+      <Hotspot label="Buoyancy engine" detail="Moves mineral oil to change the float's volume." position={[0.62, -0.32, 0.18]} tone="yellow" />
+      <Hotspot label="Lithium bay" detail="Primary power pack; capacity limits mission life." position={[-0.58, -0.78, 0.12]} tone="yellow" />
+      <Hotspot label="External bladder" detail="Expands at the surface to create positive buoyancy." position={[0.72, -1.08, 0.18]} tone="yellow" />
+      <Hotspot label="GPS + satellite" detail="Receives a surface fix and transmits the profile." position={[0, 3.42, 0.08]} />
       <Callout label="Satellite antenna" detail="Surface telemetry" point={[0, 3.43, 0]} anchor={[1.95, 3.55, 0]} visible={labelVisible} />
       <Callout label="CTD sensor head" detail="Conductivity · temperature · pressure" point={[0, 2.68, 0]} anchor={[-2.08, 2.72, 0]} visible={labelVisible} />
       <Callout label="Stability disk" detail="Keeps the profile steady" point={[1.2, 0.34, 0]} anchor={[2.1, 0.4, 0]} visible={showcase > 0.2} tone="yellow" />
