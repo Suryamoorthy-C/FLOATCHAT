@@ -93,6 +93,10 @@ function Hull({ explode }) {
           <sphereGeometry args={[0.89, 48, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
           <Metal color="#d4a911" roughness={0.34} metalness={0.22} transparent={opacity < 0.95} opacity={opacity} />
         </mesh>
+        <mesh position={[0, -0.72, 0]}>
+          <torusGeometry args={[0.89, 0.025, 10, 48]} />
+          <Metal color="#f0d766" roughness={0.28} metalness={0.4} transparent={opacity < 0.95} opacity={opacity} />
+        </mesh>
       </MovingPart>
       <MovingPart base={[0, -0.92, 0]} offset={[0, -1.12, 0]} explode={explode}>
         <mesh castShadow receiveShadow>
@@ -103,12 +107,36 @@ function Hull({ explode }) {
           <cylinderGeometry args={[0.88, 0.74, 0.24, 48]} />
           <Metal color="#c19c18" roughness={0.38} metalness={0.25} transparent={opacity < 0.95} opacity={opacity} />
         </mesh>
+        <mesh position={[0, 0.72, 0]}>
+          <torusGeometry args={[0.89, 0.025, 10, 48]} />
+          <Metal color="#f0d766" roughness={0.28} metalness={0.4} transparent={opacity < 0.95} opacity={opacity} />
+        </mesh>
       </MovingPart>
       <mesh position={[0, 0.26, 0]}>
         <torusGeometry args={[0.9, 0.035, 12, 48]} />
         <meshStandardMaterial color="#f0d766" roughness={0.28} metalness={0.4} transparent={opacity < 0.95} opacity={opacity} />
       </mesh>
     </>
+  );
+}
+
+function PressureCore({ explode }) {
+  const opacity = smoothstep(0.18, 0.52, explode) * 0.84;
+  return (
+    <MovingPart base={[0, 0, 0]} offset={[0, 0, 0.08]} explode={explode}>
+      <mesh castShadow>
+        <cylinderGeometry args={[0.68, 0.68, 3.18, 40]} />
+        <Metal color="#5d6972" roughness={0.25} metalness={0.78} transparent opacity={opacity} />
+      </mesh>
+      <mesh position={[0, 1.58, 0]}>
+        <torusGeometry args={[0.68, 0.026, 10, 40]} />
+        <Metal color="#d3e0df" roughness={0.22} metalness={0.8} transparent opacity={opacity} />
+      </mesh>
+      <mesh position={[0, -1.58, 0]}>
+        <torusGeometry args={[0.68, 0.026, 10, 40]} />
+        <Metal color="#d3e0df" roughness={0.22} metalness={0.8} transparent opacity={opacity} />
+      </mesh>
+    </MovingPart>
   );
 }
 
@@ -122,6 +150,10 @@ function TopAssembly({ explode }) {
       <mesh position={[0, 0.32, 0]} castShadow>
         <cylinderGeometry args={[0.24, 0.24, 0.72, 24]} />
         <Metal color="#c3d1d4" roughness={0.2} metalness={0.82} />
+      </mesh>
+      <mesh position={[0, 0.36, 0]}>
+        <torusGeometry args={[0.29, 0.025, 10, 24]} />
+        <Metal color="#6e7d83" roughness={0.25} metalness={0.76} />
       </mesh>
       <mesh position={[0, 0.62, 0.08]} castShadow>
         <boxGeometry args={[0.38, 0.18, 0.24]} />
@@ -186,6 +218,12 @@ function Battery({ explode }) {
         <cylinderGeometry args={[0.26, 0.26, 1.25, 32]} />
         <meshStandardMaterial color="#a63c28" roughness={0.42} metalness={0.18} />
       </mesh>
+      {[-0.1, 0, 0.1].map(x => (
+        <mesh key={x} position={[x, 0, 0.18]}>
+          <cylinderGeometry args={[0.065, 0.065, 1.05, 18]} />
+          <meshStandardMaterial color="#c85632" roughness={0.36} metalness={0.2} />
+        </mesh>
+      ))}
       <mesh position={[0, 0.66, 0]}>
         <cylinderGeometry args={[0.12, 0.12, 0.06, 24]} />
         <Metal color="#c7d0ce" roughness={0.2} metalness={0.85} />
@@ -213,6 +251,7 @@ function BuoyancyEngine({ explode }) {
         <sphereGeometry args={[0.48, 32, 18]} />
         <meshStandardMaterial color="#d48643" roughness={0.46} metalness={0.08} transparent opacity={0.92} />
       </mesh>
+      <Line points={[[0.18, -0.56, 0.03], [0.18, -0.92, 0.03]]} color="#d6c17b" transparent opacity={0.8} lineWidth={1.4} />
     </MovingPart>
   );
 }
@@ -262,6 +301,12 @@ function LowerSensor({ explode }) {
         <cylinderGeometry args={[0.1, 0.1, 0.4, 18]} />
         <Metal color="#272e32" roughness={0.3} metalness={0.75} />
       </mesh>
+      {[0.08, 0.18, 0.28].map(y => (
+        <mesh key={y} position={[0, -y, 0]}>
+          <torusGeometry args={[0.37 - y * 0.15, 0.018, 8, 28]} />
+          <Metal color="#8c9b9d" roughness={0.3} metalness={0.76} />
+        </mesh>
+      ))}
     </MovingPart>
   );
 }
@@ -287,13 +332,15 @@ function Hotspot({ label, detail, position, tone = 'cyan' }) {
     <Html position={position} distanceFactor={8} transform={false} zIndexRange={[20, 0]}>
       <div
         className={`argo-hotspot argo-hotspot--${tone}${open ? ' is-open' : ''}`}
-        onPointerEnter={() => setOpen(true)}
-        onPointerLeave={() => setOpen(false)}
       >
         <button
           type="button"
           aria-label={`${label}: ${detail}`}
           aria-expanded={open}
+          onPointerEnter={() => setOpen(true)}
+          onPointerLeave={() => setOpen(false)}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
           onClick={() => setOpen(value => !value)}
         >
           <span aria-hidden="true" />
@@ -310,7 +357,6 @@ function Hotspot({ label, detail, position, tone = 'cyan' }) {
 function FloatAssembly({ progress }) {
   const group = useRef();
   const explode = smoothstep(0.16, 0.48, progress) * (1 - smoothstep(0.78, 0.98, progress));
-  const showcase = smoothstep(0.46, 0.64, progress);
   const operation = smoothstep(0.62, 0.78, progress);
 
   useFrame((state, delta) => {
@@ -320,10 +366,10 @@ function FloatAssembly({ progress }) {
     group.current.position.y = THREE.MathUtils.damp(group.current.position.y, operation * 0.12, 3, delta);
   });
 
-  const labelVisible = explode > 0.28 || showcase > 0.15;
   return (
     <group ref={group} scale={0.72}>
       <Hull explode={explode} />
+      <PressureCore explode={explode} />
       <TopAssembly explode={explode} />
       <StabilityDisk explode={explode} />
       <Electronics explode={explode} />
@@ -338,14 +384,6 @@ function FloatAssembly({ progress }) {
       <Hotspot label="Lithium bay" detail="Primary power pack; capacity limits mission life." position={[-0.58, -0.78, 0.12]} tone="yellow" />
       <Hotspot label="External bladder" detail="Expands at the surface to create positive buoyancy." position={[0.72, -1.08, 0.18]} tone="yellow" />
       <Hotspot label="GPS + satellite" detail="Receives a surface fix and transmits the profile." position={[0, 3.42, 0.08]} />
-      <Callout label="Satellite antenna" detail="Surface telemetry" point={[0, 3.43, 0]} anchor={[1.95, 3.55, 0]} visible={labelVisible} />
-      <Callout label="CTD sensor head" detail="Conductivity · temperature · pressure" point={[0, 2.68, 0]} anchor={[-2.08, 2.72, 0]} visible={labelVisible} />
-      <Callout label="Stability disk" detail="Keeps the profile steady" point={[1.2, 0.34, 0]} anchor={[2.1, 0.4, 0]} visible={showcase > 0.2} tone="yellow" />
-      <Callout label="Controller + transceiver" detail="Schedules, packages and transmits" point={[0.34, 1.55, 0.12]} anchor={[-2.2, 1.52, 0]} visible={showcase > 0.35} />
-      <Callout label="Lithium battery bay" detail="Primary power for multi-year missions" point={[-0.32, -0.7, 0]} anchor={[-2.05, -0.72, 0]} visible={showcase > 0.45} tone="yellow" />
-      <Callout label="Hydraulic pump + oil" detail="Moves mineral oil to change volume" point={[0.58, -0.35, 0.14]} anchor={[2.05, -0.45, 0]} visible={operation > 0.2} />
-      <Callout label="External bladder" detail="Expands for positive buoyancy" point={[0.78, -1.1, 0.1]} anchor={[2.08, -1.18, 0]} visible={operation > 0.34} tone="yellow" />
-      <Callout label="Ballast weights" detail="Precision trim before deployment" point={[-0.36, -1.62, 0.05]} anchor={[-2.05, -1.52, 0]} visible={showcase > 0.58} tone="yellow" />
     </group>
   );
 }
