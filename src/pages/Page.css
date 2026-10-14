@@ -1,0 +1,358 @@
+/* ==========================================================================
+   Shared page styles — Lusion tokens only
+   ========================================================================== */
+
+/* Anchor targets must clear the sticky header when scrolled to. */
+.page [id] {
+  scroll-margin-block-start: calc(var(--layout-header-height) + var(--space-10));
+}
+
+/* --------------------------------------------------------------- page head */
+
+.page-head {
+  padding-block: var(--space-16) var(--space-14);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.page-head__title {
+  max-width: 22ch;
+  margin-block-start: var(--space-7);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+.page-head__lede {
+  max-width: 58ch;
+  margin-block-start: var(--space-12);
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 861px) {
+  .page-head__title {
+    font-size: var(--text-3xl);
+    line-height: var(--leading-3xl);
+  }
+}
+
+/* ------------------------------------------------------------------ prose */
+
+.prose {
+  max-width: var(--layout-measure);
+}
+
+.prose > * + * {
+  margin-block-start: var(--space-10);
+}
+
+.prose h2 {
+  margin-block-start: var(--space-14);
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+}
+
+.prose h3 {
+  margin-block-start: var(--space-12);
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+}
+
+.prose p,
+.prose li {
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+}
+
+.prose ul,
+.prose ol {
+  margin: 0;
+  padding-inline-start: var(--space-12);
+}
+
+.prose li + li {
+  margin-block-start: var(--space-5);
+}
+
+.prose code {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+}
+
+/* -------------------------------------------------------------- two column */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-16);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-14);
+  }
+}
+
+/* ---------------------------------------------------------------- actions */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-7);
+  margin-block-start: var(--space-12);
+}
+
+@media (max-width: 520px) {
+  .actions .btn {
+    inline-size: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------- spec list */
+
+.spec-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-10);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  padding: var(--space-13);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  transition: var(--transition-lift-base);
+}
+
+.spec:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(calc(var(--space-2) * -1));
+}
+
+.spec__index {
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-caps);
+  color: var(--color-accent);
+}
+
+.spec__title {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+}
+
+.spec__body {
+  margin: 0;
+  max-width: 40ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-primary);
+}
+
+/* ------------------------------------------------------------------ steps */
+
+.steps {
+  counter-reset: step;
+  display: grid;
+  gap: var(--space-10);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-12);
+  padding-block-end: var(--space-10);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.steps__item::before {
+  counter-increment: step;
+  content: counter(step, decimal-leading-zero);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.steps__title {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+}
+
+.steps__body {
+  margin-block-start: var(--space-5);
+  max-width: 52ch;
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+}
+
+/* ----------------------------------------------------------------- tables */
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.data-table caption {
+  padding: var(--space-10) var(--space-12);
+  text-align: start;
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-quiet);
+}
+
+.data-table th,
+.data-table td {
+  padding: var(--space-10) var(--space-12);
+  text-align: start;
+  white-space: nowrap;
+  border-block-start: 1px solid var(--color-border);
+}
+
+.data-table th {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-quiet);
+}
+
+.data-table td {
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tbody tr {
+  transition: var(--transition-bg-slow);
+}
+
+.data-table tbody tr:hover {
+  background-color: var(--color-surface-sunken);
+}
+
+/* ---------------------------------------------------------------- status */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-6);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-primary);
+}
+
+.status::before {
+  content: '';
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
+  background-color: var(--color-accent-alt);
+}
+
+.status--warning::before {
+  background-color: var(--color-accent);
+}
+
+.status--offline::before {
+  background-color: var(--color-border);
+}
+
+/* ---------------------------------------------------------------- empty */
+
+.empty {
+  padding: var(--space-14);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-quiet);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+/* --------------------------------------------------------------- toolbar */
+
+.page-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-7);
+  margin-block-start: var(--space-12);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-quiet);
+}
+
+.data-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-10);
+  margin-block-end: var(--space-12);
+}
+
+.filter-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filter-chip {
+  padding: var(--space-5) var(--space-10);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-6);
+  background-color: transparent;
+  color: var(--color-text-quiet);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  cursor: pointer;
+  transition: var(--transition-color-bg-slow);
+}
+
+.filter-chip:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+.filter-chip:active:not(:disabled) {
+  background-color: var(--color-surface-sunken);
+}
+
+.filter-chip[aria-pressed='true'] {
+  border-color: var(--color-surface-dark);
+  background-color: var(--color-surface-dark);
+  color: var(--color-on-dark);
+}
+
+.filter-chip:disabled {
+  color: var(--color-text-quiet);
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.data-table .status {
+  margin-inline-start: var(--space-5);
+}
