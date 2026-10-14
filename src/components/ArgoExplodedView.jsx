@@ -394,7 +394,7 @@ function CameraRig({ progress }) {
   useFrame((_, delta) => {
     const targetZ = THREE.MathUtils.lerp(10.8, 14.2, explode);
     camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, 4, delta);
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, 5.4, 4, delta);
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, 0, 4, delta);
     camera.lookAt(0, 0, 0);
   });
   return null;
@@ -402,7 +402,7 @@ function CameraRig({ progress }) {
 
 function Scene({ progress }) {
   return (
-    <Canvas camera={{ position: [5.4, 0.4, 10.8], fov: 36 }} dpr={[1, 1.7]} shadows gl={{ antialias: true, alpha: true }}>
+    <Canvas camera={{ position: [0, 0.4, 10.8], fov: 36 }} dpr={[1, 1.7]} shadows gl={{ antialias: true, alpha: true }}>
       <color attach="background" args={['#071114']} />
       <ambientLight intensity={1.15} color="#b7e8ea" />
       <directionalLight position={[4, 6, 6]} intensity={4.5} color="#d9f8ff" castShadow shadow-mapSize={[1024, 1024]} />
@@ -419,9 +419,11 @@ function Scene({ progress }) {
 
 export default function ArgoExplodedView() {
   const sectionRef = useRef(null);
+  const stickyRef = useRef(null);
   const interactionZoneRef = useRef(null);
   const scrollProgress = useScrollProgress(sectionRef);
   const localTarget = useRef(0);
+  const insideRadiusRef = useRef(false);
   const [insideRadius, setInsideRadius] = useState(false);
   const [localProgress, setLocalProgress] = useState(0);
 
@@ -443,17 +445,35 @@ export default function ArgoExplodedView() {
   }, [insideRadius, scrollProgress]);
 
   useEffect(() => {
-    const zone = interactionZoneRef.current;
-    if (!zone) return undefined;
+    const sticky = stickyRef.current;
+    if (!sticky) return undefined;
     const onWheel = event => {
-      if (!insideRadius) return;
+      if (!insideRadiusRef.current) return;
       event.preventDefault();
       localTarget.current = clamp01(localTarget.current + event.deltaY / 1250);
     };
-    zone.addEventListener('wheel', onWheel, { passive: false });
-    return () => zone.removeEventListener('wheel', onWheel);
-  }, [insideRadius]);
+    sticky.addEventListener('wheel', onWheel, { passive: false });
+    return () => sticky.removeEventListener('wheel', onWheel);
+  }, []);
 
+  const updateRadius = event => {
+    const zone = interactionZoneRef.current;
+    if (!zone) return;
+    const rect = zone.getBoundingClientRect();
+    const dx = event.clientX - (rect.left + rect.width / 2);
+    const dy = event.clientY - (rect.top + rect.height / 2);
+    const nextInside = Math.hypot(dx, dy) <= rect.width / 2;
+    if (nextInside && !insideRadiusRef.current) {
+      localTarget.current = scrollProgress;
+      setLocalProgress(scrollProgress);
+    }
+    insideRadiusRef.current = nextInside;
+    setInsideRadius(current => current === nextInside ? current : nextInside);
+  };
+  const leaveSticky = () => {
+    insideRadiusRef.current = false;
+    setInsideRadius(false);
+  };
   const progress = insideRadius ? localProgress : scrollProgress;
   const stageIndex = Math.min(STAGES.length - 1, Math.floor(progress * STAGES.length));
   const stage = STAGES[stageIndex];
@@ -462,18 +482,12 @@ export default function ArgoExplodedView() {
 
   return (
     <section className="argo-story" ref={sectionRef} aria-labelledby="argo-story-title">
-      <div className="argo-story__sticky">
+      <div ref={stickyRef} className="argo-story__sticky" onPointerMove={updateRadius} onPointerLeave={leaveSticky}>
         <div
           ref={interactionZoneRef}
           className={`argo-story__interaction-zone${insideRadius ? ' is-active' : ''}`}
           role="region"
           aria-label="3D model interaction radius. Hover here and scroll to explode the ARGO float."
-          onPointerEnter={() => {
-            localTarget.current = scrollProgress;
-            setLocalProgress(scrollProgress);
-            setInsideRadius(true);
-          }}
-          onPointerLeave={() => setInsideRadius(false)}
         >
           <span className="argo-story__interaction-label">{insideRadius ? 'Scroll to explode' : 'Hover to explore'}</span>
         </div>

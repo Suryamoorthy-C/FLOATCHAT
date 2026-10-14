@@ -50,7 +50,7 @@
 .argo-story__interaction-zone {
   position: absolute;
   z-index: 2;
-  inset-inline-start: 57%;
+  inset-inline-start: 50%;
   inset-block-start: 50%;
   width: min(43vw, 610px);
   aspect-ratio: 1;
@@ -60,7 +60,7 @@
   background: radial-gradient(circle, rgba(41, 200, 205, 0.035), transparent 68%);
   cursor: crosshair;
   transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .argo-story__interaction-zone.is-active {
