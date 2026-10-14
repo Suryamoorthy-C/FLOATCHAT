@@ -72,7 +72,7 @@ def _answer(question: str, fleet: dict) -> tuple[str, list[str]]:
         signals = store.anomalies()["data"]
         answer = f"I checked the latest live window and found {len(signals)} statistical outlier(s) using a simple 2-sigma screen. These are screening signals, not scientific QC decisions; use the profile QC flags before publication."
     else:
-        answer = f"Live ARGO mode is active. I found {len(rows)} observations in the recent Indian Ocean window from {fleet.get('source', SOURCE_LABEL)}. Ask for salinity, temperature, anomalies, a WMO number, or a depth profile."
+        answer = f"Live ARGO mode is active. I found {len(rows)} observations in the recent global ARGO window from {fleet.get('source', SOURCE_LABEL)}. Ask for salinity, temperature, anomalies, a WMO number, or a depth profile."
     return answer, ids
 
 

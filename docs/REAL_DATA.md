@@ -4,7 +4,7 @@ FLOATCHAT now queries the official Argo data ecosystem through `argopy` and the 
 
 ## What is live
 
-- `GET /api/floats?live=true` queries a recent 14-day Indian Ocean window (`55–95°E`, `5°S–25°N`, `0–50 dbar`) and returns the latest observation for each WMO float.
+- `GET /api/floats?live=true` queries a recent 3-day global window (`55–95°E`, `5°S–25°N`, `0–50 dbar`) and returns the latest observation for each WMO float.
 - `GET /api/profiles?float_id=<WMO>` fetches the selected float's latest full profile on demand.
 - `GET /api/anomalies` runs a simple 2-sigma screening check over the live window.
 - `GET /api/health` reports the source, fetch time, and whether live mode is active.
