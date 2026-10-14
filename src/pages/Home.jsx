@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import ParticleText from '../components/ParticleText';
 import RippleDistortion from '../components/RippleDistortion';
 import MagicBento from '../components/MagicBento';
 import Reveal from '../components/Reveal';
@@ -57,28 +56,6 @@ export default function Home() {
         <div className="container home-hero__inner">
           <Reveal variant="fade">
             <p className="eyebrow home-hero__eyebrow">Argo · Indian Ocean · Live</p>
-          </Reveal>
-
-          <Reveal variant="zoom" delay={80}>
-            <div className="home-hero__particles">
-              <ParticleText
-                text="FLOATCHAT"
-                particleSize={2.2}
-                density={3}
-                color="#ffffff"
-                highlightColor="#c1ff00"
-                scatter={220}
-                gatherDuration={1800}
-                stagger={500}
-                pointerRepel={55}
-                repelRadius={140}
-                idleDrift={0.8}
-                trigger="hover"
-                fontSize={isNarrow ? 'clamp(2.6rem, 15vw, 4.5rem)' : 'clamp(3.5rem, 12vw, 8.5rem)'}
-                fontWeight={800}
-                glow
-              />
-            </div>
           </Reveal>
 
           <Reveal variant="up" delay={160}>

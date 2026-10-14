@@ -138,7 +138,7 @@ export default function PearlZones() {
   }
 
   return (
-    <div className="page pearl-page">
+    <div className="page pearl-page" id="pearl-zones">
       <div className="pearl-shell">
         <header className="pearl-topline">
           <div>
