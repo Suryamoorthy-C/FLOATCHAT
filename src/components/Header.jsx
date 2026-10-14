@@ -1,72 +1,76 @@
-import { useEffect, useId, useRef, useState } from 'react';
-import { Link, useRoute } from '../router';
-import { CONSOLE_PATH, GITHUB_URL, NAV_ITEMS } from '../routes';
+import { useEffect, useState } from 'react';
+import GooeyNav from './GooeyNav';
+import { Link } from '../router';
+import { CONSOLE_PATH, GITHUB_URL } from '../routes';
 import './Header.css';
 
 /**
- * Site header.
+ * Site header — GooeyNav pill nav over a single scrolling page.
  *
- * Intent: primary wayfinding for the marketing site, plus the persistent route
- * into the operations console.
- *
- * Anatomy: container > brand (mark + wordmark) · primary nav (list of links) ·
- * actions (console CTA + mobile disclosure toggle) · mobile panel.
- *
- * Behaviour: the active route is announced with aria-current="page". Below the
- * desktop breakpoint the nav collapses into a disclosure that Escape closes and
- * focus returns to the toggle afterwards.
+ * There are no route redirects between sections: every nav item is a button
+ * that smooth-scrolls to its section (home → platform → live data → docs),
+ * and a scroll-spy keeps the gooey pill on whichever section is in view.
+ * The operations console stays a real route behind the CTA.
  */
+const SECTIONS = [
+  { label: 'Home', id: 'home' },
+  { label: 'Platform', id: 'platform' },
+  { label: 'Live data', id: 'data' },
+  { label: 'Pearl zones', id: 'pearl-zones' },
+  { label: 'Docs', id: 'docs' }
+];
+
 export default function Header() {
-  const path = useRoute();
-  const [open, setOpen] = useState(false);
-  const panelId = useId();
-  const toggleRef = useRef(null);
-
-  // A navigation always dismisses the mobile panel.
-  useEffect(() => {
-    setOpen(false);
-  }, [path]);
+  const [active, setActive] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    if (!open) return undefined;
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-    const onKeyDown = event => {
-      if (event.key === 'Escape') {
-        setOpen(false);
-        toggleRef.current?.focus();
-      }
-    };
-
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [open]);
-
-  const renderNavList = (variant) =>
-    NAV_ITEMS.map(item => {
-      const current = path === item.to;
-      return (
-        <li key={item.to} className={`site-header__item site-header__item--${variant}`}>
-          <Link
-            to={item.to}
-            className="site-header__link"
-            aria-current={current ? 'page' : undefined}
-          >
-            {item.label}
-          </Link>
-        </li>
-      );
+  // Scroll-spy: the section crossing the middle of the viewport owns the pill.
+  useEffect(() => {
+    const ids = SECTIONS.map(section => section.id);
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const index = ids.indexOf(entry.target.id);
+          if (index >= 0) setActive(index);
+        });
+      },
+      { rootMargin: '-38% 0px -55% 0px' }
+    );
+    ids.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
     });
+    return () => observer.disconnect();
+  }, []);
+
+  const go = index => {
+    setActive(index);
+    document
+      .getElementById(SECTIONS[index].id)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
-    <header className="site-header">
+    <header className={`site-header${scrolled ? ' is-scrolled' : ''}`}>
       <div className="container site-header__inner">
-        <Link to="/" className="site-header__brand" aria-label="FLOATCHAT, back to home">
-          <span className="site-header__mark" aria-hidden="true" />
-          <span className="site-header__wordmark">FLOATCHAT</span>
-        </Link>
-
-        <nav className="site-header__nav" aria-label="Primary">
-          <ul className="site-header__list">{renderNavList('bar')}</ul>
+        <nav className="site-header__gooey" aria-label="Primary">
+          <GooeyNav
+            items={SECTIONS.map(section => ({ label: section.label }))}
+            activeIndex={active}
+            onChange={go}
+            theme="light"
+            size="md"
+            particleCount={12}
+            spread={48}
+          />
         </nav>
 
         <div className="site-header__actions">
@@ -79,34 +83,10 @@ export default function Header() {
             Source
           </a>
           <Link to={CONSOLE_PATH} className="btn btn--primary site-header__cta">
-            Launch console
+            Launch console <span aria-hidden="true">→</span>
           </Link>
-          <button
-            ref={toggleRef}
-            type="button"
-            className="site-header__toggle"
-            aria-expanded={open}
-            aria-controls={panelId}
-            aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
-            onClick={() => setOpen(value => !value)}
-          >
-            <span className="site-header__bars" aria-hidden="true" />
-          </button>
         </div>
       </div>
-
-      {open && (
-        <div className="site-header__panel" id={panelId}>
-          <div className="container">
-            <nav aria-label="Primary, mobile">
-              <ul className="site-header__list site-header__list--panel">{renderNavList('panel')}</ul>
-            </nav>
-            <Link to={CONSOLE_PATH} className="btn btn--primary site-header__panel-cta">
-              Launch console
-            </Link>
-          </div>
-        </div>
-      )}
     </header>
   );
 }
