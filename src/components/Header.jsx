@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import GooeyNav from './GooeyNav';
+import SpecularButton from './SpecularButton';
 import { Link } from '../router';
 import { CONSOLE_PATH, GITHUB_URL } from '../routes';
 import './Header.css';
@@ -76,8 +77,9 @@ export default function Header() {
           />
         </nav>
 
-        <button
+        <SpecularButton
           type="button"
+          size="icon"
           className="site-header__toggle"
           aria-expanded={mobileOpen}
           aria-controls="mobile-navigation"
@@ -85,7 +87,7 @@ export default function Header() {
           onClick={() => setMobileOpen(open => !open)}
         >
           <span className="site-header__bars" aria-hidden="true" />
-        </button>
+        </SpecularButton>
 
         <div className="site-header__actions">
           <a
@@ -96,9 +98,9 @@ export default function Header() {
           >
             Source
           </a>
-          <Link to={CONSOLE_PATH} className="btn btn--primary site-header__cta">
+          <SpecularButton as={Link} to={CONSOLE_PATH} size="md" className="site-header__cta">
             Launch console <span aria-hidden="true">→</span>
-          </Link>
+          </SpecularButton>
         </div>
       </div>
 
@@ -109,21 +111,22 @@ export default function Header() {
               <ul className="site-header__list site-header__list--panel">
                 {SECTIONS.map((section, index) => (
                   <li className="site-header__item--panel" key={section.id}>
-                    <button
+                    <SpecularButton
                       type="button"
+                      size="md"
                       className="site-header__link site-header__link--panel"
                       aria-current={active === index ? 'page' : undefined}
                       onClick={() => go(index)}
                     >
                       {section.label}
-                    </button>
+                    </SpecularButton>
                   </li>
                 ))}
               </ul>
             </nav>
-            <Link to={CONSOLE_PATH} className="btn btn--primary site-header__panel-cta" onClick={() => setMobileOpen(false)}>
+            <SpecularButton as={Link} to={CONSOLE_PATH} size="md" className="site-header__panel-cta" onClick={() => setMobileOpen(false)}>
               Launch console <span aria-hidden="true">→</span>
-            </Link>
+            </SpecularButton>
           </div>
         </div>
       )}

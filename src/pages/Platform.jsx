@@ -1,5 +1,6 @@
 import { Link } from '../router';
 import { CONSOLE_PATH, GITHUB_URL } from '../routes';
+import SpecularButton from '../components/SpecularButton';
 import Reveal from '../components/Reveal';
 import './Page.css';
 
@@ -115,12 +116,12 @@ export default function Platform() {
               the same place, which is also the fastest way to reach the maintainers.
             </p>
             <div className="actions">
-              <Link to={CONSOLE_PATH} className="btn btn--primary">
+              <SpecularButton as={Link} to={CONSOLE_PATH} size="md">
                 Open the console
-              </Link>
-              <a className="btn" href={GITHUB_URL} target="_blank" rel="noreferrer noopener">
+              </SpecularButton>
+              <SpecularButton as="a" href={GITHUB_URL} target="_blank" rel="noreferrer noopener" size="md">
                 Open an issue
-              </a>
+              </SpecularButton>
             </div>
           </div>
         </div>

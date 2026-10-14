@@ -15,6 +15,7 @@ import './theme/base.css';
 // The shell's own views use the shared page primitives, so make that guarantee
 // explicit here rather than relying on another page importing them.
 import './pages/Page.css';
+import './theme/glass.css';
 
 /* globe.gl pulls in three.js — about 2 MB — so the console is loaded on demand
    instead of on first paint. Everything else is small enough to ship up front. */

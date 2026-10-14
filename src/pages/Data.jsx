@@ -3,6 +3,7 @@ import Reveal from '../components/Reveal';
 import { api, normaliseFloat } from '../api';
 import { Link } from '../router';
 import { CONSOLE_PATH } from '../routes';
+import SpecularButton from '../components/SpecularButton';
 import './Page.css';
 
 const FILTERS = [
@@ -115,28 +116,35 @@ export default function Data() {
           <div className="data-toolbar">
             <div className="filter-set" role="group" aria-label="Filter floats by status">
               {FILTERS.map(filter => (
-                <button
+                <SpecularButton
                   key={filter.value}
                   type="button"
+                  size="sm"
                   className="filter-chip"
+                  baseColor="#17201e"
+                  lineColor={status === filter.value ? '#c1ff00' : '#ffffff'}
+                  textColor={status === filter.value ? '#c1ff00' : '#f5f5f5'}
+                  tintOpacity={status === filter.value ? 0.1 : 0.04}
                   aria-pressed={status === filter.value}
                   disabled={loading}
                   onClick={() => setStatus(filter.value)}
                 >
                   {filter.label}
-                </button>
+                </SpecularButton>
               ))}
             </div>
 
-            <button
+            <SpecularButton
               type="button"
-              className={loading ? 'btn btn--loading' : 'btn'}
+              size="md"
+              className={loading ? 'data-refresh-button is-loading' : 'data-refresh-button'}
+              baseColor="#17201e"
               disabled={loading}
               onClick={() => setNonce(value => value + 1)}
             >
               {loading && <span className="btn__spinner" aria-hidden="true" />}
               {loading ? 'Refreshing…' : 'Refresh'}
-            </button>
+            </SpecularButton>
           </div>
 
           {loading && (
@@ -228,9 +236,9 @@ export default function Data() {
           )}
 
           <div className="actions">
-            <Link to={CONSOLE_PATH} className="btn btn--primary">
+            <SpecularButton as={Link} to={CONSOLE_PATH} size="md">
               Open the console
-            </Link>
+            </SpecularButton>
           </div>
         </div>
       </section>

@@ -107,7 +107,7 @@
 }
 
 @media (max-width: 520px) {
-  .actions .btn {
+  .actions .specular-button {
     inline-size: 100%;
   }
 }
@@ -319,36 +319,7 @@
   gap: var(--space-2);
 }
 
-.filter-chip {
-  padding: var(--space-5) var(--space-10);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-6);
-  background-color: transparent;
-  color: var(--color-text-quiet);
-  font-family: inherit;
-  font-size: var(--text-sm);
-  line-height: var(--leading-sm);
-  cursor: pointer;
-  transition: var(--transition-color-bg-slow);
-}
-
-.filter-chip:hover:not(:disabled) {
-  border-color: var(--color-border-strong);
-  color: var(--color-text-primary);
-}
-
-.filter-chip:active:not(:disabled) {
-  background-color: var(--color-surface-sunken);
-}
-
-.filter-chip[aria-pressed='true'] {
-  border-color: var(--color-surface-dark);
-  background-color: var(--color-surface-dark);
-  color: var(--color-on-dark);
-}
-
 .filter-chip:disabled {
-  color: var(--color-text-quiet);
   cursor: wait;
   opacity: 0.6;
 }

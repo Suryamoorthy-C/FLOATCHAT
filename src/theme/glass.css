@@ -1,0 +1,105 @@
+/* FLOATCHAT glass palette: scoped to the marketing shell; the console and
+   Pearl Zones keep their own established visual systems. */
+.site-shell {
+  color-scheme: dark;
+  min-height: 100vh;
+  background-color: #060d0d;
+  color: #f4f4f5;
+  --color-bg: #060d0d;
+  --color-surface: rgba(255, 255, 255, 0.055);
+  --color-surface-sunken: rgba(255, 255, 255, 0.035);
+  --color-surface-dark: #060d0d;
+  --color-border: rgba(255, 255, 255, 0.13);
+  --color-border-strong: rgba(255, 255, 255, 0.24);
+  --color-text-primary: #f4f4f5;
+  --color-text-link: #c1ff00;
+  --color-text-quiet: rgba(228, 230, 239, 0.72);
+  --color-text-inverse: #071010;
+  --color-blue: #c1ff00;
+  --color-purple: #c1ff00;
+  --color-accent: #c1ff00;
+  --color-accent-alt: #c1ff00;
+  --color-highlight: #c1ff00;
+}
+
+.site-shell main {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(38, 93, 72, 0.13), transparent 42%),
+    #060d0d;
+}
+
+.site-shell .page:not(.pearl-page) {
+  background:
+    radial-gradient(ellipse at 80% 6%, rgba(193, 255, 0, 0.035), transparent 38%),
+    radial-gradient(ellipse at 0% 62%, rgba(26, 90, 72, 0.08), transparent 34%);
+}
+
+.site-shell .section--sunken {
+  border-block: 1px solid rgba(255, 255, 255, 0.055);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+
+.site-shell .page-head {
+  border-block-end-color: rgba(255, 255, 255, 0.12);
+}
+
+.site-shell .spec,
+.site-shell .stat,
+.site-shell .table-wrap,
+.site-shell .empty {
+  border-color: rgba(255, 255, 255, 0.13);
+  background-color: rgba(255, 255, 255, 0.045);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.17), inset 0 1px rgba(255, 255, 255, 0.055);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+
+.site-shell .spec:hover,
+.site-shell .stat:hover {
+  border-color: rgba(193, 255, 0, 0.28);
+}
+
+.site-shell .data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.site-shell .site-footer {
+  border-block-start: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(155deg, rgba(11, 20, 20, 0.94), rgba(6, 13, 13, 0.98));
+}
+
+.site-shell .data-refresh-button.is-loading {
+  cursor: progress;
+}
+
+@media (max-width: 520px) {
+  .site-shell .actions .specular-button {
+    inline-size: 100%;
+  }
+}
+
+/* Pearl Zones has its own navy/cyan/amber palette and must not inherit the
+   landing page's lime accent or glass surfaces. The separate console route is
+   outside .site-shell and remains unchanged. */
+.site-shell .pearl-page {
+  color-scheme: dark;
+  --color-bg: #080e1a;
+  --color-surface: #0d1726;
+  --color-surface-sunken: #0b1420;
+  --color-surface-dark: #080e1a;
+  --color-border: rgba(148, 197, 255, 0.13);
+  --color-border-strong: rgba(148, 197, 255, 0.2);
+  --color-text-primary: #d6e2ee;
+  --color-text-link: #5ccfc6;
+  --color-text-quiet: #7190a8;
+  --color-blue: #5ccfc6;
+  --color-accent: #5ccfc6;
+  --color-accent-alt: #45ddcf;
+  --color-highlight: #45ddcf;
+}
+
+.site-shell .pearl-page :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline-color: #5ccfc6;
+}

@@ -1,4 +1,5 @@
 import Reveal from '../components/Reveal';
+import SpecularButton from '../components/SpecularButton';
 import { GITHUB_URL } from '../routes';
 import './Page.css';
 
@@ -16,14 +17,12 @@ const TOKEN_GROUPS = [
   {
     name: 'Colour',
     rows: [
-      ['--color-off-white-semi', '#F0F1FA', 'Page background'],
-      ['--color-black', '#000000', 'Text primary'],
-      ['--color-dark-blue', '#071BDF', 'Links'],
-      ['--color-blue', '#1A2FFB', 'Accent, quiet text'],
-      ['--color-purple', '#8832F7', 'Accent'],
-      ['--color-green', '#C1FF00', 'On-dark accent, fills'],
-      ['--color-dark-white', '#E4E6EF', 'Borders, sunken surface'],
-      ['--color-8', '#C2C3C7', 'Text on dark'],
+      ['--color-bg', '#060D0D', 'Deep-ocean page background'],
+      ['--color-text-primary', '#F4F4F5', 'Primary text'],
+      ['--color-text-link', '#C1FF00', 'Links and focus accent'],
+      ['--color-accent', '#C1FF00', 'Lime interaction accent'],
+      ['--color-surface', 'rgba(255,255,255,0.055)', 'Translucent glass surface'],
+      ['--color-border', 'rgba(255,255,255,0.13)', 'Glass edge'],
     ],
   },
   {
@@ -175,9 +174,9 @@ export default function Docs() {
               repository.
             </p>
             <div className="actions">
-              <a className="btn" href={GITHUB_URL} target="_blank" rel="noreferrer noopener">
+              <SpecularButton as="a" href={GITHUB_URL} target="_blank" rel="noreferrer noopener" size="md">
                 View the repository
-              </a>
+              </SpecularButton>
             </div>
           </div>
         </div>

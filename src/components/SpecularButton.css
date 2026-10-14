@@ -1,0 +1,148 @@
+.specular-button {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  overflow: hidden;
+  padding: 0.68rem 1rem;
+  border: var(--spec-thickness, 1.2px) solid color-mix(in srgb, var(--spec-line, #fff) 28%, transparent);
+  border-radius: var(--spec-radius, 18px);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--spec-base, #525252) 92%, #fff 8%), color-mix(in srgb, var(--spec-base, #525252) 78%, transparent));
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.22),
+    0 0 18px color-mix(in srgb, var(--color-accent, #c1ff00) var(--spec-glow-opacity, 16%), transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--spec-line, #fff) 26%, transparent);
+  color: var(--spec-text, #f5f5f5);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+  -webkit-backdrop-filter: blur(14px) saturate(145%);
+  backdrop-filter: blur(14px) saturate(145%);
+  cursor: pointer;
+  transform: translateY(0);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    filter 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.specular-button::before {
+  position: absolute;
+  z-index: -1;
+  inset: -1px;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle var(--spec-shine-fade, 34%) at var(--spec-x, 50%) var(--spec-y, 50%),
+    color-mix(in srgb, var(--spec-tint, #fff) var(--spec-tint-opacity, 4%), transparent) 0%,
+    transparent 100%
+  );
+  content: '';
+  filter: blur(var(--spec-shine-size, 10px));
+  opacity: calc(var(--spec-hot, 0.35) * var(--spec-intensity, 1));
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.specular-button::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent 15%, rgba(255, 255, 255, 0.08) 48%, transparent 78%);
+  content: '';
+  opacity: 0.42;
+  pointer-events: none;
+  transform: translateX(-115%);
+  transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.specular-button:hover:not(:disabled):not([aria-disabled='true']) {
+  border-color: color-mix(in srgb, var(--spec-line, #fff) 58%, transparent);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.28),
+    0 0 24px color-mix(in srgb, var(--color-accent, #c1ff00) var(--spec-glow-opacity, 16%), transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--spec-line, #fff) 38%, transparent);
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.specular-button:hover:not(:disabled):not([aria-disabled='true'])::after {
+  transform: translateX(115%);
+}
+
+.specular-button:active:not(:disabled):not([aria-disabled='true']) {
+  filter: brightness(0.98);
+  transform: translateY(0) scale(0.985);
+}
+
+.specular-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent, #c1ff00) 82%, white 18%);
+  outline-offset: 3px;
+}
+
+.specular-button:disabled,
+.specular-button[aria-disabled='true'] {
+  cursor: not-allowed;
+  filter: saturate(0.5);
+  opacity: 0.58;
+}
+
+.specular-button__content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+  pointer-events: none;
+}
+
+.specular-button--sm {
+  min-height: 34px;
+  padding: 0.48rem 0.76rem;
+  font-size: 0.76rem;
+}
+
+.specular-button--md {
+  min-height: 42px;
+  padding: 0.62rem 1.02rem;
+}
+
+.specular-button--lg {
+  min-height: 50px;
+  padding: 0.82rem 1.42rem;
+  font-size: 0.96rem;
+}
+
+.specular-button--icon {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.specular-button--icon .specular-button__content {
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .specular-button,
+  .specular-button::before,
+  .specular-button::after {
+    transition: none;
+  }
+}

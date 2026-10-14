@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import ParticleText from '../components/ParticleText';
 import RippleDistortion from '../components/RippleDistortion';
-import WarpText from '../components/WarpText';
+import VariableProximity from '../components/VariableProximity';
+import SpecularButton from '../components/SpecularButton';
 import MagicBento from '../components/MagicBento';
-import ArgoExplodedView from '../components/ArgoExplodedView';
 import Reveal from '../components/Reveal';
 import { Link } from '../router';
 import { CONSOLE_PATH } from '../routes';
 import { api } from '../api';
 import { useMediaQuery } from '../hooks';
 import './Home.css';
+import './HomeGlass.css';
+
+const ArgoExplodedView = lazy(() => import('../components/ArgoExplodedView'));
 
 /**
  * Home — first page.
@@ -27,6 +30,8 @@ import './Home.css';
  */
 export default function Home() {
   const isNarrow = useMediaQuery('(max-width: 860px)');
+  const headlineRef = useRef(null);
+  const sublineRef = useRef(null);
 
   return (
     <>
@@ -76,7 +81,7 @@ export default function Home() {
                 repelRadius={140}
                 idleDrift={0.8}
                 trigger="hover"
-                fontSize={isNarrow ? 'clamp(2.3rem, 13vw, 3.6rem)' : 'clamp(2.8rem, 7.4vw, 4.2rem)'}
+                fontSize={isNarrow ? 'clamp(3rem, 13.5vw, 5rem)' : 'clamp(4rem, 9vw, 7rem)'}
                 fontWeight={800}
                 glow
               />
@@ -84,35 +89,40 @@ export default function Home() {
           </Reveal>
 
           <Reveal variant="up" delay={160} persistKey="home-hero-copy">
-            <WarpText
-              className="home-hero__warp"
-              text="Ask the ocean a question."
-              color="#c1ff00"
-              warpStrength={0.08}
-              warpScale={1.7}
-              speed={0.55}
-              pointerInfluence={0.42}
-              pointerStrength={0.38}
-              refraction={0.018}
-              ripple
-              fontSize="clamp(2rem, 7vw, 5rem)"
-              fontWeight={800}
-              letterSpacing="-0.045em"
-              style={{ height: isNarrow ? '120px' : '156px' }}
-            />
-            <p className="home-hero__sub">
-              Plain-language answers over live Argo float data, with citations on every claim.
-            </p>
+            <div className="home-hero__animated-copy">
+              <h2 className="home-hero__headline" ref={headlineRef}>
+                <VariableProximity
+                  label="Ask the ocean a question."
+                  className="home-hero__variable-text"
+                  fromFontVariationSettings="'wght' 450, 'opsz' 18"
+                  toFontVariationSettings="'wght' 950, 'opsz' 72"
+                  containerRef={headlineRef}
+                  radius={180}
+                  falloff="gaussian"
+                />
+              </h2>
+              <p className="home-hero__sub" ref={sublineRef}>
+                <VariableProximity
+                  label="Plain-language answers over live Argo float data, with citations on every claim."
+                  className="home-hero__variable-text"
+                  fromFontVariationSettings="'wght' 400, 'opsz' 14"
+                  toFontVariationSettings="'wght' 750, 'opsz' 32"
+                  containerRef={sublineRef}
+                  radius={120}
+                  falloff="linear"
+                />
+              </p>
+            </div>
           </Reveal>
 
           <Reveal variant="up" delay={240} persistKey="home-hero-actions">
             <div className="home-hero__actions">
-              <Link to={CONSOLE_PATH} className="btn btn--primary btn--lg">
+              <SpecularButton as={Link} to={CONSOLE_PATH} size="lg">
                 Launch console <span aria-hidden="true">→</span>
-              </Link>
-              <Link to="/data" className="btn btn--ghost-light">
+              </SpecularButton>
+              <SpecularButton as={Link} to="/data" size="lg">
                 Explore live data
-              </Link>
+              </SpecularButton>
             </div>
           </Reveal>
 
@@ -121,21 +131,67 @@ export default function Home() {
           </Reveal>
         </div>
 
-        <button
+        <SpecularButton
           type="button"
+          size="icon"
           className="home-hero__scroll"
           aria-label="Scroll to capabilities"
           onClick={() => document.getElementById('capabilities')?.scrollIntoView({ behavior: 'smooth' })}
         >
           <span aria-hidden="true" />
-        </button>
+        </SpecularButton>
       </section>
 
-      <ArgoExplodedView />
+      <DeferredArgoStory />
 
       <BentoShowcase />
 
     </>
+  );
+}
+
+function DeferredArgoStory() {
+  const sectionRef = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+    if (!('IntersectionObserver' in window)) {
+      setShouldLoad(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        setShouldLoad(true);
+        observer.disconnect();
+      },
+      { rootMargin: '-12% 0px -12% 0px' }
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="argo-story-slot" ref={sectionRef}>
+      {shouldLoad ? (
+        <Suspense fallback={<ArgoStoryLoading />}>
+          <ArgoExplodedView />
+        </Suspense>
+      ) : (
+        <ArgoStoryLoading />
+      )}
+    </div>
+  );
+}
+
+function ArgoStoryLoading() {
+  return (
+    <div className="argo-story__loading" role="status">
+      Preparing the ARGO system study…
+    </div>
   );
 }
 
@@ -262,8 +318,8 @@ function BentoShowcase() {
             rowHeight={264}
             gap={16}
             radius={20}
-            theme="light"
-            glowColor="#1A2FFB"
+            theme="dark"
+            glowColor="#c1ff00"
             enableBorderGlow
             enableSpotlight
             spotlightRadius={300}
