@@ -150,7 +150,7 @@ CAPS is reserved for labels and acronyms, never body copy.
 
 ### Anti-patterns
 - ❌ Rendering the tagline with `--color-on-dark` at `--text-sm` — it competes with
-  the links. It uses the muted token deliberately.
+the links. It uses the muted token deliberately.
 - ❌ Keeping the default focus ring on a dark surface.
 
 ---
