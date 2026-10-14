@@ -1,4 +1,4 @@
-# AGROCHAT plan
+# ARGOCHAT plan
 
 ## Product
 A focused ocean-device operations assistant. The first release displays device telemetry, highlights abnormal readings, explains them in plain language, and lets an operator review incidents.

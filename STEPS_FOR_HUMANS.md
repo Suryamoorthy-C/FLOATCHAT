@@ -1,6 +1,6 @@
-# AGROCHAT: steps for humans
+# ARGOCHAT: steps for humans
 
-1. Open the project folder named `AGROCHAT`.
+1. Open the project folder named `ARGOCHAT`.
 2. Install Node.js if the computer asks.
 3. Open the project in your code editor.
 4. Copy the example environment file when one exists. Never share secret values in chat.

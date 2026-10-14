@@ -10,7 +10,7 @@
 
 ## Vercel
 1. Go to vercel.com and sign in with GitHub.
-2. Choose **Add New → Project** and select `AGROCHAT`.
+2. Choose **Add New → Project** and select `ARGOCHAT`.
 3. Add the same environment variable names under **Settings → Environment Variables**.
 4. Add any server-only AI key as a non-public variable; never prefix it with `NEXT_PUBLIC_`.
 5. Deploy and test the production URL.
