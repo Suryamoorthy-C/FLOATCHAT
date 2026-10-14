@@ -14,41 +14,6 @@ const ENDPOINTS = [
   ['POST', '/api/chat', 'Server-Sent Events stream of the answer, then citations.'],
 ];
 
-const TOKEN_GROUPS = [
-  {
-    name: 'Colour',
-    rows: [
-      ['--color-bg', '#060D0D', 'Deep-ocean page background'],
-      ['--color-text-primary', '#F4F4F5', 'Primary text'],
-      ['--color-text-link', '#C1FF00', 'Links and focus accent'],
-      ['--color-accent', '#C1FF00', 'Lime interaction accent'],
-      ['--color-surface', 'rgba(255,255,255,0.055)', 'Translucent glass surface'],
-      ['--color-border', 'rgba(255,255,255,0.13)', 'Glass edge'],
-    ],
-  },
-  {
-    name: 'Type',
-    rows: [
-      ['--text-sm', '14px', 'Labels, secondary'],
-      ['--text-base', '16px', 'Body'],
-      ['--text-lg', '20px', 'Subheadings'],
-      ['--text-xl', '26px', 'Section headings'],
-      ['--text-2xl', '38px', 'Page headings'],
-      ['--text-3xl', '72px', 'Display'],
-    ],
-  },
-  {
-    name: 'Shape',
-    rows: [
-      ['--radius-sm', '3px', 'Inline details'],
-      ['--radius-md', '16px', 'Cards, notices'],
-      ['--radius-lg', '18px', 'Panels'],
-      ['--radius-6', '100px', 'Pills and chips'],
-      ['--radius-full', '100%', 'Dots'],
-    ],
-  },
-];
-
 export default function Docs() {
   return (
     <AnimatedContent>
@@ -184,48 +149,6 @@ export default function Docs() {
         </div>
       </section>
 
-      <section className="section" id="tokens" aria-labelledby="tokens-title">
-        <div className="container">
-          <p className="eyebrow">Design system</p>
-          <h2 className="section__title" id="tokens-title">
-            Tokens, not magic numbers.
-          </h2>
-          <p className="page-head__lede">
-            Every component on this site references the tokens below. No component hardcodes a
-            colour, a size or a font.
-          </p>
-
-          <ul className="spec-list">
-            {TOKEN_GROUPS.map((group, i) => (
-              <Reveal as="li" className="spec" key={group.name} delay={(i % 3) * 90}>
-                <h3 className="spec__title">{group.name}</h3>
-                <div className="table-wrap">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th scope="col">Token</th>
-                        <th scope="col">Value</th>
-                        <th scope="col">Role</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {group.rows.map(([token, value, role]) => (
-                        <tr key={token}>
-                          <th scope="row">
-                            <code>{token}</code>
-                          </th>
-                          <td>{value}</td>
-                          <td>{role}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Reveal>
-            ))}
-          </ul>
-        </div>
-      </section>
     </div>
     </AnimatedContent>
   );
