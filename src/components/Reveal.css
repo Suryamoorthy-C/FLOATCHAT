@@ -1,0 +1,28 @@
+/* Reveal — one motion language for every marketing section. */
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal--up { transform: translateY(28px); }
+.reveal--down { transform: translateY(-28px); }
+.reveal--left { transform: translateX(32px); }
+.reveal--right { transform: translateX(-32px); }
+.reveal--zoom { transform: scale(0.96); }
+.reveal--fade { transform: none; }
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
