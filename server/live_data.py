@@ -111,7 +111,7 @@ class LiveArgoStore:
             for row in selected:
                 pressure = _clean(row.get("pres")); temp = _clean(row.get("temp")); sal = _clean(row.get("psal"))
                 if pressure is not None and (temp is not None or sal is not None):
-                    data.append({"depth_m": pressure, "temperature_c": temp, "salinity_psu": sal})
+                    data.append({"pressure_dbar": pressure, "depth_m": None, "temperature_c": temp, "salinity_psu": sal, "qc_flags": {"pres": None, "temp": None, "psal": None}})
             result = {"float_id": float_id, "cycle": selected_cycle, "data": sorted(data, key=lambda item: item["depth_m"]), "source": SOURCE_LABEL, "source_url": SOURCE_URL, "fetched_at": datetime.now(timezone.utc).isoformat(), "latest_observation": max((row.get("time", "") for row in selected), default=None), "live": True}
         except Exception as exc:
             result = {"float_id": float_id, "cycle": cycle or 0, "data": [], "source": "FLOATCHAT demo fallback", "live": False, "error": str(exc)[:180]}

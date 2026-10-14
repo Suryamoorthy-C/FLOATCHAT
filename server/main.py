@@ -2,30 +2,35 @@ from __future__ import annotations
 
 import asyncio
 import json
+from typing import Any
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
 
-from .live_data import FALLBACK_FLOATS, SOURCE_LABEL, store
+from .live_data import FALLBACK_FLOATS, store
+from .query_engine import analyze, render_answer
 
-app = FastAPI(title="FLOATCHAT API", version="0.2.0")
+app = FastAPI(title="FLOATCHAT API", version="0.3.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
 
 
 @app.get("/api/health")
 def health():
     fleet = store.fleet()
-    return {"status": "ok", "service": "floatchat-api", "data_source": fleet.get("source"), "live": fleet.get("live", False), "fetched_at": fleet.get("fetched_at")}
+    return {"status": "ok", "service": "floatchat-api", "data_source": fleet.get("source"), "live": fleet.get("live", False), "fetched_at": fleet.get("fetched_at"), "query_engine": "structured-evidence-v1"}
 
 
 @app.get("/api/floats")
 def floats(status: str | None = None, region: str | None = None, live: bool = True, refresh: bool = False):
     result = store.fleet(force=refresh) if live else {"count": len(FALLBACK_FLOATS), "data": FALLBACK_FLOATS, "source": "FLOATCHAT demo fallback", "live": False}
     rows = result["data"]
-    if status:
-        rows = [row for row in rows if row.get("status") == status]
-    if region:
-        rows = [row for row in rows if region.lower() in str(row.get("project_name", "")).lower() or region.lower() in str(row.get("region", "")).lower()]
+    if status: rows = [row for row in rows if row.get("status") == status]
+    if region: rows = [row for row in rows if region.lower() in str(row.get("project_name", "")).lower() or region.lower() in str(row.get("region", "")).lower()]
     return {**result, "count": len(rows), "data": rows}
 
 
@@ -33,9 +38,7 @@ def floats(status: str | None = None, region: str | None = None, live: bool = Tr
 def trajectory(float_id: str):
     fleet = store.fleet()
     row = next((item for item in fleet["data"] if item["platform_number"] == float_id), None)
-    if not row:
-        return {"float_id": float_id, "points": [], "source": fleet.get("source"), "live": fleet.get("live", False)}
-    return {"float_id": float_id, "points": [{"lat": row["lat"], "lon": row["lon"], "cycle": row.get("cycle")}], "source": fleet.get("source"), "live": fleet.get("live", False)}
+    return {"float_id": float_id, "points": ([{"lat": row["lat"], "lon": row["lon"], "cycle": row.get("cycle"), "timestamp": row.get("last_seen")} ] if row else []), "source": fleet.get("source"), "live": fleet.get("live", False), "limitation": "Only one latest position is currently indexed; a trajectory requires multiple valid position records."}
 
 
 @app.get("/api/profiles")
@@ -43,7 +46,7 @@ def profiles(float_id: str = Query("2902746"), cycle: int | None = None, param: 
     result = store.profile(float_id, cycle)
     if param in {"temperature", "salinity"}:
         key = "temperature_c" if param == "temperature" else "salinity_psu"
-        result = {**result, "parameter": param, "data": [{"depth_m": row["depth_m"], "value": row.get(key)} for row in result["data"] if row.get(key) is not None]}
+        result = {**result, "parameter": param, "unit": "°C" if param == "temperature" else "PSU", "data": [{"pressure_dbar": row["pressure_dbar"], "depth_m": row.get("depth_m"), "value": row.get(key), "qc_flags": row.get("qc_flags", {})} for row in result["data"] if row.get(key) is not None]}
     return result
 
 
@@ -57,35 +60,21 @@ def stats():
     return store.stats()
 
 
-def _answer(question: str, fleet: dict) -> tuple[str, list[str]]:
-    rows = fleet.get("data", [])
-    ids = [str(row.get("platform_number")) for row in rows[:5]]
-    if "salin" in question:
-        values = [row["salinity_psu"] for row in rows if row.get("salinity_psu") is not None]
-        avg = sum(values) / len(values) if values else 0
-        answer = f"I queried the live {fleet.get('source', SOURCE_LABEL)} window. {len(rows)} float positions were returned, with mean surface salinity {avg:.2f} PSU. The map is using the latest available profile observations; select a float to load its full depth profile."
-    elif "temp" in question or "thermo" in question:
-        values = [row["temperature_c"] for row in rows if row.get("temperature_c") is not None]
-        avg = sum(values) / len(values) if values else 0
-        answer = f"The live ARGO window contains {len(rows)} float positions. Mean sampled temperature is {avg:.2f} °C. Full temperature and salinity curves are fetched from the selected WMO profile on demand."
-    elif "anomal" in question:
-        signals = store.anomalies()["data"]
-        answer = f"I checked the latest live window and found {len(signals)} statistical outlier(s) using a simple 2-sigma screen. These are screening signals, not scientific QC decisions; use the profile QC flags before publication."
-    else:
-        answer = f"Live ARGO mode is active. I found {len(rows)} observations in the recent global ARGO window from {fleet.get('source', SOURCE_LABEL)}. Ask for salinity, temperature, anomalies, a WMO number, or a depth profile."
-    return answer, ids
+@app.post("/api/query")
+async def query(payload: ChatRequest) -> dict[str, Any]:
+    """Structured ASK -> UNDERSTAND -> RETRIEVE -> ANALYZE -> EXPLAIN contract."""
+    return await asyncio.to_thread(analyze, payload.message)
 
 
 @app.post("/api/chat")
-async def chat(payload: dict):
-    question = (payload.get("message") or "").lower()
-    fleet = await asyncio.to_thread(store.fleet)
-    answer, citations = await asyncio.to_thread(_answer, question, fleet)
+async def chat(payload: ChatRequest):
+    result = await asyncio.to_thread(analyze, payload.message)
+    answer = render_answer(result)
 
     async def stream():
         for word in answer.split():
             yield f"data: {json.dumps({'token': word + ' '})}\n\n"
-            await asyncio.sleep(0.008)
-        yield f"data: {json.dumps({'done': True, 'citations': citations, 'source': fleet.get('source'), 'fetched_at': fleet.get('fetched_at'), 'live': fleet.get('live', False)})}\n\n"
+            await asyncio.sleep(0.004)
+        yield f"data: {json.dumps({'done': True, 'result': result})}\n\n"
 
     return StreamingResponse(stream(), media_type="text/event-stream")
