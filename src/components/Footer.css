@@ -1,0 +1,143 @@
+/* ==========================================================================
+   Footer — dark surface, on-dark text tokens
+   color-8 (#C2C3C7) and green (#C1FF00) are only legible here; on the light
+   background they measure 1.6:1 and 1.1:1, well under the 4.5:1 minimum.
+   ========================================================================== */
+
+.site-footer {
+  margin-block-start: auto;
+  background-color: var(--color-surface-dark);
+  color: var(--color-on-dark);
+  padding-block-start: var(--space-16);
+}
+
+.site-footer__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-16);
+  padding-block-end: var(--space-16);
+}
+
+/* -------------------------------------------------------------- brand */
+
+.site-footer__mark {
+  display: block;
+  inline-size: var(--space-10);
+  block-size: var(--space-10);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-highlight);
+}
+
+.site-footer__name {
+  margin-block: var(--space-10) var(--space-5);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-lg);
+  letter-spacing: var(--tracking-caps);
+  color: var(--color-on-dark);
+}
+
+.site-footer__tagline {
+  margin: 0;
+  max-width: 44ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-on-dark-muted);
+}
+
+/* ---------------------------------------------------------------- nav */
+
+.site-footer__nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-14);
+}
+
+.site-footer__group-title {
+  margin: 0 0 var(--space-10);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-on-dark-accent);
+}
+
+.site-footer__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-footer__link {
+  display: inline-block;
+  padding-block: var(--space-1);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-on-dark-muted);
+  text-decoration: none;
+  transition: var(--transition-color-slow);
+}
+
+.site-footer__link:hover {
+  color: var(--color-on-dark);
+  text-decoration: underline;
+  text-underline-offset: var(--space-2);
+}
+
+.site-footer__link:active {
+  color: var(--color-on-dark-accent);
+}
+
+/* -------------------------------------------------------------- base */
+
+.site-footer__base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-7);
+  padding-block: var(--space-10);
+  border-block-start: 1px solid var(--color-on-dark-subtle);
+}
+
+.site-footer__note {
+  margin: 0;
+  max-width: none;
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-on-dark-muted);
+}
+
+/* Focus ring needs to be visible against black, not against the light bg. */
+.site-footer :where(a):focus-visible {
+  outline-color: var(--color-on-dark-accent);
+}
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 860px) {
+  .site-footer {
+    padding-block-start: var(--space-14);
+  }
+
+  .site-footer__inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-14);
+    padding-block-end: var(--space-14);
+  }
+
+  .site-footer__nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-12);
+  }
+}
+
+@media (max-width: 520px) {
+  .site-footer__nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
