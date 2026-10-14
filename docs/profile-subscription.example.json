@@ -1,0 +1,65 @@
+{
+  "profile": {
+    "id": "usr_demo_001",
+    "name": "Avery Morgan",
+    "email": "avery@example.com",
+    "role": "Pearl Aquaculture Manager",
+    "avatarUrl": null
+  },
+  "subscription": {
+    "id": "sub_demo_001",
+    "status": "active",
+    "planId": "pro-pearl-analyst",
+    "startedAt": "2026-03-15T00:00:00Z",
+    "currentPeriodStart": "2026-10-01T00:00:00Z",
+    "currentPeriodEnd": "2026-11-01T00:00:00Z",
+    "cancelAtPeriodEnd": false,
+    "updatedAt": "2026-10-15T00:00:00Z"
+  },
+  "plans": [
+    {
+      "id": "starter-float",
+      "name": "Starter Float",
+      "description": "A simple starting point for keeping an eye on your floats.",
+      "monthlyPrice": 0,
+      "currency": "USD",
+      "billingPeriod": "monthly",
+      "features": [
+        "Basic float monitoring",
+        "Latest readings and fleet map",
+        "Standard status alerts",
+        "Community support"
+      ]
+    },
+    {
+      "id": "pro-pearl-analyst",
+      "name": "Pro Pearl Analyst",
+      "description": "Detailed environmental insight for pearl-farm teams.",
+      "monthlyPrice": null,
+      "currency": "USD",
+      "billingPeriod": "monthly",
+      "priceLabel": "Current plan",
+      "features": [
+        "Pearl Zone suitability analytics",
+        "Interactive 3D globe and depth layers",
+        "Per-metric score and warning details",
+        "Multi-site monitoring",
+        "Priority support"
+      ]
+    },
+    {
+      "id": "enterprise-fleet",
+      "name": "Enterprise Fleet",
+      "description": "Advanced visibility and forecasting for large-scale operations.",
+      "monthlyPrice": 299,
+      "currency": "USD",
+      "billingPeriod": "monthly",
+      "features": [
+        "Unlimited floats",
+        "3D Depth Map",
+        "Algae Bloom Red Alerts",
+        "AI Yield Forecasting"
+      ]
+    }
+  ]
+}

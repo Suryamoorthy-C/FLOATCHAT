@@ -27,6 +27,13 @@
 - [x] `git diff --check` and route-manifest JSON validation passed.
 - [x] Rebased against the upstream shared React-Three globe, restored the Pearl Zones page styling, and visually verified the globe plus marker-to-zone selection in the browser; `npm run build` passed.
 - [x] Chromium/Playwright verified title clearance, 1×/2× canvas backing at 1280×1100 and 390×844, crisp viewport-contained tooltips, drag/zoom marker movement, distinct pointer hit targets and mouse/keyboard selection for all four true-coordinate demo sites, zone chips, layer toggles, reset, 390px mobile document width, and zero page errors. Sample coordinates, readings, and scores were unchanged.
+- [x] Profile/subscription route production build and all 18 backend tests passed; Draft 2020-12 JSON Schema validated its sample payload; Playwright verified desktop navigation, editing, plan/logout notices, mobile navigation, Escape-to-close, and zero overflow at 1440px, 390px, and 320px.
+- [x] Emulated-4G homepage returned HTTP 200 with a 752 ms load event and did not request the lazy profile or Three.js globe chunks; `/manus-routes.json` served valid JSON including `/profile`.
 
 ## Release
 - [x] Push to `origin/main`; Vercel reported deployment success for feature commit `71920e3`.
+
+## User profile and subscription management
+- [x] Provide a responsive profile header with an avatar/profile-picture placeholder, user name, email, role, Edit Profile and Log Out actions; show the current active plan, vivid-green active badge, start/end dates, and a progress bar for remaining days in the billing cycle.
+- [x] Show Starter Float (free/basic monitoring), highlighted current Pro Pearl Analyst, and Enterprise Fleet ($299/month with unlimited floats, 3D depth map, algae-bloom red alerts, and AI yield forecasting) in a responsive plan grid with feature lists and interactive plan-change callbacks.
+- [x] Include a backend-ready JSON Schema and sample user/subscription/plan payload; keep edit, logout, and plan actions callback-driven and do not imply persistence or process payment when no backend callback is connected.

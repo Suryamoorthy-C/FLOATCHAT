@@ -9,6 +9,7 @@ export const NAV_ITEMS = [
 ];
 
 export const CONSOLE_PATH = '/console';
+export const PROFILE_PATH = '/profile';
 
 export const GITHUB_URL = 'https://github.com/Suryamoorthy-C/FLOATCHAT';
 

@@ -20,6 +20,7 @@ import './theme/glass.css';
 /* globe.gl pulls in three.js — about 2 MB — so the console is loaded on demand
    instead of on first paint. Everything else is small enough to ship up front. */
 const ConsolePage = lazy(() => import('./pages/Console'));
+const ProfilePage = lazy(() => import('./pages/Profile'));
 
 /**
  * Old route paths still resolve, but they scroll instead of redirecting: the
@@ -56,6 +57,18 @@ function ConsoleFallback() {
   );
 }
 
+function ProfileFallback() {
+  return (
+    <div className="site-shell">
+      <div className="container section">
+        <p className="empty" aria-busy="true" aria-live="polite">
+          Loading your profile and plans…
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const path = useRoute();
   const section = useSection();
@@ -66,7 +79,7 @@ function App() {
   }, [path]);
 
   useEffect(() => {
-    if (path === '/console') return;
+    if (path === '/console' || path === '/profile') return;
     const id = section || ROUTE_SECTION[path] || 'home';
     const target = document.getElementById(id);
     if (!target) return;
@@ -96,6 +109,14 @@ function App() {
     return (
       <Suspense fallback={<ConsoleFallback />}>
         <ConsolePage />
+      </Suspense>
+    );
+  }
+
+  if (path === '/profile') {
+    return (
+      <Suspense fallback={<ProfileFallback />}>
+        <ProfilePage />
       </Suspense>
     );
   }

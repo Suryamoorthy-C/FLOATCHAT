@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import GooeyNav from './GooeyNav';
 import SpecularButton from './SpecularButton';
 import { Link } from '../router';
-import { CONSOLE_PATH, GITHUB_URL } from '../routes';
+import { CONSOLE_PATH, GITHUB_URL, PROFILE_PATH } from '../routes';
 import { scrollToElement } from '../smoothScroll';
 import './Header.css';
 
@@ -89,6 +89,9 @@ export default function Header() {
         </SpecularButton>
 
         <div className="site-header__actions">
+          <SpecularButton as={Link} to={PROFILE_PATH} size="md" className="site-header__account">
+            Account
+          </SpecularButton>
           <a
             className="site-header__source"
             href={GITHUB_URL}
@@ -123,6 +126,9 @@ export default function Header() {
                 ))}
               </ul>
             </nav>
+            <SpecularButton as={Link} to={PROFILE_PATH} size="md" className="site-header__panel-cta site-header__panel-account" onClick={() => setMobileOpen(false)}>
+              Profile &amp; plans <span aria-hidden="true">→</span>
+            </SpecularButton>
             <SpecularButton as={Link} to={CONSOLE_PATH} size="md" className="site-header__panel-cta" onClick={() => setMobileOpen(false)}>
               Launch console <span aria-hidden="true">→</span>
             </SpecularButton>

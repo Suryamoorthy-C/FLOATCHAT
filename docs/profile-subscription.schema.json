@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://floatchat.example/schemas/profile-subscription.schema.json",
+  "title": "FLOATCHAT profile and subscription payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["profile", "subscription", "plans"],
+  "properties": {
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "email", "role", "avatarUrl"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "email": { "type": "string", "format": "email", "maxLength": 254 },
+        "role": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "avatarUrl": { "type": ["string", "null"], "format": "uri" }
+      }
+    },
+    "subscription": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "planId",
+        "startedAt",
+        "currentPeriodStart",
+        "currentPeriodEnd",
+        "cancelAtPeriodEnd",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": ["active", "trialing", "past_due", "canceled", "inactive"]
+        },
+        "planId": {
+          "enum": ["starter-float", "pro-pearl-analyst", "enterprise-fleet"]
+        },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "currentPeriodStart": { "type": "string", "format": "date-time" },
+        "currentPeriodEnd": { "type": "string", "format": "date-time" },
+        "cancelAtPeriodEnd": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "plans": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/plan" },
+      "allOf": [
+        {
+          "contains": {
+            "properties": { "id": { "const": "starter-float" } },
+            "required": ["id"]
+          }
+        },
+        {
+          "contains": {
+            "properties": { "id": { "const": "pro-pearl-analyst" } },
+            "required": ["id"]
+          }
+        },
+        {
+          "contains": {
+            "properties": { "id": { "const": "enterprise-fleet" } },
+            "required": ["id"]
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "description",
+        "monthlyPrice",
+        "currency",
+        "billingPeriod",
+        "features"
+      ],
+      "properties": {
+        "id": {
+          "enum": ["starter-float", "pro-pearl-analyst", "enterprise-fleet"]
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "monthlyPrice": { "type": ["number", "null"], "minimum": 0 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "billingPeriod": { "const": "monthly" },
+        "priceLabel": { "type": "string", "maxLength": 80 },
+        "features": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+        }
+      }
+    }
+  }
+}

@@ -429,6 +429,12 @@ button.site-header__brand {
   margin-inline-start: 2px;
 }
 
+.site-header__account {
+  padding-inline: 13px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
 .site-header__source {
   color: rgba(244, 244, 245, 0.72);
 }
@@ -457,6 +463,10 @@ button.site-header__brand {
   }
 
   .site-header__gooey {
+    display: none;
+  }
+
+  .site-header__account {
     display: none;
   }
 
