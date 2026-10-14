@@ -1,3 +1,4 @@
+import Reveal from '../components/Reveal';
 import { GITHUB_URL } from '../routes';
 import './Page.css';
 
@@ -50,8 +51,9 @@ const TOKEN_GROUPS = [
 
 export default function Docs() {
   return (
-    <div className="page">
+    <div className="page" id="docs">
       <div className="container">
+        <Reveal>
         <header className="page-head">
           <p className="eyebrow">Docs</p>
           <h1 className="page-head__title">Run it locally, call the API, and know where the data came from.</h1>
@@ -60,6 +62,7 @@ export default function Docs() {
             hidden behind a proprietary layer.
           </p>
         </header>
+        </Reveal>
       </div>
 
       <section className="section" aria-labelledby="start-title">
@@ -183,8 +186,8 @@ export default function Docs() {
           </p>
 
           <ul className="spec-list">
-            {TOKEN_GROUPS.map(group => (
-              <li className="spec" key={group.name}>
+            {TOKEN_GROUPS.map((group, i) => (
+              <Reveal as="li" className="spec" key={group.name} delay={(i % 3) * 90}>
                 <h3 className="spec__title">{group.name}</h3>
                 <div className="table-wrap">
                   <table className="data-table">
@@ -208,7 +211,7 @@ export default function Docs() {
                     </tbody>
                   </table>
                 </div>
-              </li>
+              </Reveal>
             ))}
           </ul>
         </div>
