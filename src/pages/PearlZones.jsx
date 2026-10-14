@@ -1,0 +1,251 @@
+import { useEffect, useState } from 'react';
+import { api } from '../api';
+import './PearlZones.css';
+
+const DEMO_SAMPLES = {
+  z1: {
+    device_id: 'AF-07', species: 'pinctada_maxima', observed_at: new Date().toISOString(),
+    lat: -8.05, lon: 115.34, water_temp_c: 31.2, depth_m: 17.4, salinity_psu: 34.1,
+    dissolved_oxygen_mg_l: 4.9, ph: 8.12, turbidity_ntu: 3.8, chlorophyll_a_ug_l: 1.1,
+  },
+  z2: {
+    device_id: 'AF-12', species: 'pinctada_maxima', observed_at: new Date().toISOString(),
+    lat: -8.08, lon: 115.41, water_temp_c: 29.0, depth_m: 18.0, salinity_psu: 33.5,
+    dissolved_oxygen_mg_l: 5.2, ph: 7.9, turbidity_ntu: 8.0, chlorophyll_a_ug_l: 0.2,
+  },
+  z3: {
+    device_id: 'AF-19', species: 'pinctada_maxima', observed_at: new Date().toISOString(),
+    lat: -8.12, lon: 115.29, water_temp_c: 25.0, depth_m: 28.0, salinity_psu: 30.0,
+    dissolved_oxygen_mg_l: 4.6, ph: 7.6, turbidity_ntu: 14.0, chlorophyll_a_ug_l: 0.1,
+  },
+  z4: {
+    device_id: 'AF-03', species: 'pinctada_maxima', observed_at: new Date().toISOString(),
+    lat: -8.03, lon: 115.21, water_temp_c: 28.2, depth_m: 16.0, salinity_psu: 34.2,
+    dissolved_oxygen_mg_l: 7.0, ph: 8.2, turbidity_ntu: 2.8, chlorophyll_a_ug_l: 1.4,
+  },
+};
+
+const ZONES = [
+  { id: 'z1', name: 'North shelf', ppi: 89, status: 'high-suitability', x: 57, y: 29, alert: 2 },
+  { id: 'z2', name: 'East channel', ppi: 93, status: 'high-suitability', x: 76, y: 58, alert: 3 },
+  { id: 'z3', name: 'South pocket', ppi: 66, status: 'promising', x: 37, y: 68, alert: 7 },
+  { id: 'z4', name: 'West ridge', ppi: 100, status: 'high-suitability', x: 25, y: 40, alert: 0 },
+];
+
+const INITIAL_METRICS = [
+  { key: 'water_temp_c', name: 'Temperature', value: '31.2', unit: '°C', target: '26–30', tone: 'amber', bars: 'M0 20 L18 18 L36 16 L54 18 L72 10 L90 12 L108 7' },
+  { key: 'salinity_psu', name: 'Salinity', value: '34.1', unit: 'PSU', target: '32–35', tone: 'aqua', bars: 'M0 15 L18 14 L36 16 L54 12 L72 12 L90 10 L108 11' },
+  { key: 'dissolved_oxygen_mg_l', name: 'Dissolved oxygen', value: '4.9', unit: 'mg/L', target: '≥ 6.0', tone: 'red', bars: 'M0 7 L18 8 L36 10 L54 13 L72 12 L90 17 L108 19' },
+  { key: 'ph', name: 'pH', value: '8.12', unit: 'pH', target: '7.8–8.6', tone: 'aqua', bars: 'M0 13 L18 12 L36 14 L54 10 L72 12 L90 9 L108 11' },
+  { key: 'turbidity_ntu', name: 'Turbidity', value: '3.8', unit: 'NTU', target: '≤ 5*', tone: 'aqua', bars: 'M0 12 L18 14 L36 10 L54 13 L72 11 L90 12 L108 9' },
+  { key: 'chlorophyll_a_ug_l', name: 'Chlorophyll-a', value: '1.1', unit: 'µg/L', target: '0.25–5*', tone: 'aqua', bars: 'M0 17 L18 13 L36 14 L54 11 L72 10 L90 13 L108 8' },
+];
+
+const LAYERS = [
+  { key: 'suitability', label: 'Suitability' },
+  { key: 'depth', label: 'Depth contours' },
+  { key: 'floats', label: 'Agro-floats' },
+];
+
+function formatAge(timestamp) {
+  const age = Math.max(0, Math.round((Date.now() - new Date(timestamp).getTime()) / 60000));
+  return age < 1 ? 'just now' : `${age} min ago`;
+}
+
+export default function PearlZones() {
+  const [species, setSpecies] = useState('pinctada_maxima');
+  const [selectedZone, setSelectedZone] = useState(ZONES[0]);
+  const [layers, setLayers] = useState({ suitability: true, depth: true, floats: true });
+  const [result, setResult] = useState(null);
+  const [thresholds, setThresholds] = useState(null);
+  const [dataMode, setDataMode] = useState('DEMO');
+  const [busy, setBusy] = useState(true);
+
+  const selectedSample = { ...DEMO_SAMPLES[selectedZone.id], species };
+  const activeResult = result?.device_id === selectedSample.device_id && result?.species_profile === species ? result : null;
+
+  useEffect(() => {
+    let active = true;
+    setThresholds(null);
+    api.pearlThresholds(species, { timeout: 5000 })
+      .then((profile) => active && setThresholds(profile))
+      .catch(() => active && setThresholds(null));
+    return () => { active = false; };
+  }, [species]);
+
+  useEffect(() => {
+    let active = true;
+    setBusy(true);
+    const sample = { ...DEMO_SAMPLES[selectedZone.id], species };
+    api.pearlIndex(sample, { timeout: 5000 })
+      .then((score) => {
+        if (!active) return;
+        setResult(score);
+        setDataMode('API DEMO SAMPLE');
+      })
+      .catch(() => {
+        if (!active) return;
+        setResult(null);
+        setDataMode('LOCAL DEMO');
+      })
+      .finally(() => active && setBusy(false));
+    return () => { active = false; };
+  }, [species, selectedZone.id]);
+
+  const displayScore = activeResult ? activeResult.index : selectedZone.ppi;
+  const displayClass = activeResult?.zone_class ?? selectedZone.status;
+  const metrics = INITIAL_METRICS.map((metric) => {
+    const scored = activeResult?.parameter_scores?.[metric.key];
+    const raw = selectedSample[metric.key];
+    const profileMetric = thresholds?.metrics?.[metric.key];
+    const band = profileMetric?.ideal;
+    const fallbackTarget = species === 'pinctada_fucata' && metric.key === 'water_temp_c' ? '24–26' : species === 'pinctada_fucata' && metric.key === 'salinity_psu' ? '27–29' : metric.target;
+    const target = band ? (band[1] == null ? `≥ ${band[0]}` : `${band[0]}–${band[1]}`) : fallbackTarget;
+    return {
+      ...metric, target, provisional: profileMetric?.provisional ?? metric.target.includes('*'),
+      value: scored ? Number(scored.value).toFixed(metric.key === 'ph' ? 2 : 1) : String(raw),
+      unit: scored?.unit || metric.unit,
+      tone: scored?.state === 'ideal' ? 'aqua' : metric.tone,
+    };
+  });
+  const alerts = activeResult ? activeResult.warnings.filter((warning) => warning.severity === 'critical' || warning.severity === 'warning') : [];
+  const criticalCount = alerts.filter((item) => item.severity === 'critical').length;
+  const watchCount = alerts.filter((item) => item.severity === 'warning').length;
+
+  function toggleLayer(key) {
+    setLayers((current) => ({ ...current, [key]: !current[key] }));
+  }
+
+  return (
+    <div className="page pearl-page">
+      <div className="pearl-shell">
+        <header className="pearl-topline">
+          <div>
+            <p className="pearl-eyebrow">AGRO-FLOAT / OCEAN INTELLIGENCE</p>
+            <h1>Pearl zone analytics</h1>
+            <p className="pearl-subtitle">A sensor-led suitability screen for pearl-oyster cultivation areas.</p>
+          </div>
+          <div className="pearl-top-actions">
+            <label className="pearl-select-label" htmlFor="species-select">Species profile</label>
+            <select id="species-select" value={species} onChange={(event) => setSpecies(event.target.value)}>
+              <option value="pinctada_maxima">Pinctada maxima</option>
+              <option value="pinctada_fucata">Pinctada fucata · research center</option>
+            </select>
+            <span className="pearl-demo-pill"><i />{dataMode}</span>
+          </div>
+        </header>
+
+        <div className="pearl-notice" role="note">
+          <span className="pearl-notice-mark">i</span>
+          <span><strong>Illustrative demo:</strong> sample readings and map geometry are not live farm observations or navigation data. PPI is environmental suitability, not predicted pearl yield.</span>
+        </div>
+
+        <section className="pearl-kpis" aria-label="Area overview">
+          <article className="pearl-kpi pearl-kpi--index">
+            <span className="pearl-kpi-label">SELECTED ZONE PPI</span>
+            <strong>{busy ? '···' : displayScore == null ? '—' : Math.round(displayScore)}</strong>
+            <span className="pearl-kpi-foot"><i className={`zone-dot ${displayClass}`} />{displayClass.replaceAll('-', ' ')}</span>
+          </article>
+          <article className="pearl-kpi"><span className="pearl-kpi-label">SUITABLE AREA</span><strong>12.4 <small>km²</small></strong><span className="pearl-kpi-foot">Demo grid · high / promising</span></article>
+          <article className="pearl-kpi"><span className="pearl-kpi-label">ILLUSTRATIVE SAMPLES</span><strong>04 <small>/ 04</small></strong><span className="pearl-kpi-foot">Four static demo records</span></article>
+          <article className="pearl-kpi pearl-kpi--alert"><span className="pearl-kpi-label">ACTIVE WARNINGS</span><strong>{alerts.length.toString().padStart(2, '0')}</strong><span className="pearl-kpi-foot">{criticalCount} critical · {watchCount} watch</span></article>
+        </section>
+
+        <section className="pearl-workspace">
+          <div className="pearl-map-panel">
+            <div className="pearl-panel-head">
+              <div><span className="pearl-panel-kicker">SPATIAL VIEW / SAMPLE BASIN</span><h2>Environmental suitability</h2></div>
+              <button className="pearl-map-reset" type="button" onClick={() => setSelectedZone(ZONES[0])}>Reset view</button>
+            </div>
+            <div className={`pearl-map ${layers.depth ? 'show-depth' : ''}`}>
+              <svg className="pearl-map-svg" viewBox="0 0 1000 560" preserveAspectRatio="none" role="img" aria-label="Schematic ocean map showing illustrative pearl suitability regions">
+                <defs>
+                  <pattern id="pearl-grid" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M42 0H0V42" fill="none" stroke="rgba(165,220,237,.08)" strokeWidth="1" /></pattern>
+                  <radialGradient id="pearl-glow"><stop offset="0" stopColor="#13dcc5" stopOpacity=".23" /><stop offset="1" stopColor="#13dcc5" stopOpacity="0" /></radialGradient>
+                </defs>
+                <rect width="1000" height="560" fill="url(#pearl-grid)" />
+                <ellipse cx="480" cy="285" rx="480" ry="270" fill="url(#pearl-glow)" />
+                {layers.depth && <g className="depth-lines" fill="none" stroke="#75b8c8" strokeOpacity=".23" strokeWidth="1.4"><path d="M-40 110 C110 40 250 180 420 126S730 42 1040 118"/><path d="M-20 150 C150 80 250 218 430 166S740 83 1020 159"/><path d="M-30 405 C140 335 270 478 470 420S770 352 1040 430"/><path d="M-20 449 C155 380 280 520 480 464S765 398 1030 472"/><path d="M190 -20 C270 96 185 192 295 288S410 448 350 590"/><path d="M750 -20 C650 100 800 214 690 308S595 450 660 580"/></g>}
+                <path className="pearl-land" d="M0 0H250C276 39 253 74 219 91S194 126 227 153 262 202 224 224 206 267 238 291 262 328 221 347 197 397 235 421 258 463 217 485 190 522 225 560H0Z" />
+                <path className="pearl-land pearl-land--island" d="M760 0H1000V560H836C807 515 825 482 865 458S893 417 857 396 820 361 860 337 887 297 850 276 824 236 863 213 891 173 852 149 824 105 863 80 887 37 848 0Z" />
+                <path d="M250 0C276 39 253 74 219 91S194 126 227 153 262 202 224 224 206 267 238 291 262 328 221 347 197 397 235 421 258 463 217 485 190 522 225 560" fill="none" stroke="#779c93" strokeOpacity=".55" strokeWidth="2" />
+                {layers.suitability && <g className="zone-shapes">
+                  <path className="zone-shape zone-shape--high" d="M345 107 449 82 517 130 499 213 405 232 340 186Z" />
+                  <path className="zone-shape zone-shape--medium" d="M523 258 639 220 717 269 689 356 586 373 510 325Z" />
+                  <path className="zone-shape zone-shape--low" d="M304 335 400 303 463 347 450 425 359 444 294 401Z" />
+                  <path className="zone-shape zone-shape--high" d="M585 94 666 83 714 126 692 193 615 206 560 154Z" />
+                </g>}
+                <text x="48" y="49" className="map-label">SCHEMATIC COASTAL BASIN</text>
+                <text x="48" y="73" className="map-sub-label">DEMO CELLS · NO NAVIGATION USE</text>
+                <text x="780" y="527" className="map-sub-label">DEPTH CONTOURS · ILLUSTRATIVE</text>
+              </svg>
+              {layers.floats && ZONES.map((zone, index) => (
+                <button
+                  key={zone.id}
+                  type="button"
+                  className={`pearl-map-pin ${selectedZone.id === zone.id ? 'is-selected' : ''} ${zone.status}`}
+                  style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
+                  onClick={() => setSelectedZone(zone)}
+                  aria-label={`${zone.name}, PPI ${zone.ppi}, ${zone.alert} illustrative warning${zone.alert === 1 ? '' : 's'}`}
+                  title={`${zone.name} · PPI ${zone.ppi}`}
+                ><span>{String(index + 1).padStart(2, '0')}</span></button>
+              ))}
+              <div className="pearl-map-scale"><span>LOW</span><i /><span>HIGH SUITABILITY</span></div>
+              <div className="pearl-map-coords">SAMPLE GRID · 4 FLOATS · 4 SITES</div>
+            </div>
+            <div className="pearl-layer-row" aria-label="Map layers">
+              {LAYERS.map((layer) => <button key={layer.key} type="button" className={layers[layer.key] ? 'active' : ''} aria-pressed={layers[layer.key]} onClick={() => toggleLayer(layer.key)}><i className={`layer-icon layer-icon--${layer.key}`} />{layer.label}</button>)}
+              <div className="pearl-map-time">Updated {formatAge(selectedSample.observed_at)}</div>
+            </div>
+            <div className="pearl-zone-pills" aria-label="Select a zone">
+              {ZONES.map((zone) => <button key={zone.id} className={selectedZone.id === zone.id ? 'selected' : ''} type="button" onClick={() => setSelectedZone(zone)}><span className={`zone-dot ${zone.status}`} />{zone.name}<b>{zone.ppi}</b></button>)}
+            </div>
+          </div>
+
+          <aside className="pearl-side-panel" aria-label="Selected zone details">
+            <div className="pearl-panel-head pearl-side-head"><div><span className="pearl-panel-kicker">ZONE {selectedZone.id.toUpperCase()} / SELECTED</span><h2>{selectedZone.name}</h2></div><span className="pearl-health-tag"><i />DEMO</span></div>
+            <div className="pearl-score-card">
+              <div className="pearl-score-ring" style={{ '--score': `${displayScore ?? 0}%` }}><div><strong>{displayScore == null ? '—' : Math.round(displayScore)}</strong><span>PPI</span></div></div>
+              <div><span className={`pearl-class-label ${displayClass}`}>{displayClass.replaceAll('-', ' ')}</span><p>Environmental suitability screen</p><small>Data coverage {activeResult?.coverage_percent ?? 'demo'} · not model accuracy</small></div>
+            </div>
+            <div className="pearl-section-label">SENSOR SNAPSHOT <span>{dataMode}</span></div>
+            <div className="pearl-metric-list">
+              {metrics.map((metric) => <article className="pearl-metric" key={metric.key}>
+                <div className="pearl-metric-top"><span>{metric.name}</span><span className="pearl-target">IDEAL {metric.target}{metric.provisional ? ' · PROVISIONAL' : ''}</span></div>
+                <div className="pearl-metric-bottom"><strong className={`metric-${metric.tone}`}>{metric.value}<small> {metric.unit}</small></strong><svg viewBox="0 0 108 25" aria-hidden="true"><path d={metric.bars} /></svg></div>
+              </article>)}
+            </div>
+            <div className="pearl-confidence-note">* Turbidity and chlorophyll bands are provisional. Calibrate with local water clarity, suspended solids, and food-species data.</div>
+          </aside>
+        </section>
+
+        <section className="pearl-bottom-grid">
+          <div className="pearl-lower-card">
+            <div className="pearl-panel-head"><div><span className="pearl-panel-kicker">DECISION SUPPORT</span><h2>What is shaping this score</h2></div><span className="pearl-count-pill">{alerts.length} alerts</span></div>
+            <div className="pearl-alert-list">
+              {alerts.slice(0, 3).map((alert, index) => <article className={`pearl-alert pearl-alert--${alert.severity}`} key={alert.code || `${alert.metric}-${index}`}><span className="pearl-alert-symbol">{alert.severity === 'critical' ? '!' : '↗'}</span><div><strong>{alert.metric === 'dissolved_oxygen_mg_l' ? 'Oxygen watch' : alert.metric === 'water_temp_c' ? 'Temperature outside target' : alert.metric || 'Parameter warning'}</strong><p>{alert.message}</p></div><span className="pearl-alert-state">{alert.severity}</span></article>)}
+            </div>
+          </div>
+          <div className="pearl-lower-card pearl-method-card">
+            <div className="pearl-panel-head"><div><span className="pearl-panel-kicker">MODEL PROVENANCE</span><h2>How this is scored</h2></div><span className="pearl-version">PPI 0.1.0</span></div>
+            <p>Weighted, per-parameter suitability bands with QC/outlier exclusion. Missing metrics reduce coverage; they are never filled with zero.</p>
+            <p>{thresholds?.profile_note || (species === 'pinctada_fucata' ? 'Research-derived response-surface center; confirm location, stage, and production objective.' : 'Indo-Pacific tropical screening defaults; not a locally validated yield model.')}</p>
+            <div className="pearl-method-footer"><span>PROFILE <b>{species.replaceAll('_', ' ')}</b></span><span>MODEL <b>{activeResult?.model_version || 'ppi-0.1.0'}</b></span></div>
+            <details className="pearl-evidence-details">
+              <summary>Threshold evidence and source links</summary>
+              {thresholds ? Object.entries(thresholds.metrics).map(([key, item]) => <div className="pearl-evidence-item" key={key}>
+                <strong>{item.label} · {item.evidence_quality} evidence</strong>
+                <p>{item.rationale}{item.provisional ? ' Provisional band; local calibration required.' : ''}</p>
+                <span>{(item.source_refs || []).map((ref) => {
+                  const source = thresholds.sources?.find((entry) => entry.id === ref);
+                  return source ? <a key={ref} href={source.url} target="_blank" rel="noreferrer">[{ref}] {source.title}</a> : null;
+                })}</span>
+              </div>) : <p>Source-linked threshold details appear when the threshold endpoint is reachable.</p>}
+            </details>
+            <p className="pearl-method-disclaimer">Research-derived starter thresholds. Validate against local farm survival, growth, and nacre outcomes before operational decisions.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

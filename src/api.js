@@ -53,6 +53,27 @@ async function getJSON(path, params, { timeout = 12000, signal } = {}) {
   }
 }
 
+/** POST JSON and return a normalized response with timeout handling. */
+async function postJSON(path, payload, { timeout = 12000, signal } = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeout)
+  const onAbort = () => controller.abort()
+  signal?.addEventListener('abort', onAbort, { once: true })
+  try {
+    const res = await fetch(buildUrl(path), {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+    return await res.json()
+  } finally {
+    clearTimeout(timer)
+    signal?.removeEventListener('abort', onAbort)
+  }
+}
+
 export const api = {
   /** {status, service, data_source, live, fetched_at} */
   health: (opts) => getJSON('/api/health', null, opts),
@@ -74,6 +95,11 @@ export const api = {
 
   /** {active_floats, profiles_week, anomalies, coverage_percent, synced_at, source, live} */
   stats: (opts) => getJSON('/api/stats/overview', null, opts),
+  /** Versioned species bands and evidence notes. */
+  pearlThresholds: (species = 'pinctada_maxima', opts) =>
+    getJSON('/api/pearl/thresholds', { species }, opts),
+  /** Score one multi-sensor telemetry sample. */
+  pearlIndex: (telemetry, opts) => postJSON('/api/pearl/index', telemetry, opts),
 }
 
 /**

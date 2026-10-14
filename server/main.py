@@ -3,12 +3,14 @@ from __future__ import annotations
 import asyncio
 import json
 from typing import Any
-from fastapi import FastAPI, Query
+
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from .live_data import FALLBACK_FLOATS, store
+from .pearl_index import calculate_pearl_index, species_thresholds
 from .query_engine import analyze, render_answer
 
 app = FastAPI(title="FLOATCHAT API", version="0.3.0")
@@ -29,8 +31,10 @@ def health():
 def floats(status: str | None = None, region: str | None = None, live: bool = True, refresh: bool = False):
     result = store.fleet(force=refresh) if live else {"count": len(FALLBACK_FLOATS), "data": FALLBACK_FLOATS, "source": "FLOATCHAT demo fallback", "live": False}
     rows = result["data"]
-    if status: rows = [row for row in rows if row.get("status") == status]
-    if region: rows = [row for row in rows if region.lower() in str(row.get("project_name", "")).lower() or region.lower() in str(row.get("region", "")).lower()]
+    if status:
+        rows = [row for row in rows if row.get("status") == status]
+    if region:
+        rows = [row for row in rows if region.lower() in str(row.get("project_name", "")).lower() or region.lower() in str(row.get("region", "")).lower()]
     return {**result, "count": len(rows), "data": rows}
 
 
@@ -58,6 +62,22 @@ def anomalies():
 @app.get("/api/stats/overview")
 def stats():
     return store.stats()
+
+
+@app.get("/api/pearl/thresholds")
+def pearl_thresholds(species: str = Query("pinctada_maxima")):
+    try:
+        return species_thresholds(species)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/api/pearl/index")
+def pearl_index(payload: dict):
+    try:
+        return calculate_pearl_index(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/api/query")

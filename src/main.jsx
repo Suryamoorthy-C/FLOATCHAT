@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Platform from './pages/Platform';
 import Data from './pages/Data';
 import Docs from './pages/Docs';
+import PearlZones from './pages/PearlZones';
 import { Link, useRoute, useSection } from './router';
 
 import './theme/tokens.css';
@@ -23,6 +24,7 @@ const PAGES = {
   '/': Home,
   '/platform': Platform,
   '/data': Data,
+  '/pearl-zones': PearlZones,
   '/docs': Docs,
 };
 
