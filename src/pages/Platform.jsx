@@ -1,5 +1,6 @@
 import { Link } from '../router';
 import { CONSOLE_PATH, GITHUB_URL } from '../routes';
+import Reveal from '../components/Reveal';
 import './Page.css';
 
 const FEATURES = [
@@ -46,18 +47,20 @@ const STEPS = [
 
 export default function Platform() {
   return (
-    <div className="page">
+    <div className="page" id="platform">
       <div className="container">
-        <header className="page-head">
-          <p className="eyebrow">Platform</p>
-          <h1 className="page-head__title">
-            A working console for the Argo fleet, with a chat interface over the top.
-          </h1>
-          <p className="page-head__lede">
-            FLOATCHAT reads live float telemetry and lets you interrogate it in plain language. It
-            is built for the Indian Ocean basin, but nothing in the pipeline is specific to it.
-          </p>
-        </header>
+        <Reveal>
+          <header className="page-head">
+            <p className="eyebrow">Platform</p>
+            <h1 className="page-head__title">
+              A working console for the Argo fleet, with a chat interface over the top.
+            </h1>
+            <p className="page-head__lede">
+              FLOATCHAT reads live float telemetry and lets you interrogate it in plain language. It
+              is built for the Indian Ocean basin, but nothing in the pipeline is specific to it.
+            </p>
+          </header>
+        </Reveal>
       </div>
 
       <section className="section" aria-labelledby="capabilities-title">
@@ -68,11 +71,11 @@ export default function Platform() {
           </h2>
           <ul className="spec-list">
             {FEATURES.map((feature, index) => (
-              <li className="spec" key={feature.title}>
+              <Reveal as="li" className="spec" key={feature.title} delay={(index % 3) * 90}>
                 <p className="spec__index">{String(index + 1).padStart(2, '0')}</p>
                 <h3 className="spec__title">{feature.title}</h3>
                 <p className="spec__body">{feature.body}</p>
-              </li>
+              </Reveal>
             ))}
           </ul>
         </div>
@@ -85,13 +88,13 @@ export default function Platform() {
             Three stages, from the GDAC to an answer.
           </h2>
           <ol className="steps">
-            {STEPS.map(step => (
-              <li className="steps__item" key={step.title}>
+            {STEPS.map((step, i) => (
+              <Reveal as="li" className="steps__item" key={step.title} delay={i * 100}>
                 <div>
                   <h3 className="steps__title">{step.title}</h3>
                   <p className="steps__body">{step.body}</p>
                 </div>
-              </li>
+              </Reveal>
             ))}
           </ol>
         </div>
