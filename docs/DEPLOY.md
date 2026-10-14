@@ -6,5 +6,5 @@
 4. Add every variable from `.env.local` in Vercel project settings.
 5. Deploy.
 6. Open the production URL on phone and desktop.
-7. Test one crop question, one error case, and refresh behavior.
+7. Test one device status view, one anomaly question, one error case, and refresh behavior.
 8. Keep the URL in `docs/DEMO.md`.

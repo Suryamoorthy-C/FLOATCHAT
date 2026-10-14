@@ -2,4 +2,4 @@
 
 Append-only. Add newest entries at the top.
 
-- 2026-10-14 — Initial Hackathon OS generated for AGROCHAT. Project idea assumed from repository name; confirm with team.
+- 2026-10-14 — Initial Hackathon OS generated for AGROCHAT. Updated to the ocean-device monitoring concept supplied by the user.
