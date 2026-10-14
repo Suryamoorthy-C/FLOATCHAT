@@ -17,6 +17,11 @@ function latLngToVector3(lat, lng, radius) {
 }
 
 function markerColor(marker, mode) {
+  if (mode === 'suitability') {
+    if (marker.status === 'promising') return '#f2bd59'
+    if (marker.status === 'marginal' || marker.status === 'low-suitability') return '#ec7c69'
+    return '#31d6bd'
+  }
   if (mode === 'salinity') return marker.anomaly ? '#ffc857' : '#00e5ff'
   if (mode === 'spectral') return marker.temp > 28 ? '#ff5577' : marker.temp > 24 ? '#ffd166' : '#4e9cf5'
   return marker.anomaly ? '#8ff7ff' : '#00f2fe'
@@ -54,8 +59,10 @@ function Atmosphere({ radius = 2, color = '#00e5ff' }) {
 
 function GlobeMarker({ marker, radius, color, selected, onClick }) {
   const [hovered, setHovered] = useState(false)
-  const surface = useMemo(() => latLngToVector3(marker.lat, marker.lng, radius * 1.006), [marker.lat, marker.lng, radius])
-  const top = useMemo(() => latLngToVector3(marker.lat, marker.lng, radius * (selected ? 1.22 : 1.14)), [marker.lat, marker.lng, radius, selected])
+  const markerLat = marker.displayLat ?? marker.lat
+  const markerLng = marker.displayLng ?? marker.lng
+  const surface = useMemo(() => latLngToVector3(markerLat, markerLng, radius * 1.006), [markerLat, markerLng, radius])
+  const top = useMemo(() => latLngToVector3(markerLat, markerLng, radius * (selected ? 1.22 : 1.14)), [markerLat, markerLng, radius, selected])
   const direction = useMemo(() => top.clone().sub(surface).normalize(), [surface, top])
   const quaternion = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction), [direction])
   const lineCenter = useMemo(() => surface.clone().lerp(top, 0.5), [surface, top])
@@ -95,7 +102,7 @@ function GlobeMarker({ marker, radius, color, selected, onClick }) {
   )
 }
 
-function GlobeScene({ markers, path, mode, selectedId, rotating, onMarkerClick }) {
+function GlobeScene({ markers, path, mode, selectedId, rotating, rotationSpeed, showGraticules, centerLongitude, onMarkerClick }) {
   const group = useRef(null)
   const { camera } = useThree()
   const [earth, bump] = useTexture([EARTH_TEXTURE, BUMP_TEXTURE])
@@ -112,7 +119,7 @@ function GlobeScene({ markers, path, mode, selectedId, rotating, onMarkerClick }
   }, [camera])
 
   useFrame(() => {
-    if (group.current && rotating) group.current.rotation.y += 0.0008
+    if (group.current && rotating) group.current.rotation.y += rotationSpeed
   })
 
   const focus = markers.find((marker) => marker.id === selectedId)
@@ -123,15 +130,15 @@ function GlobeScene({ markers, path, mode, selectedId, rotating, onMarkerClick }
       <ambientLight intensity={0.5} />
       <directionalLight position={[8, 4, 8]} intensity={1.7} />
       <directionalLight position={[-5, 2, -4]} intensity={0.45} color="#6bc9ff" />
-      <group ref={group} rotation={[0.05, -0.5, 0]}>
+      <group ref={group} rotation={[0.05, (-90 - centerLongitude) * Math.PI / 180, 0]}>
         <mesh>
           <sphereGeometry args={[2, 64, 64]} />
           <meshStandardMaterial map={earth} bumpMap={bump} bumpScale={0.08} roughness={0.82} metalness={0.02} />
         </mesh>
-        <mesh scale={[1.004, 1.004, 1.004]}>
+        {showGraticules && <mesh scale={[1.004, 1.004, 1.004]}>
           <sphereGeometry args={[2, 32, 18]} />
           <meshBasicMaterial color="#67e8f9" wireframe transparent opacity={0.09} />
-        </mesh>
+        </mesh>}
         {markers.map((marker) => (
           <GlobeMarker
             key={marker.id}
@@ -163,7 +170,7 @@ function LoadingGlobe() {
   return <Html center><div className="globe-loading">INITIALIZING ARGO SPHERE…</div></Html>
 }
 
-export default function Globe3D({ markers = [], path = [], mode = 'telemetry', selectedId, rotating = true, onMarkerClick }) {
+export default function Globe3D({ markers = [], path = [], mode = 'telemetry', selectedId, rotating = true, rotationSpeed = 0.0008, showGraticules = true, centerLongitude = -61.35, onMarkerClick }) {
   return (
     <div className="globe-3d-shell">
       <Canvas
@@ -172,7 +179,7 @@ export default function Globe3D({ markers = [], path = [], mode = 'telemetry', s
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
         <Suspense fallback={<LoadingGlobe />}>
-          <GlobeScene markers={markers} path={path} mode={mode} selectedId={selectedId} rotating={rotating} onMarkerClick={onMarkerClick} />
+          <GlobeScene markers={markers} path={path} mode={mode} selectedId={selectedId} rotating={rotating} rotationSpeed={rotationSpeed} showGraticules={showGraticules} centerLongitude={centerLongitude} onMarkerClick={onMarkerClick} />
         </Suspense>
       </Canvas>
     </div>

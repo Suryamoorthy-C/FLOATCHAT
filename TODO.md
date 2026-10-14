@@ -9,6 +9,7 @@
 
 ## Dashboard
 - [x] Add a discoverable Pearl Zones page with selectable illustrative suitability map, pins, layer toggles, zone cards, parameter details, and API-driven warning badges.
+- [x] Replace the schematic map with a responsive 3D Earth globe in the same dashboard panel; allow drag-to-rotate and scroll-to-zoom, show the four illustrative demo sites as selectable markers, link marker selection to the existing zone details, retain the reset control and layer toggles, and label display positions as approximate/not for navigation.
 - [x] Label map geometry and fallback telemetry as illustrative demo data; state that PPI is not a pearl-yield prediction.
 - [x] Show profile-derived target bands, coverage semantics, threshold evidence, and source links; include responsive desktop/mobile layout and text labels alongside colors.
 
@@ -23,6 +24,7 @@
 - [x] 11 unit tests passed; Python source compilation passed.
 - [x] API function contracts, strict JSON serialization, source provenance, one-sided DO scoring, missing-metric reporting, QC-alias handling, and negative-pressure rejection passed.
 - [x] `git diff --check` and route-manifest JSON validation passed.
+- [x] Rebased against the upstream shared React-Three globe, restored the Pearl Zones page styling, and visually verified the globe plus marker-to-zone selection in the browser; `npm run build` passed.
 
 ## Release
 - [x] Push to `origin/main`; Vercel reported deployment success for feature commit `71920e3`.

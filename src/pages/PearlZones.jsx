@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
-import Globe3D from '../components/Globe3D';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { api } from '../api';
 import './PearlZones.css';
+
+const Globe3D = lazy(() => import('../components/Globe3D'));
 
 const DEMO_SAMPLES = {
   z1: {
@@ -27,10 +28,11 @@ const DEMO_SAMPLES = {
 };
 
 const ZONES = [
-  { id: 'z1', name: 'North shelf', ppi: 89, status: 'high-suitability', x: 57, y: 29, alert: 2 },
-  { id: 'z2', name: 'East channel', ppi: 93, status: 'high-suitability', x: 76, y: 58, alert: 3 },
-  { id: 'z3', name: 'South pocket', ppi: 66, status: 'promising', x: 37, y: 68, alert: 7 },
-  { id: 'z4', name: 'West ridge', ppi: 100, status: 'high-suitability', x: 25, y: 40, alert: 0 },
+  // Approximate display positions are deliberately spread for marker legibility, not navigation.
+  { id: 'z1', name: 'North shelf', ppi: 89, status: 'high-suitability', displayLat: -5.4, displayLng: 111.8, alert: 2 },
+  { id: 'z2', name: 'East channel', ppi: 93, status: 'high-suitability', displayLat: -6.8, displayLng: 130.2, alert: 3 },
+  { id: 'z3', name: 'South pocket', ppi: 66, status: 'promising', displayLat: -15.8, displayLng: 124.5, alert: 7 },
+  { id: 'z4', name: 'West ridge', ppi: 100, status: 'high-suitability', displayLat: -8.6, displayLng: 104.6, alert: 0 },
 ];
 
 const INITIAL_METRICS = [
@@ -44,8 +46,8 @@ const INITIAL_METRICS = [
 
 const LAYERS = [
   { key: 'suitability', label: 'Suitability' },
-  { key: 'depth', label: 'Depth contours' },
-  { key: 'floats', label: 'Agro-floats' },
+  { key: 'depth', label: 'Graticule' },
+  { key: 'floats', label: 'Demo site markers' },
 ];
 
 function formatAge(timestamp) {
@@ -57,6 +59,7 @@ export default function PearlZones() {
   const [species, setSpecies] = useState('pinctada_maxima');
   const [selectedZone, setSelectedZone] = useState(ZONES[0]);
   const [layers, setLayers] = useState({ suitability: true, depth: true, floats: true });
+  const [globeKey, setGlobeKey] = useState(0);
   const [result, setResult] = useState(null);
   const [thresholds, setThresholds] = useState(null);
   const [dataMode, setDataMode] = useState('DEMO');
@@ -71,6 +74,10 @@ export default function PearlZones() {
       zoneId: zone.id,
       lat: sample.lat,
       lng: sample.lon,
+      displayLat: zone.displayLat,
+      displayLng: zone.displayLng,
+      ppi: zone.ppi,
+      status: zone.status,
       region: `${zone.name} · PPI ${zone.ppi}`,
       temp: sample.water_temp_c,
       sal: sample.salinity_psu,
@@ -165,67 +172,30 @@ export default function PearlZones() {
           <article className="pearl-kpi pearl-kpi--alert"><span className="pearl-kpi-label">ACTIVE WARNINGS</span><strong>{alerts.length.toString().padStart(2, '0')}</strong><span className="pearl-kpi-foot">{criticalCount} critical · {watchCount} watch</span></article>
         </section>
 
-        <section className="pearl-globe-panel" aria-labelledby="pearl-globe-title">
-          <div className="pearl-panel-head">
-            <div><span className="pearl-panel-kicker">GLOBAL FLOAT CONTEXT / SENSOR LOCATIONS</span><h2 id="pearl-globe-title">Pearl zone sensor globe</h2></div>
-            <span className="pearl-globe-status"><i />{layers.floats ? '4 AGRO-FLOATS VISIBLE' : 'FLOAT LAYER HIDDEN'}</span>
-          </div>
-          <div className="pearl-globe-stage">
-            <Globe3D
-              markers={layers.floats ? pearlMarkers : []}
-              mode="salinity"
-              rotating
-              selectedId={selectedSample.device_id}
-              onMarkerClick={(marker) => {
-                const zone = ZONES.find((item) => item.id === marker.zoneId);
-                if (zone) setSelectedZone(zone);
-              }}
-            />
-            <div className="pearl-globe-caption">Hover a marker for device, PPI, temperature, and salinity · click to select its zone</div>
-          </div>
-        </section>
-
         <section className="pearl-workspace">
           <div className="pearl-map-panel">
             <div className="pearl-panel-head">
-              <div><span className="pearl-panel-kicker">SPATIAL VIEW / SAMPLE BASIN</span><h2>Environmental suitability</h2></div>
-              <button className="pearl-map-reset" type="button" onClick={() => setSelectedZone(ZONES[0])}>Reset view</button>
+              <div><span className="pearl-panel-kicker">3D GLOBE / INDONESIAN SEAS · DEMO</span><h2>Environmental suitability</h2></div>
+              <button className="pearl-map-reset" type="button" onClick={() => { setSelectedZone(ZONES[0]); setGlobeKey((key) => key + 1); }}>Reset view</button>
             </div>
-            <div className={`pearl-map ${layers.depth ? 'show-depth' : ''}`}>
-              <svg className="pearl-map-svg" viewBox="0 0 1000 560" preserveAspectRatio="none" role="img" aria-label="Schematic ocean map showing illustrative pearl suitability regions">
-                <defs>
-                  <pattern id="pearl-grid" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M42 0H0V42" fill="none" stroke="rgba(165,220,237,.08)" strokeWidth="1" /></pattern>
-                  <radialGradient id="pearl-glow"><stop offset="0" stopColor="#13dcc5" stopOpacity=".23" /><stop offset="1" stopColor="#13dcc5" stopOpacity="0" /></radialGradient>
-                </defs>
-                <rect width="1000" height="560" fill="url(#pearl-grid)" />
-                <ellipse cx="480" cy="285" rx="480" ry="270" fill="url(#pearl-glow)" />
-                {layers.depth && <g className="depth-lines" fill="none" stroke="#75b8c8" strokeOpacity=".23" strokeWidth="1.4"><path d="M-40 110 C110 40 250 180 420 126S730 42 1040 118"/><path d="M-20 150 C150 80 250 218 430 166S740 83 1020 159"/><path d="M-30 405 C140 335 270 478 470 420S770 352 1040 430"/><path d="M-20 449 C155 380 280 520 480 464S765 398 1030 472"/><path d="M190 -20 C270 96 185 192 295 288S410 448 350 590"/><path d="M750 -20 C650 100 800 214 690 308S595 450 660 580"/></g>}
-                <path className="pearl-land" d="M0 0H250C276 39 253 74 219 91S194 126 227 153 262 202 224 224 206 267 238 291 262 328 221 347 197 397 235 421 258 463 217 485 190 522 225 560H0Z" />
-                <path className="pearl-land pearl-land--island" d="M760 0H1000V560H836C807 515 825 482 865 458S893 417 857 396 820 361 860 337 887 297 850 276 824 236 863 213 891 173 852 149 824 105 863 80 887 37 848 0Z" />
-                <path d="M250 0C276 39 253 74 219 91S194 126 227 153 262 202 224 224 206 267 238 291 262 328 221 347 197 397 235 421 258 463 217 485 190 522 225 560" fill="none" stroke="#779c93" strokeOpacity=".55" strokeWidth="2" />
-                {layers.suitability && <g className="zone-shapes">
-                  <path className="zone-shape zone-shape--high" d="M345 107 449 82 517 130 499 213 405 232 340 186Z" />
-                  <path className="zone-shape zone-shape--medium" d="M523 258 639 220 717 269 689 356 586 373 510 325Z" />
-                  <path className="zone-shape zone-shape--low" d="M304 335 400 303 463 347 450 425 359 444 294 401Z" />
-                  <path className="zone-shape zone-shape--high" d="M585 94 666 83 714 126 692 193 615 206 560 154Z" />
-                </g>}
-                <text x="48" y="49" className="map-label">SCHEMATIC COASTAL BASIN</text>
-                <text x="48" y="73" className="map-sub-label">DEMO CELLS · NO NAVIGATION USE</text>
-                <text x="780" y="527" className="map-sub-label">DEPTH CONTOURS · ILLUSTRATIVE</text>
-              </svg>
-              {layers.floats && ZONES.map((zone, index) => (
-                <button
-                  key={zone.id}
-                  type="button"
-                  className={`pearl-map-pin ${selectedZone.id === zone.id ? 'is-selected' : ''} ${zone.status}`}
-                  style={{ left: `${zone.x}%`, top: `${zone.y}%` }}
-                  onClick={() => setSelectedZone(zone)}
-                  aria-label={`${zone.name}, PPI ${zone.ppi}, ${zone.alert} illustrative warning${zone.alert === 1 ? '' : 's'}`}
-                  title={`${zone.name} · PPI ${zone.ppi}`}
-                ><span>{String(index + 1).padStart(2, '0')}</span></button>
-              ))}
-              <div className="pearl-map-scale"><span>LOW</span><i /><span>HIGH SUITABILITY</span></div>
-              <div className="pearl-map-coords">SAMPLE GRID · 4 FLOATS · 4 SITES</div>
+            <div className="pearl-map pearl-globe-stage">
+              <Suspense fallback={<div className="globe-loading">INITIALIZING PEARL GLOBE…</div>}>
+                <Globe3D
+                  key={globeKey}
+                  markers={layers.floats ? pearlMarkers : []}
+                  mode={layers.suitability ? 'suitability' : 'telemetry'}
+                  rotating
+                  rotationSpeed={0.00012}
+                  showGraticules={layers.depth}
+                  centerLongitude={117}
+                  selectedId={selectedSample.device_id}
+                  onMarkerClick={(marker) => {
+                    const zone = ZONES.find((item) => item.id === marker.zoneId);
+                    if (zone) setSelectedZone(zone);
+                  }}
+                />
+              </Suspense>
+              <div className="pearl-globe-caption">DRAG TO ROTATE · SCROLL TO ZOOM · DEMO MARKERS SPREAD FOR LEGIBILITY, NOT NAVIGATION</div>
             </div>
             <div className="pearl-layer-row" aria-label="Map layers">
               {LAYERS.map((layer) => <button key={layer.key} type="button" className={layers[layer.key] ? 'active' : ''} aria-pressed={layers[layer.key]} onClick={() => toggleLayer(layer.key)}><i className={`layer-icon layer-icon--${layer.key}`} />{layer.label}</button>)}

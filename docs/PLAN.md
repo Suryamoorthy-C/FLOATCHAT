@@ -12,7 +12,7 @@ FLOATCHAT is an ocean-intelligence dashboard that helps operators explore ocean-
 ## Pearl analytics implementation
 - `server/pearl_index.py` contains versioned species profiles, unit normalization, robust anomaly screening, weighted scoring, coverage, and warning generation.
 - `server/main.py` exposes `GET /api/pearl/thresholds` and `POST /api/pearl/index`.
-- `src/pages/PearlZones.jsx` and `src/pages/PearlZones.css` provide an illustrative demo dashboard with a selectable suitability-map surface, layer controls, float pins, score cards, parameter warnings, and responsive telemetry detail.
+- `src/pages/PearlZones.jsx`, `src/components/Globe3D.jsx`, and `src/pages/PearlZones.css` provide an illustrative demo dashboard with a responsive, rotatable Three.js Earth in the existing map panel, selectable zone markers, layer controls, score cards, parameter warnings, and responsive telemetry detail. Pearl-zone marker positions are display-only and are explicitly not navigation coordinates.
 - `src/api.js`, `src/routes.js`, `src/main.jsx`, and `public/manus-routes.json` are the front-end API, navigation, page registry, and route-declaration sources of truth.
 - `docs/PEARL_ZONE_ANALYTICS.md` contains the source-cited thresholds, scoring assumptions, architecture, storage model, UX framework, and feature roadmap.
 
