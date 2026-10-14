@@ -1,6 +1,6 @@
 import { Html, Line, OrbitControls, Stage } from '@react-three/drei';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import './ArgoExplodedView.css';
 
@@ -11,12 +11,12 @@ const smoothstep = (edge0, edge1, value) => {
 };
 
 const STAGES = [
-  ['Assembled', 'A compact profiling platform'],
-  ['Exterior reveal', 'The hull opens around the working assembly'],
-  ['Exploded view', 'Each system resolves along its assembly axis'],
-  ['Component showcase', 'The float, read as an engineered system'],
-  ['Scientific operation', 'Profile · measure · surface · transmit'],
-  ['Reassembly', 'Ready for another deployment cycle']
+  ['Assembled', 'A cylindrical autonomous profiler built around a pressure hull'],
+  ['Exterior reveal', 'The hull opens around the sensor head and working assembly'],
+  ['Exploded view', 'Subsystems resolve along their natural assembly axes'],
+  ['Component showcase', 'CTD, controller, power, buoyancy engine and ballast'],
+  ['Scientific operation', 'Park · descend · profile · surface · transmit'],
+  ['Reassembly', 'A core-float baseline, not a single manufacturer drawing']
 ];
 
 function useScrollProgress(sectionRef) {
@@ -110,6 +110,16 @@ function TopAssembly({ explode }) {
         <cylinderGeometry args={[0.24, 0.24, 0.72, 24]} />
         <Metal color="#c3d1d4" roughness={0.2} metalness={0.82} />
       </mesh>
+      <mesh position={[0, 0.62, 0.08]} castShadow>
+        <boxGeometry args={[0.38, 0.18, 0.24]} />
+        <meshStandardMaterial color="#174e46" roughness={0.42} metalness={0.32} />
+      </mesh>
+      {[[-0.1, 0.75, 0.08], [0, 0.75, 0.08], [0.1, 0.75, 0.08]].map(([x, y, z]) => (
+        <mesh key={`${x}-${y}`} position={[x, y, z]}>
+          <cylinderGeometry args={[0.025, 0.025, 0.24, 12]} />
+          <Metal color="#d1e3e2" roughness={0.24} metalness={0.72} />
+        </mesh>
+      ))}
       <mesh position={[0, 0.85, 0]}>
         <cylinderGeometry args={[0.055, 0.055, 1.05, 12]} />
         <Metal color="#171d25" roughness={0.22} metalness={0.82} />
@@ -171,6 +181,44 @@ function Battery({ explode }) {
   );
 }
 
+function BuoyancyEngine({ explode }) {
+  return (
+    <MovingPart base={[0.03, -0.18, 0]} offset={[0.78, -0.22, 0.1]} explode={explode}>
+      <mesh castShadow>
+        <cylinderGeometry args={[0.19, 0.19, 0.82, 24]} />
+        <Metal color="#bd8e3e" roughness={0.3} metalness={0.6} />
+      </mesh>
+      <mesh position={[0, 0.48, 0]}>
+        <cylinderGeometry args={[0.26, 0.26, 0.2, 24]} />
+        <meshStandardMaterial color="#9e762f" roughness={0.38} metalness={0.38} />
+      </mesh>
+      <mesh position={[0, -0.55, 0]}>
+        <cylinderGeometry args={[0.13, 0.13, 0.18, 24]} />
+        <Metal color="#59636a" roughness={0.28} metalness={0.8} />
+      </mesh>
+      <mesh position={[0, -0.92, 0.02]} scale={[1, 0.55, 0.75]} castShadow>
+        <sphereGeometry args={[0.48, 32, 18]} />
+        <meshStandardMaterial color="#d48643" roughness={0.46} metalness={0.08} transparent opacity={0.92} />
+      </mesh>
+    </MovingPart>
+  );
+}
+
+function Ballast({ explode }) {
+  return (
+    <MovingPart base={[-0.36, -1.62, 0.05]} offset={[-0.62, -0.46, 0]} explode={explode}>
+      <mesh castShadow>
+        <cylinderGeometry args={[0.14, 0.18, 0.58, 24]} />
+        <Metal color="#252c31" roughness={0.46} metalness={0.8} />
+      </mesh>
+      <mesh position={[0.72, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.14, 0.18, 0.58, 24]} />
+        <Metal color="#252c31" roughness={0.46} metalness={0.8} />
+      </mesh>
+    </MovingPart>
+  );
+}
+
 function PumpAssembly({ explode }) {
   return (
     <MovingPart base={[0, -0.15, 0]} offset={[0.58, -0.2, 0.14]} explode={explode}>
@@ -181,10 +229,6 @@ function PumpAssembly({ explode }) {
       <mesh position={[0, -0.72, 0]}>
         <cylinderGeometry args={[0.12, 0.12, 0.2, 24]} />
         <Metal color="#59636a" roughness={0.28} metalness={0.8} />
-      </mesh>
-      <mesh position={[0, -0.86, 0]}>
-        <sphereGeometry args={[0.32, 28, 14]} />
-        <meshStandardMaterial color="#9a211b" roughness={0.38} metalness={0.2} />
       </mesh>
     </MovingPart>
   );
@@ -239,27 +283,43 @@ function FloatAssembly({ progress }) {
 
   const labelVisible = explode > 0.28 || showcase > 0.15;
   return (
-    <group ref={group} scale={0.56}>
+    <group ref={group} scale={0.72}>
       <Hull explode={explode} />
       <TopAssembly explode={explode} />
       <StabilityDisk explode={explode} />
       <Electronics explode={explode} />
       <Battery explode={explode} />
+      <BuoyancyEngine explode={explode} />
       <PumpAssembly explode={explode} />
+      <Ballast explode={explode} />
       <LowerSensor explode={explode} />
       <Callout label="Satellite antenna" detail="Surface telemetry" point={[0, 3.43, 0]} anchor={[1.95, 3.55, 0]} visible={labelVisible} />
-      <Callout label="Profiling head" detail="Instrumented upper assembly" point={[0, 2.68, 0]} anchor={[-2.08, 2.72, 0]} visible={labelVisible} />
+      <Callout label="CTD sensor head" detail="Conductivity · temperature · pressure" point={[0, 2.68, 0]} anchor={[-2.08, 2.72, 0]} visible={labelVisible} />
       <Callout label="Stability disk" detail="Keeps the profile steady" point={[1.2, 0.34, 0]} anchor={[2.1, 0.4, 0]} visible={showcase > 0.2} tone="yellow" />
-      <Callout label="Electronics + transmitter" detail="Records and sends observations" point={[0.34, 1.55, 0.12]} anchor={[-2.2, 1.52, 0]} visible={showcase > 0.35} />
-      <Callout label="Battery" detail="Internal power module" point={[-0.32, -0.7, 0]} anchor={[-2.05, -0.72, 0]} visible={showcase > 0.45} tone="yellow" />
-      <Callout label="Hydraulic drive" detail="Moves the buoyancy system" point={[0.58, -0.35, 0.14]} anchor={[2.05, -0.45, 0]} visible={operation > 0.2} />
+      <Callout label="Controller + transceiver" detail="Schedules, packages and transmits" point={[0.34, 1.55, 0.12]} anchor={[-2.2, 1.52, 0]} visible={showcase > 0.35} />
+      <Callout label="Lithium battery bay" detail="Primary power for multi-year missions" point={[-0.32, -0.7, 0]} anchor={[-2.05, -0.72, 0]} visible={showcase > 0.45} tone="yellow" />
+      <Callout label="Hydraulic pump + oil" detail="Moves mineral oil to change volume" point={[0.58, -0.35, 0.14]} anchor={[2.05, -0.45, 0]} visible={operation > 0.2} />
+      <Callout label="External bladder" detail="Expands for positive buoyancy" point={[0.78, -1.1, 0.1]} anchor={[2.08, -1.18, 0]} visible={operation > 0.34} tone="yellow" />
+      <Callout label="Ballast weights" detail="Precision trim before deployment" point={[-0.36, -1.62, 0.05]} anchor={[-2.05, -1.52, 0]} visible={showcase > 0.58} tone="yellow" />
     </group>
   );
 }
 
+function CameraRig({ progress }) {
+  const { camera } = useThree();
+  const explode = smoothstep(0.16, 0.48, progress) * (1 - smoothstep(0.78, 0.98, progress));
+  useFrame((_, delta) => {
+    const targetZ = THREE.MathUtils.lerp(10.8, 14.2, explode);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, 4, delta);
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, 5.4, 4, delta);
+    camera.lookAt(0, 0, 0);
+  });
+  return null;
+}
+
 function Scene({ progress }) {
   return (
-    <Canvas camera={{ position: [6.6, 0.4, 14], fov: 36 }} dpr={[1, 1.7]} shadows gl={{ antialias: true, alpha: true }}>
+    <Canvas camera={{ position: [5.4, 0.4, 10.8], fov: 36 }} dpr={[1, 1.7]} shadows gl={{ antialias: true, alpha: true }}>
       <color attach="background" args={['#071114']} />
       <ambientLight intensity={1.15} color="#b7e8ea" />
       <directionalLight position={[4, 6, 6]} intensity={4.5} color="#d9f8ff" castShadow shadow-mapSize={[1024, 1024]} />
@@ -268,6 +328,7 @@ function Scene({ progress }) {
       <Stage adjustCamera={false} intensity={0.4} environment="city" shadows="contact">
         <FloatAssembly progress={progress} />
       </Stage>
+      <CameraRig progress={progress} />
       <OrbitControls enablePan={false} enableZoom={false} enableRotate={false} />
     </Canvas>
   );
@@ -291,7 +352,13 @@ export default function ArgoExplodedView() {
           <p className="eyebrow argo-story__eyebrow">ARGO / SYSTEM STUDY / 01</p>
           <h2 id="argo-story-title">Inside the profile.</h2>
           <p className="argo-story__stage">{stage[0]}</p>
-          <p className="argo-story__detail">{operation ? 'Buoyancy changes move the float through the water column; its sensors record observations before the platform surfaces to transmit.' : stage[1]}</p>
+          <p className="argo-story__detail">{operation ? 'A typical core cycle parks near 1,000 m, descends toward 2,000 m, rises while the CTD samples, then surfaces for GPS and satellite telemetry.' : stage[1]}</p>
+          <div className="argo-story__specs" aria-label="Core float baseline specifications">
+            <div><strong>~1.5–2 m</strong><span>length</span></div>
+            <div><strong>~20–30 kg</strong><span>mass</span></div>
+            <div><strong>~10 days</strong><span>cycle</span></div>
+            <div><strong>~2,000 m</strong><span>core profile</span></div>
+          </div>
           <div className="argo-story__progress" aria-label={`Scroll progress ${progressPercent}%`}>
             <span style={{ transform: `scaleX(${progress})` }} />
           </div>
