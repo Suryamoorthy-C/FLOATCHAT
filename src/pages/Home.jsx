@@ -1,135 +1,139 @@
 import { useEffect, useState } from 'react';
-import PixelSwap from '../components/PixelSwap';
+import ParticleText from '../components/ParticleText';
+import RippleDistortion from '../components/RippleDistortion';
+import MagicBento from '../components/MagicBento';
+import Reveal from '../components/Reveal';
 import { Link } from '../router';
 import { CONSOLE_PATH } from '../routes';
 import { api } from '../api';
 import { useMediaQuery } from '../hooks';
 import './Home.css';
 
-const CAPABILITIES = [
-  {
-    title: 'Ask in plain language',
-    body: 'Type a question the way you would ask a colleague. FloatChat resolves it onto salinity, temperature, pressure, region and depth.',
-  },
-  {
-    title: 'Live float telemetry',
-    body: 'Every point on the globe is a real Argo float position, served from the Argo GDAC window rather than a fixture.',
-  },
-  {
-    title: 'Profiles and anomalies',
-    body: 'Pull a full 0–2,000 m temperature and salinity profile for any float, and surface the outliers automatically.',
-  },
-  {
-    title: 'Answers you can check',
-    body: 'Each response carries its citations, its source and the time it was fetched, so a number is never a dead end.',
-  },
-];
-
 /**
- * Home — the first page.
+ * Home — first page.
  *
- * The hero is a React Bits PixelSwap: a pixel grid closes over the wordmark and
- * reveals the proposition. It is driven with trigger="click", which gives the
- * whole stage one large pointer and keyboard target. Its content is therefore
- * display-only: the component puts role="button" on its wrapper, and the design
- * system forbids nesting interactive elements inside a button.
+ * Hero stack (bottom → top):
+ *   1. RippleDistortion over /hero-aurora.svg — your aurora image, rippling
+ *      under the pointer. Drop your WhatsApp JPEG as
+ *      public/hero-aurora.jpg and change `src` below to use it.
+ *   2. Readability gradient.
+ *   3. ParticleText "FLOATCHAT" — gathers on mount, re-scatters on hover,
+ *      cursor repels particles.
+ *
+ * Below the hero, Capabilities + Fleet live in one MagicBento grid so every
+ * line of copy shares the same spotlight / border-glow / click-wave language.
  */
 export default function Home() {
-  // The stage is wide and short on desktop, tall on a phone, so the revealed
-  // copy never gets clipped.
   const isNarrow = useMediaQuery('(max-width: 860px)');
-  const [revealed, setRevealed] = useState(false);
 
   return (
     <>
-      {/* The real document heading. The hero type is presentational, so it must
-          not be the only h1, and it must not be hidden behind the reveal. */}
-      <h1 className="u-visually-hidden">
-        FLOATCHAT — ocean intelligence for the Argo fleet
-      </h1>
+      <h1 className="u-visually-hidden">FLOATCHAT — ocean intelligence for the Argo fleet</h1>
 
-      <section className="home-hero" aria-labelledby="home-hero-hint">
-        <div className="container home-hero__inner">
-          <PixelSwap
-            className="home-hero__swap"
-            aspectRatio={isNarrow ? '4 / 5' : '16 / 9'}
-            pixelSize={64}
-            gap={0}
-            pixelRadius={0}
-            pixelSpin={0}
-            pixelScale={0.35}
-            duration={1400}
-            pixelDuration={450}
-            pattern="diagonal"
-            randomness={0.35}
-            fade
-            trigger="click"
-            onActiveChange={setRevealed}
-            firstContent={
-              <div className="swap-state swap-state--cover">
-                <p className="eyebrow swap-state__eyebrow">Argo · Indian Ocean</p>
-                <p className="swap-state__wordmark">FLOATCHAT</p>
-                <p className="swap-state__hint" id="home-hero-hint">
-                  {revealed ? 'Click to bring the wordmark back' : 'Click to reveal the fleet'}
-                </p>
-              </div>
-            }
-            secondContent={
-              <div className="swap-state swap-state--reveal">
-                <p className="eyebrow swap-state__eyebrow">Live Argo telemetry</p>
-                <p className="swap-state__headline">Ask the ocean a question.</p>
-                <p className="swap-state__sub">
-                  Plain-language answers over live float data, with citations on every claim.
-                </p>
-              </div>
-            }
+      <section className="home-hero" id="home" aria-label="FLOATCHAT introduction">
+        <div className="home-hero__bg" aria-hidden="true">
+          <RippleDistortion
+            src="/hero-aurora.svg"
+            brushSize={isNarrow ? 130 : 220}
+            strength={0.35}
+            swirl={2}
+            rings={5}
+            spread={6}
+            fade={2.5}
+            spacing={14}
+            dispersion={0.12}
+            glint={0.35}
+            tint="#2a6650"
+            tintAmount={0.25}
+            highlightColor="#c1ff00"
+            grayscale={false}
+            trigger="both"
+            quality={isNarrow ? 'low' : 'medium'}
           />
-
-          {/* Kept outside the swap stage: interactive controls must never sit
-              inside the pixel grid's button role. */}
-          <div className="home-hero__actions">
-            <Link to={CONSOLE_PATH} className="btn btn--primary">
-              Launch console
-            </Link>
-            <Link to="/data" className="btn">
-              Explore live data
-            </Link>
-          </div>
+          <div className="home-hero__shade" />
+          <div className="home-hero__grain" />
         </div>
+
+        <div className="container home-hero__inner">
+          <Reveal variant="fade">
+            <p className="eyebrow home-hero__eyebrow">Argo · Indian Ocean · Live</p>
+          </Reveal>
+
+          <Reveal variant="zoom" delay={80}>
+            <div className="home-hero__particles">
+              <ParticleText
+                text="FLOATCHAT"
+                particleSize={2.2}
+                density={3}
+                color="#ffffff"
+                highlightColor="#c1ff00"
+                scatter={220}
+                gatherDuration={1800}
+                stagger={500}
+                pointerRepel={55}
+                repelRadius={140}
+                idleDrift={0.8}
+                trigger="hover"
+                fontSize={isNarrow ? 'clamp(2.6rem, 15vw, 4.5rem)' : 'clamp(3.5rem, 12vw, 8.5rem)'}
+                fontWeight={800}
+                glow
+              />
+            </div>
+          </Reveal>
+
+          <Reveal variant="up" delay={160}>
+            <p className="home-hero__headline">Ask the ocean a question.</p>
+            <p className="home-hero__sub">
+              Plain-language answers over live Argo float data, with citations on every claim.
+              Move your cursor — the water ripples, the letters breathe.
+            </p>
+          </Reveal>
+
+          <Reveal variant="up" delay={240}>
+            <div className="home-hero__actions">
+              <Link to={CONSOLE_PATH} className="btn btn--primary btn--lg">
+                Launch console <span aria-hidden="true">→</span>
+              </Link>
+              <Link to="/data" className="btn btn--ghost-light">
+                Explore live data
+              </Link>
+            </div>
+          </Reveal>
+
+          <Reveal variant="fade" delay={320}>
+            <p className="home-hero__hint">Hover the wordmark to scatter it · move anywhere to ripple the water</p>
+          </Reveal>
+        </div>
+
+        <button
+          type="button"
+          className="home-hero__scroll"
+          aria-label="Scroll to capabilities"
+          onClick={() => document.getElementById('capabilities')?.scrollIntoView({ behavior: 'smooth' })}
+        >
+          <span aria-hidden="true" />
+        </button>
       </section>
 
-      <section className="section" aria-labelledby="capabilities-title">
-        <div className="container">
-          <p className="eyebrow">Capabilities</p>
-          <h2 className="section__title" id="capabilities-title">
-            Everything the console does, without the console.
-          </h2>
-          <ul className="capability-grid">
-            {CAPABILITIES.map(item => (
-              <li className="card capability" key={item.title}>
-                <h3 className="card__title">{item.title}</h3>
-                <p className="card__body">{item.body}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <LiveStats />
+      <BentoShowcase />
 
       <section className="section section--dark home-provenance" aria-labelledby="provenance-title">
         <div className="container home-provenance__inner">
-          <div>
-            <p className="eyebrow home-provenance__eyebrow">Provenance</p>
-            <h2 className="section__title" id="provenance-title">
-              Every number traces back to its source.
-            </h2>
-          </div>
-          <p className="home-provenance__body">
-            Positions, temperatures and salinities come from the Argo GDAC via Ifremer ERDDAP.
-            The interface reports the source and the fetch time alongside each answer, so an
-            offline estimate can never be mistaken for a live reading.
-          </p>
+          <Reveal variant="right">
+            <div>
+              <p className="eyebrow home-provenance__eyebrow">Provenance</p>
+              <h2 className="section__title" id="provenance-title">
+                Every number traces back to its source.
+              </h2>
+            </div>
+          </Reveal>
+          <Reveal variant="left" delay={120}>
+            <p className="home-provenance__body">
+              Positions, temperatures and salinities come from the Argo GDAC via Ifremer ERDDAP.
+              The interface reports the source and the fetch time alongside each answer, so an
+              offline estimate can never be mistaken for a live reading.
+            </p>
+          </Reveal>
         </div>
       </section>
     </>
@@ -137,78 +141,115 @@ export default function Home() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Capabilities + Fleet in one MagicBento grid                         */
+/* ------------------------------------------------------------------ */
 
-function LiveStats() {
-  const [state, setState] = useState({ status: 'loading', stats: null, health: null });
+function useFleetStats() {
+  const [state, setState] = useState({ status: 'loading', stats: null });
 
   useEffect(() => {
     let cancelled = false;
 
-    // Functional updates: the two requests race, and either may land first.
     api
       .stats()
-      .then(stats => (cancelled ? null : setState(prev => ({ ...prev, status: 'ready', stats }))))
-      .catch(() => (cancelled ? null : setState(prev => ({ ...prev, status: 'error' }))));
-
-    api
-      .health()
-      .then(health => (cancelled ? null : setState(prev => ({ ...prev, health }))))
-      .catch(() => {});
+      .then(stats => (cancelled ? null : setState({ status: 'ready', stats })))
+      .catch(() => (cancelled ? null : setState({ status: 'error', stats: null })));
 
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const { status, stats } = state;
+  return state;
+}
 
-  const cells = [
-    { label: 'Active floats', value: stats?.active_floats },
-    { label: 'Anomalies in window', value: stats?.anomalies },
+function BentoShowcase() {
+  const { status, stats } = useFleetStats();
+
+  const fleetDescription =
+    status === 'ready' && stats
+      ? `Read from the live window. ${stats.active_floats ?? '—'} active floats · ` +
+        `${stats.anomalies ?? '—'} anomalies · ` +
+        `${stats.coverage_percent == null ? '—' : `${stats.coverage_percent}%`} coverage · ` +
+        `${stats.window_days == null ? '—' : `${stats.window_days} days`}.`
+      : status === 'error'
+        ? 'Read from the live window. Live statistics are unavailable right now. ' +
+          'The console still runs against its cached fleet view.'
+        : 'Read from the live window. Loading live fleet statistics…';
+
+  const items = [
     {
-      label: 'Coverage',
-      value: stats?.coverage_percent == null ? null : `${stats.coverage_percent}%`,
+      label: 'Capabilities',
+      title: 'Ask in plain language',
+      description:
+        'Type a question the way you would ask a colleague. FloatChat resolves it onto salinity, temperature, pressure, region and depth.',
+      visual: 'analytics'
     },
-    { label: 'Window', value: stats?.window_days == null ? null : `${stats.window_days} days` },
+    {
+      label: 'Live',
+      title: 'Live float telemetry',
+      description:
+        'Every point on the globe is a real Argo float position, served from the Argo GDAC window rather than a fixture.',
+      visual: 'dashboard'
+    },
+    {
+      label: 'Profiles',
+      title: 'Profiles and anomalies',
+      description:
+        'Pull a full 0–2,000 m temperature and salinity profile for any float, and surface the outliers automatically.',
+      visual: 'automation',
+      colSpan: 2
+    },
+    {
+      label: 'Citations',
+      title: 'Answers you can check',
+      description:
+        'Each response carries its citations, its source and the time it was fetched, so a number is never a dead end.',
+      visual: 'security'
+    },
+    {
+      label: 'Fleet right now',
+      title: status === 'error' ? 'Live window unreachable' : 'Fleet right now',
+      description: fleetDescription,
+      visual: 'collaboration',
+      colSpan: 2
+    },
+    {
+      label: 'Console',
+      title: 'Open the console',
+      description: 'Full globe, depth sweep, trajectories and the anomaly strip.',
+      visual: 'integration',
+      href: CONSOLE_PATH
+    }
   ];
 
   return (
-    <section className="section section--tight" aria-labelledby="fleet-title">
+    <section className="section home-bento" id="capabilities" aria-labelledby="capabilities-title">
       <div className="container">
-        <p className="eyebrow">Fleet right now</p>
-        <h2 className="section__title" id="fleet-title">
-          Read from the live window.
-        </h2>
-
-        {status === 'loading' && (
-          <div className="stat-grid" aria-busy="true" aria-live="polite">
-            {cells.map(cell => (
-              <div className="stat stat--loading" key={cell.label}>
-                <p className="stat__label">{cell.label}</p>
-                <p className="stat__value">—</p>
-              </div>
-            ))}
-            <p className="u-visually-hidden">Loading live fleet statistics…</p>
-          </div>
-        )}
-
-        {status === 'error' && (
-          <p className="notice notice--error" role="status">
-            Live statistics are unavailable right now. The console still runs against its cached
-            fleet view.
-          </p>
-        )}
-
-        {status === 'ready' && (
-          <div className="stat-grid">
-            {cells.map(cell => (
-              <div className="stat" key={cell.label}>
-                <p className="stat__label">{cell.label}</p>
-                <p className="stat__value">{cell.value ?? '—'}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        <Reveal>
+          <p className="eyebrow">Capabilities · Fleet right now</p>
+          <h2 className="section__title" id="capabilities-title">
+            Everything the console does, without the console.
+          </h2>
+        </Reveal>
+        <Reveal variant="up" delay={120}>
+          <MagicBento
+            items={items}
+            columns={4}
+            rowHeight={250}
+            gap={12}
+            radius={20}
+            theme="light"
+            glowColor="#1A2FFB"
+            enableBorderGlow
+            enableSpotlight
+            spotlightRadius={300}
+            enableStars
+            particleCount={20}
+            clickEffect
+            textAutoHide={false}
+          />
+        </Reveal>
       </div>
     </section>
   );
