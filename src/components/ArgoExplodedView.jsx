@@ -419,7 +419,42 @@ function Scene({ progress }) {
 
 export default function ArgoExplodedView() {
   const sectionRef = useRef(null);
-  const progress = useScrollProgress(sectionRef);
+  const interactionZoneRef = useRef(null);
+  const scrollProgress = useScrollProgress(sectionRef);
+  const localTarget = useRef(0);
+  const [insideRadius, setInsideRadius] = useState(false);
+  const [localProgress, setLocalProgress] = useState(0);
+
+  useEffect(() => {
+    if (!insideRadius) return undefined;
+    localTarget.current = scrollProgress;
+    setLocalProgress(scrollProgress);
+    let frame = 0;
+    const settle = () => {
+      setLocalProgress(current => {
+        const next = current + (localTarget.current - current) * 0.14;
+        if (Math.abs(next - localTarget.current) > 0.0005) frame = requestAnimationFrame(settle);
+        else frame = 0;
+        return next;
+      });
+    };
+    frame = requestAnimationFrame(settle);
+    return () => cancelAnimationFrame(frame);
+  }, [insideRadius, scrollProgress]);
+
+  useEffect(() => {
+    const zone = interactionZoneRef.current;
+    if (!zone) return undefined;
+    const onWheel = event => {
+      if (!insideRadius) return;
+      event.preventDefault();
+      localTarget.current = clamp01(localTarget.current + event.deltaY / 1250);
+    };
+    zone.addEventListener('wheel', onWheel, { passive: false });
+    return () => zone.removeEventListener('wheel', onWheel);
+  }, [insideRadius]);
+
+  const progress = insideRadius ? localProgress : scrollProgress;
   const stageIndex = Math.min(STAGES.length - 1, Math.floor(progress * STAGES.length));
   const stage = STAGES[stageIndex];
   const progressPercent = Math.round(progress * 100);
@@ -428,6 +463,20 @@ export default function ArgoExplodedView() {
   return (
     <section className="argo-story" ref={sectionRef} aria-labelledby="argo-story-title">
       <div className="argo-story__sticky">
+        <div
+          ref={interactionZoneRef}
+          className={`argo-story__interaction-zone${insideRadius ? ' is-active' : ''}`}
+          role="region"
+          aria-label="3D model interaction radius. Hover here and scroll to explode the ARGO float."
+          onPointerEnter={() => {
+            localTarget.current = scrollProgress;
+            setLocalProgress(scrollProgress);
+            setInsideRadius(true);
+          }}
+          onPointerLeave={() => setInsideRadius(false)}
+        >
+          <span className="argo-story__interaction-label">{insideRadius ? 'Scroll to explode' : 'Hover to explore'}</span>
+        </div>
         <div className="argo-story__canvas" aria-label="Interactive 3D exploded view of an ARGO profiling float">
           <Scene progress={progress} />
         </div>
@@ -445,7 +494,7 @@ export default function ArgoExplodedView() {
           <div className="argo-story__progress" aria-label={`Scroll progress ${progressPercent}%`}>
             <span style={{ transform: `scaleX(${progress})` }} />
           </div>
-          <p className="argo-story__hint">Scroll to open the assembly · reverse to reassemble</p>
+          <p className="argo-story__hint">{insideRadius ? 'Scroll inside the radius · leave it to resume page scroll' : 'Hover the model radius · scroll to open the assembly'}</p>
         </div>
         <div className="argo-story__stage-count">{String(stageIndex + 1).padStart(2, '0')} / 06</div>
       </div>
