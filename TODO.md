@@ -12,6 +12,7 @@
 - [x] Replace the schematic map with a responsive 3D Earth globe in the same dashboard panel; allow drag-to-rotate and scroll-to-zoom, show the four illustrative demo sites as selectable markers, link marker selection to the existing zone details, retain the reset control and layer toggles, and label display positions as approximate/not for navigation.
 - [x] Label map geometry and fallback telemetry as illustrative demo data; state that PPI is not a pearl-yield prediction.
 - [x] Show profile-derived target bands, coverage semantics, threshold evidence, and source links; include responsive desktop/mobile layout and text labels alongside colors.
+- [x] Fix oversized, blurry, stretched, inconsistent, or clipped text while preserving the dark oceanic theme, cyan accents, and glassmorphism; align each marker, stem, and protrusion to its existing sample location and keep it aligned through zoom, rotation, animation, and resize; keep sharp, readable tooltips anchored and unclipped without overlap; correct canvas resolution, sizing, responsive layout, and control overlap; preserve every existing interaction, data value, and analytic, and do not fabricate measurements or scores.
 
 ## Science, system design, and roadmap
 - [x] Document initial parameter bands, citations, evidence confidence, provisional scoring rails, and short-term-vs-long-term tolerance distinctions.
@@ -25,6 +26,7 @@
 - [x] API function contracts, strict JSON serialization, source provenance, one-sided DO scoring, missing-metric reporting, QC-alias handling, and negative-pressure rejection passed.
 - [x] `git diff --check` and route-manifest JSON validation passed.
 - [x] Rebased against the upstream shared React-Three globe, restored the Pearl Zones page styling, and visually verified the globe plus marker-to-zone selection in the browser; `npm run build` passed.
+- [x] Chromium/Playwright verified title clearance, 1×/2× canvas backing at 1280×1100 and 390×844, crisp viewport-contained tooltips, drag/zoom marker movement, distinct pointer hit targets and mouse/keyboard selection for all four true-coordinate demo sites, zone chips, layer toggles, reset, 390px mobile document width, and zero page errors. Sample coordinates, readings, and scores were unchanged.
 
 ## Release
 - [x] Push to `origin/main`; Vercel reported deployment success for feature commit `71920e3`.

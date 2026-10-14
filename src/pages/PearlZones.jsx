@@ -28,11 +28,10 @@ const DEMO_SAMPLES = {
 };
 
 const ZONES = [
-  // Approximate display positions are deliberately spread for marker legibility, not navigation.
-  { id: 'z1', name: 'North shelf', ppi: 89, status: 'high-suitability', displayLat: -5.4, displayLng: 111.8, alert: 2 },
-  { id: 'z2', name: 'East channel', ppi: 93, status: 'high-suitability', displayLat: -6.8, displayLng: 130.2, alert: 3 },
-  { id: 'z3', name: 'South pocket', ppi: 66, status: 'promising', displayLat: -15.8, displayLng: 124.5, alert: 7 },
-  { id: 'z4', name: 'West ridge', ppi: 100, status: 'high-suitability', displayLat: -8.6, displayLng: 104.6, alert: 0 },
+  { id: 'z1', name: 'North shelf', ppi: 89, status: 'high-suitability', alert: 2 },
+  { id: 'z2', name: 'East channel', ppi: 93, status: 'high-suitability', alert: 3 },
+  { id: 'z3', name: 'South pocket', ppi: 66, status: 'promising', alert: 7 },
+  { id: 'z4', name: 'West ridge', ppi: 100, status: 'high-suitability', alert: 0 },
 ];
 
 const INITIAL_METRICS = [
@@ -74,8 +73,6 @@ export default function PearlZones() {
       zoneId: zone.id,
       lat: sample.lat,
       lng: sample.lon,
-      displayLat: zone.displayLat,
-      displayLng: zone.displayLng,
       ppi: zone.ppi,
       status: zone.status,
       region: `${zone.name} · PPI ${zone.ppi}`,
@@ -188,6 +185,8 @@ export default function PearlZones() {
                   rotationSpeed={0.00012}
                   showGraticules={layers.depth}
                   centerLongitude={117}
+                  screenSpaceLabels
+                  pixelRatio={2}
                   selectedId={selectedSample.device_id}
                   onMarkerClick={(marker) => {
                     const zone = ZONES.find((item) => item.id === marker.zoneId);
@@ -195,7 +194,7 @@ export default function PearlZones() {
                   }}
                 />
               </Suspense>
-              <div className="pearl-globe-caption">DRAG TO ROTATE · SCROLL TO ZOOM · DEMO MARKERS SPREAD FOR LEGIBILITY, NOT NAVIGATION</div>
+              <div className="pearl-globe-caption">DRAG TO ROTATE · SCROLL TO ZOOM · DEMO COORDINATES · NOT FOR NAVIGATION</div>
             </div>
             <div className="pearl-layer-row" aria-label="Map layers">
               {LAYERS.map((layer) => <button key={layer.key} type="button" className={layers[layer.key] ? 'active' : ''} aria-pressed={layers[layer.key]} onClick={() => toggleLayer(layer.key)}><i className={`layer-icon layer-icon--${layer.key}`} />{layer.label}</button>)}

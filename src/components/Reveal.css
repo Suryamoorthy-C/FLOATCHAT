@@ -26,3 +26,7 @@
     transition: none;
   }
 }
+
+@media (max-width: 520px) {
+  .reveal--left { transform: translateX(24px); }
+}

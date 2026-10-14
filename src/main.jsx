@@ -62,7 +62,28 @@ function App() {
   useEffect(() => {
     if (path === '/console') return;
     const id = section || ROUTE_SECTION[path] || 'home';
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const target = document.getElementById(id);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Live content above this section can expand after the first scroll starts.
+    // Re-align the Pearl Zones route once layout settles, unless the visitor has
+    // already taken control of scrolling.
+    if (path !== '/pearl-zones' || section) return;
+    let cancelled = false;
+    const cancelCorrection = () => { cancelled = true; window.clearTimeout(timer); };
+    const timer = window.setTimeout(() => {
+      if (cancelled || !window.location.hash.startsWith('#/pearl-zones')) return;
+      const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+      const top = target.getBoundingClientRect().top + window.scrollY - margin;
+      window.scrollTo(0, Math.max(0, top));
+    }, 1200);
+    const userEvents = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+    userEvents.forEach((eventName) => window.addEventListener(eventName, cancelCorrection, { once: true, passive: true }));
+    return () => {
+      window.clearTimeout(timer);
+      userEvents.forEach((eventName) => window.removeEventListener(eventName, cancelCorrection));
+    };
   }, [path, section]);
 
   if (path === '/console') {

@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html, OrbitControls, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
@@ -57,8 +57,14 @@ function Atmosphere({ radius = 2, color = '#00e5ff' }) {
   return <mesh scale={[1.13, 1.13, 1.13]}><sphereGeometry args={[radius, 64, 32]} /><primitive object={material} attach="material" /></mesh>
 }
 
-function GlobeMarker({ marker, radius, color, selected, onClick }) {
+function GlobeMarker({ marker, radius, color, selected, onClick, screenSpaceLabels, portal, labelOffset = { x: 0, y: 0 } }) {
   const [hovered, setHovered] = useState(false)
+  const { camera } = useThree()
+  const anchorRef = useRef(null)
+  const buttonRef = useRef(null)
+  const projected = useMemo(() => new THREE.Vector3(), [])
+  const [frontFacing, setFrontFacing] = useState(true)
+  const [tooltipPlacement, setTooltipPlacement] = useState({ horizontal: 'right', vertical: 'center', maxWidth: 220 })
   const markerLat = marker.displayLat ?? marker.lat
   const markerLng = marker.displayLng ?? marker.lng
   const surface = useMemo(() => latLngToVector3(markerLat, markerLng, radius * 1.006), [markerLat, markerLng, radius])
@@ -69,6 +75,35 @@ function GlobeMarker({ marker, radius, color, selected, onClick }) {
   const lineHeight = top.distanceTo(surface)
   const label = `${marker.id} · ${marker.region || 'ARGO float'}`
   const metric = `T ${marker.temp != null ? marker.temp.toFixed(1) : '—'}°C · S ${marker.sal != null ? marker.sal.toFixed(2) : '—'} PSU`
+  const leaderLength = Math.hypot(labelOffset.x, labelOffset.y)
+  const leaderAngle = Math.atan2(-labelOffset.y, -labelOffset.x)
+
+  const updateTooltipPlacement = () => {
+    if (!buttonRef.current) return
+    const markerBox = buttonRef.current.getBoundingClientRect()
+    const stageBox = buttonRef.current.closest('.pearl-globe-stage, .globe-3d-shell')?.getBoundingClientRect()
+    const x = markerBox.left + markerBox.width / 2
+    const y = markerBox.top + markerBox.height / 2
+    const leftSpace = x - (stageBox?.left ?? 0) - 12
+    const rightSpace = (stageBox?.right ?? window.innerWidth) - x - 12
+    const horizontal = rightSpace >= leftSpace ? 'right' : 'left'
+    const maxWidth = Math.max(120, Math.min(260, Math.floor(Math.max(leftSpace, rightSpace) - 20)))
+    const preferredVertical = labelOffset.y < 0 ? 'above' : labelOffset.y > 0 ? 'below' : 'center'
+    const vertical = y - (stageBox?.top ?? 0) < 64 ? 'below' : (stageBox?.bottom ?? window.innerHeight) - y < 64 ? 'above' : preferredVertical
+    setTooltipPlacement((current) => (
+      current.horizontal === horizontal && current.vertical === vertical && current.maxWidth === maxWidth
+        ? current
+        : { horizontal, vertical, maxWidth }
+    ))
+  }
+
+  useFrame(() => {
+    if (!screenSpaceLabels || !anchorRef.current) return
+    anchorRef.current.getWorldPosition(projected)
+    const isFrontFacing = projected.dot(camera.position) > 0
+    setFrontFacing((current) => current === isFrontFacing ? current : isFrontFacing)
+    if (isFrontFacing && hovered) updateTooltipPlacement()
+  })
 
   return (
     <group>
@@ -80,19 +115,21 @@ function GlobeMarker({ marker, radius, color, selected, onClick }) {
         <sphereGeometry args={[selected ? 0.035 : 0.022, 12, 8]} />
         <meshBasicMaterial color={color} />
       </mesh>
-      <group position={top}>
-        <Html center transform={false} style={{ pointerEvents: 'auto', overflow: 'visible' }}>
+      <group ref={anchorRef} position={top}>
+        <Html center transform={false} portal={screenSpaceLabels ? portal : undefined} style={{ pointerEvents: 'auto', overflow: 'visible', display: screenSpaceLabels && !frontFacing ? 'none' : 'block' }}>
           <button
+            ref={buttonRef}
             type="button"
-            className={'argo-marker' + (selected ? ' is-selected' : '') + (hovered ? ' is-hovered' : '')}
-            style={{ '--marker-color': color }}
+            className={'argo-marker' + (selected ? ' is-selected' : '') + (hovered ? ' is-hovered' : '') + (screenSpaceLabels ? ` argo-marker--${tooltipPlacement.horizontal} argo-marker--${tooltipPlacement.vertical}` : '') + (leaderLength ? ' argo-marker--fanned' : '')}
+            style={{ '--marker-color': color, '--marker-tooltip-max-width': `${tooltipPlacement.maxWidth}px`, '--marker-label-offset-x': `${labelOffset.x}px`, '--marker-label-offset-y': `${labelOffset.y}px`, '--marker-leader-length': `${leaderLength}px`, '--marker-leader-angle': `${leaderAngle}rad` }}
             aria-label={`Select ${label}`}
-            onPointerEnter={() => setHovered(true)}
+            onPointerEnter={() => { setHovered(true); updateTooltipPlacement() }}
             onPointerLeave={() => setHovered(false)}
-            onFocus={() => setHovered(true)}
+            onFocus={() => { setHovered(true); updateTooltipPlacement() }}
             onBlur={() => setHovered(false)}
             onClick={() => onClick(marker)}
           >
+            {leaderLength > 0 && <span className="argo-marker__leader" aria-hidden="true" />}
             <span className="argo-marker__dot" />
             <span className="argo-marker__label"><b>{label}</b><small>{metric}{marker.anomaly ? ' · OUTLIER' : ''}</small></span>
           </button>
@@ -102,7 +139,7 @@ function GlobeMarker({ marker, radius, color, selected, onClick }) {
   )
 }
 
-function GlobeScene({ markers, path, mode, selectedId, rotating, rotationSpeed, showGraticules, centerLongitude, onMarkerClick }) {
+function GlobeScene({ markers, path, mode, selectedId, rotating, rotationSpeed, showGraticules, centerLongitude, onMarkerClick, screenSpaceLabels, portal }) {
   const group = useRef(null)
   const { camera } = useThree()
   const [earth, bump] = useTexture([EARTH_TEXTURE, BUMP_TEXTURE])
@@ -124,6 +161,8 @@ function GlobeScene({ markers, path, mode, selectedId, rotating, rotationSpeed, 
 
   const focus = markers.find((marker) => marker.id === selectedId)
   const visiblePath = path?.length > 1 ? path : []
+  const markerColumns = Math.ceil(Math.sqrt(markers.length))
+  const markerRows = Math.ceil(markers.length / markerColumns)
 
   return (
     <>
@@ -139,16 +178,27 @@ function GlobeScene({ markers, path, mode, selectedId, rotating, rotationSpeed, 
           <sphereGeometry args={[2, 32, 18]} />
           <meshBasicMaterial color="#67e8f9" wireframe transparent opacity={0.09} />
         </mesh>}
-        {markers.map((marker) => (
-          <GlobeMarker
-            key={marker.id}
-            marker={marker}
-            radius={2}
-            color={markerColor(marker, mode)}
-            selected={focus?.id === marker.id}
-            onClick={onMarkerClick}
-          />
-        ))}
+        {markers.map((marker, index) => {
+          const labelOffset = screenSpaceLabels && markers.length > 1
+            ? {
+                x: (index % markerColumns - (markerColumns - 1) / 2) * 34,
+                y: (Math.floor(index / markerColumns) - (markerRows - 1) / 2) * 34,
+              }
+            : { x: 0, y: 0 }
+          return (
+            <GlobeMarker
+              key={marker.id}
+              marker={marker}
+              radius={2}
+              color={markerColor(marker, mode)}
+              selected={focus?.id === marker.id}
+              onClick={onMarkerClick}
+              screenSpaceLabels={screenSpaceLabels}
+              portal={portal}
+              labelOffset={labelOffset}
+            />
+          )
+        })}
         {visiblePath.map((point, index) => {
           if (index === 0) return null
           const a = latLngToVector3(visiblePath[index - 1][0], visiblePath[index - 1][1], 2.018)
@@ -167,21 +217,31 @@ function GlobeScene({ markers, path, mode, selectedId, rotating, rotationSpeed, 
 }
 
 function LoadingGlobe() {
-  return <Html center><div className="globe-loading">INITIALIZING ARGO SPHERE…</div></Html>
+  return <mesh>
+    <sphereGeometry args={[1.2, 24, 16]} />
+    <meshBasicMaterial color="#2de2d2" wireframe transparent opacity={0.24} />
+  </mesh>
 }
 
-export default function Globe3D({ markers = [], path = [], mode = 'telemetry', selectedId, rotating = true, rotationSpeed = 0.0008, showGraticules = true, centerLongitude = -61.35, onMarkerClick }) {
+export default function Globe3D({ markers = [], path = [], mode = 'telemetry', selectedId, rotating = true, rotationSpeed = 0.0008, showGraticules = true, centerLongitude = -61.35, onMarkerClick, screenSpaceLabels = false, pixelRatio = 1.5 }) {
+  const portal = useRef(null)
+  const [portalReady, setPortalReady] = useState(false)
+  useLayoutEffect(() => {
+    setPortalReady(Boolean(portal.current))
+  }, [])
+
   return (
     <div className="globe-3d-shell">
-      <Canvas
-        dpr={[1, 1.5]}
+      {portalReady && <Canvas
+        dpr={[1, pixelRatio]}
         camera={{ fov: 42, near: 0.1, far: 100, position: [0, 0, 5.8] }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
         <Suspense fallback={<LoadingGlobe />}>
-          <GlobeScene markers={markers} path={path} mode={mode} selectedId={selectedId} rotating={rotating} rotationSpeed={rotationSpeed} showGraticules={showGraticules} centerLongitude={centerLongitude} onMarkerClick={onMarkerClick} />
+          <GlobeScene markers={markers} path={path} mode={mode} selectedId={selectedId} rotating={rotating} rotationSpeed={rotationSpeed} showGraticules={showGraticules} centerLongitude={centerLongitude} onMarkerClick={onMarkerClick} screenSpaceLabels={screenSpaceLabels} portal={portal} />
         </Suspense>
-      </Canvas>
+      </Canvas>}
+      <div ref={portal} className="globe-3d-html-layer" style={{ position: 'absolute', inset: 0, overflow: 'visible', pointerEvents: 'none', zIndex: 2 }} />
     </div>
   )
 }

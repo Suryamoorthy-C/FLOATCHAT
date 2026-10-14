@@ -25,3 +25,202 @@
 .pearl-map.pearl-globe-stage .argo-marker__label{display:none;gap:2px;text-align:left;color:#dffcff;font:8px 'JetBrains Mono',monospace;letter-spacing:.04em;white-space:nowrap}
 .pearl-map.pearl-globe-stage .argo-marker__label small{display:block;color:#9bb6bf;font:7px 'JetBrains Mono',monospace}
 .pearl-map.pearl-globe-stage .argo-marker:hover .argo-marker__label,.pearl-map.pearl-globe-stage .argo-marker:focus-visible .argo-marker__label,.pearl-map.pearl-globe-stage .argo-marker.is-hovered .argo-marker__label{display:grid}
+
+
+/* Pearl Zones: keep the 3D points in world space, but render labels as crisp 2D UI. */
+.pearl-map.pearl-globe-stage{
+  overflow:visible;
+  isolation:isolate;
+}
+.pearl-map.pearl-globe-stage .globe-3d-shell{
+  overflow:visible;
+}
+.pearl-map.pearl-globe-stage .globe-3d-shell canvas{
+  border-radius:9px;
+}
+.pearl-map-reset{
+  font-size:10px;
+  line-height:1.35;
+}
+.pearl-layer-row button{
+  min-height:34px;
+  padding:8px 10px;
+  font-size:9px;
+  line-height:1.35;
+}
+.pearl-zone-pills button{
+  min-height:36px;
+  font-size:9px;
+  line-height:1.35;
+}
+.pearl-globe-caption{
+  z-index:6;
+  padding:7px 9px;
+  font-size:8px;
+  line-height:1.45;
+  letter-spacing:.05em;
+}
+.pearl-map.pearl-globe-stage .argo-marker{
+  position:relative;
+  z-index:5;
+  display:grid;
+  place-items:center;
+  width:20px;
+  height:20px;
+  flex:none;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:#dffcff;
+  box-shadow:none;
+  cursor:pointer;
+  transform:none;
+  transform-origin:center;
+  transition:none;
+}
+.pearl-map.pearl-globe-stage .argo-marker--fanned{
+  translate:var(--marker-label-offset-x) var(--marker-label-offset-y);
+}
+.pearl-map.pearl-globe-stage .argo-marker__leader{
+  position:absolute;
+  z-index:0;
+  top:50%;
+  left:50%;
+  width:var(--marker-leader-length);
+  height:1px;
+  border-radius:1px;
+  background:linear-gradient(90deg,var(--marker-color),rgba(148,197,255,.35));
+  transform:rotate(var(--marker-leader-angle));
+  transform-origin:left center;
+  opacity:.82;
+  pointer-events:none;
+}
+.pearl-map.pearl-globe-stage .argo-marker:hover,
+.pearl-map.pearl-globe-stage .argo-marker:focus-visible,
+.pearl-map.pearl-globe-stage .argo-marker.is-hovered,
+.pearl-map.pearl-globe-stage .argo-marker.is-selected{
+  background:transparent;
+  transform:none;
+}
+.pearl-map.pearl-globe-stage .argo-marker__dot{
+  position:relative;
+  z-index:1;
+  display:block;
+  width:9px;
+  height:9px;
+  flex:none;
+  border-radius:50%;
+  background:var(--marker-color);
+  box-shadow:0 0 0 2px rgba(5,16,29,.9),0 0 11px var(--marker-color);
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+.pearl-map.pearl-globe-stage .argo-marker:hover .argo-marker__dot,
+.pearl-map.pearl-globe-stage .argo-marker:focus-visible .argo-marker__dot,
+.pearl-map.pearl-globe-stage .argo-marker.is-hovered .argo-marker__dot,
+.pearl-map.pearl-globe-stage .argo-marker.is-selected .argo-marker__dot{
+  transform:scale(1.28);
+  box-shadow:0 0 0 2px rgba(5,16,29,.94),0 0 14px var(--marker-color);
+}
+.pearl-map.pearl-globe-stage .argo-marker__label{
+  position:absolute;
+  top:50%;
+  right:auto;
+  bottom:auto;
+  left:calc(100% + 8px);
+  display:none;
+  width:max-content;
+  min-width:0;
+  max-width:var(--marker-tooltip-max-width,220px);
+  gap:4px;
+  padding:8px 10px;
+  border:1px solid color-mix(in srgb,var(--marker-color) 60%,transparent);
+  border-radius:8px;
+  background:rgba(4,13,25,.96);
+  box-shadow:0 6px 18px rgba(0,0,0,.38);
+  color:#dffcff;
+  text-align:left;
+  transform:translateY(-50%);
+  font:10px/1.4 'JetBrains Mono',monospace;
+  letter-spacing:.015em;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  pointer-events:auto;
+}
+.pearl-map.pearl-globe-stage .argo-marker__label b{
+  display:block;
+  color:#e8f9fb;
+  font-size:11px;
+  line-height:1.35;
+  font-weight:600;
+}
+.pearl-map.pearl-globe-stage .argo-marker__label small{
+  display:block;
+  color:#9bb6bf;
+  font:10px/1.4 'JetBrains Mono',monospace;
+  white-space:normal;
+}
+.pearl-map.pearl-globe-stage .argo-marker--left .argo-marker__label{
+  right:calc(100% + 8px);
+  left:auto;
+}
+.pearl-map.pearl-globe-stage .argo-marker--above .argo-marker__label{
+  top:auto;
+  bottom:calc(100% + 8px);
+  transform:none;
+}
+.pearl-map.pearl-globe-stage .argo-marker--below .argo-marker__label{
+  top:calc(100% + 8px);
+  bottom:auto;
+  transform:none;
+}
+.pearl-map.pearl-globe-stage .argo-marker:hover .argo-marker__label,
+.pearl-map.pearl-globe-stage .argo-marker:focus-visible .argo-marker__label,
+.pearl-map.pearl-globe-stage .argo-marker.is-hovered .argo-marker__label{
+  display:grid;
+}
+.pearl-map.pearl-globe-stage .argo-marker.is-selected:not(:hover):not(:focus-visible):not(.is-hovered) .argo-marker__label{
+  display:none;
+}
+@media(max-width:520px){
+  .pearl-map.pearl-globe-stage .argo-marker__label{
+    padding:7px 9px;
+    font-size:10px;
+  }
+  .pearl-map.pearl-globe-stage .argo-marker__label b{
+    font-size:10.5px;
+  }
+  .pearl-map.pearl-globe-stage .argo-marker__label small{
+    font-size:9.5px;
+  }
+  .pearl-globe-caption{
+    left:8px;
+    right:8px;
+    bottom:8px;
+    font-size:7.5px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .pearl-map.pearl-globe-stage .argo-marker__dot{
+    transition:none;
+  }
+}
+
+#pearl-zones{scroll-margin-top:calc(var(--layout-header-height) + var(--space-6))}
+@media(max-width:860px){#pearl-zones{scroll-margin-top:calc(var(--layout-header-height) + var(--space-14) * 3)}}
+
+
+/* Keep every site selector and its existing score visible on narrow screens. */
+@media(max-width:520px){
+  .pearl-zone-pills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .pearl-zone-pills button{width:100%;min-width:0;justify-content:flex-start;white-space:nowrap}
+}
+
+
+.pearl-globe-stage .argo-marker__label{
+  width:max-content;
+  max-width:min(var(--marker-tooltip-max-width,220px),calc(100vw - 24px));
+  white-space:normal;
+  overflow-wrap:anywhere;
+  line-height:1.45;
+}

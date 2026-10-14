@@ -137,3 +137,9 @@
     color: var(--gn-ink);
   }
 }
+
+@media (max-width: 520px) {
+  .gooey-nav__stage {
+    overflow-x: clip;
+  }
+}
