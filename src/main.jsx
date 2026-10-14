@@ -8,11 +8,11 @@ import Platform from './pages/Platform';
 import Data from './pages/Data';
 import Docs from './pages/Docs';
 import PearlZones from './pages/PearlZones';
-import { Link, useRoute, useSection } from './router';
+import { useRoute, useSection } from './router';
 
 import './theme/tokens.css';
 import './theme/base.css';
-// The shell's own 404 uses the shared page primitives, so make that guarantee
+// The shell's own views use the shared page primitives, so make that guarantee
 // explicit here rather than relying on another page importing them.
 import './pages/Page.css';
 
@@ -20,12 +20,18 @@ import './pages/Page.css';
    instead of on first paint. Everything else is small enough to ship up front. */
 const ConsolePage = lazy(() => import('./pages/Console'));
 
-const PAGES = {
-  '/': Home,
-  '/platform': Platform,
-  '/data': Data,
-  '/pearl-zones': PearlZones,
-  '/docs': Docs,
+/**
+ * Old route paths still resolve, but they scroll instead of redirecting: the
+ * whole site is one page with the sections stacked (home → platform → live
+ * data → pearl zones → docs). Footer deep-links like /data#anomalies land on
+ * the right anchor the same way.
+ */
+const ROUTE_SECTION = {
+  '/': 'home',
+  '/platform': 'platform',
+  '/data': 'data',
+  '/pearl-zones': 'pearl-zones',
+  '/docs': 'docs'
 };
 
 /** Skip link. It must not touch the hash, because the hash is the router. */
@@ -35,28 +41,6 @@ function skipToMain(event) {
   if (!main) return;
   main.focus();
   main.scrollIntoView({ block: 'start' });
-}
-
-function NotFound() {
-  return (
-    <div className="page">
-      <div className="container">
-        <header className="page-head">
-          <p className="eyebrow">Not found</p>
-          <h1 className="page-head__title">That page does not exist.</h1>
-          <p className="page-head__lede">
-            The link may be out of date. Use the navigation above, or start again from the home
-            page.
-          </p>
-          <div className="actions">
-            <Link to="/" className="btn btn--primary">
-              Back to home
-            </Link>
-          </div>
-        </header>
-      </div>
-    </div>
-  );
 }
 
 function ConsoleFallback() {
@@ -75,17 +59,10 @@ function App() {
   const path = useRoute();
   const section = useSection();
 
-  // Each navigation starts at the top of the new page, unless the route names an
-  // anchor (for example #/docs#api), in which case that is scrolled into view.
   useEffect(() => {
-    if (section) {
-      const target = document.getElementById(section);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-    }
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (path === '/console') return;
+    const id = section || ROUTE_SECTION[path] || 'home';
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [path, section]);
 
   if (path === '/console') {
@@ -96,8 +73,6 @@ function App() {
     );
   }
 
-  const Page = PAGES[path] ?? NotFound;
-
   return (
     <div className="site-shell">
       <a className="u-skip-link" href="#main" onClick={skipToMain}>
@@ -105,7 +80,11 @@ function App() {
       </a>
       <Header />
       <main id="main" tabIndex={-1}>
-        <Page />
+        <Home />
+        <Platform />
+        <Data />
+        <PearlZones />
+        <Docs />
       </main>
       <Footer />
     </div>
