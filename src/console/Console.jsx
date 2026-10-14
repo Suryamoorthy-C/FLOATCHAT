@@ -193,12 +193,20 @@ function App() {
   const ask = useCallback(async (question) => {
     const q = (question || '').trim()
     if (!q || busy) return
+    const history = messages.slice(-12).map((message) => ({ role: message.role, content: message.text }))
+    const context = {
+      selected_float_id: selected?.id,
+      selected_region: selected?.region,
+      depth_m: depth,
+    }
     setBusy(true)
     setDraft('')
     setMessages((m) => [...m, { role: 'user', text: q, at: nowClock() }, { role: 'assistant', text: '', streaming: true, at: nowClock() }])
 
     let acc = ''
     const result = await streamChat(q, {
+      history,
+      context,
       onToken: (token) => {
         acc += token
         setMessages((m) => {
@@ -217,6 +225,10 @@ function App() {
             streaming: false,
             text: copy[last].text || fallbackAnswer(q),
             citations: meta.citations || [],
+            researchSources: meta.research_sources || [],
+            workflow: meta.workflow || meta.result?.workflow || [],
+            suggestedFollowups: meta.suggested_followups || meta.result?.suggested_followups || [],
+            evidence: meta.result || null,
             source: meta.source,
             fetchedAt: meta.fetched_at,
             live: meta.live,
@@ -236,7 +248,7 @@ function App() {
       })
     }
     setBusy(false)
-  }, [busy])
+  }, [busy, depth, messages, selected])
 
   useEffect(() => { if (chatFeedRef.current) chatFeedRef.current.scrollTop = chatFeedRef.current.scrollHeight }, [messages])
 
@@ -359,7 +371,29 @@ function App() {
                 )}
                 {Boolean(m.citations?.length) && (
                   <div className="cite-row">
-                    {m.citations.map((c) => <span className="cite" key={c}>{c}</span>)}
+                    {m.citations.map((citation, citationIndex) => (
+                      <a className="cite" href={citation.url} target="_blank" rel="noreferrer" key={citation.url || citationIndex}>
+                        {citation.title || citation.name || citation.url}
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {m.evidence?.analysis?.results?.some((item) => item.value != null) && (
+                  <div className="evidence-summary">
+                    <span className="evidence-summary__title">EVIDENCE SUMMARY</span>
+                    {m.evidence.analysis.results.filter((item) => item.value != null).slice(0, 3).map((item) => (
+                      <span key={item.variable}>{item.variable} <b>{item.mean ?? item.value} {item.unit || ''}</b> · n={item.count}</span>
+                    ))}
+                  </div>
+                )}
+                {Boolean(m.workflow?.length) && !m.streaming && (
+                  <div className="workflow-row" aria-label="Evidence workflow">
+                    {m.workflow.filter((step) => step.status !== 'skipped').map((step) => <span key={step.stage} className={`workflow-step workflow-step--${step.status}`}>{step.stage}</span>)}
+                  </div>
+                )}
+                {Boolean(m.suggestedFollowups?.length) && !m.streaming && (
+                  <div className="followup-row">
+                    {m.suggestedFollowups.slice(0, 2).map((followup) => <button type="button" key={followup} onClick={() => ask(followup)}>{followup}</button>)}
                   </div>
                 )}
                 {m.offline && <div className="offline-note"><Zap size={10} /> offline estimate · backend unreachable</div>}
@@ -555,9 +589,7 @@ function fmt(value, digits) {
 }
 
 function fallbackAnswer(q) {
-  if (/salin/i.test(q)) return 'Salinity is elevated at the eastern edge of the Bay of Bengal, with cited profiles between 34.8 and 35.1 PSU. The strongest signal is around 600–1,000 m.'
-  if (/temp|thermo/i.test(q)) return 'The temperature field shows a sharp thermocline in the Arabian Sea, separating a warm surface layer from cooler deep water.'
-  return 'Live ARGO mode is active. I can resolve salinity, temperature, pressure, a region, or any depth layer.'
+  return `I couldn't reach the evidence service for “${q}”, so I won't invent an observation. Please retry when the ARGO service is available, or ask a general ocean-science question that can be answered from the attached references.`
 }
 
 function Metric({ icon, label, value, unit, color, trend }) {

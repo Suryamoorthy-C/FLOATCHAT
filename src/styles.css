@@ -165,3 +165,18 @@ theme lives on the .console-route wrapper instead. */
     font-size: 7px;
   }
 }
+
+/* Grounded assistant evidence and follow-up affordances. */
+.cite-row { align-items: stretch; }
+.cite { display: inline-flex; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; cursor: pointer; }
+.cite:hover { color: #dffcff; border-color: rgba(0,242,254,.6); }
+.evidence-summary { display: grid; gap: 4px; margin-top: 8px; padding: 8px 10px; border: 1px solid rgba(103,232,249,.16); border-radius: 10px; background: rgba(0,242,254,.035); color: #8098ad; font: 8px 'JetBrains Mono'; letter-spacing: .04em; }
+.evidence-summary__title { color: #67e8f9; letter-spacing: .14em; }
+.evidence-summary b { color: #dffcff; font-weight: 400; }
+.workflow-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.workflow-step { padding: 3px 6px; border: 1px solid rgba(148,197,255,.15); border-radius: 99px; color: #7c8ba1; font: 7px 'JetBrains Mono'; letter-spacing: .08em; text-transform: uppercase; }
+.workflow-step--complete { color: #8ef0cf; border-color: rgba(52,211,153,.3); background: rgba(52,211,153,.06); }
+.workflow-step--available { color: #67e8f9; border-color: rgba(0,242,254,.3); background: rgba(0,242,254,.05); }
+.followup-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.followup-row button { border: 1px solid rgba(0,242,254,.2); border-radius: 8px; padding: 5px 7px; background: rgba(0,242,254,.04); color: #8bdde5; font: 8px 'JetBrains Mono'; text-align: left; }
+.followup-row button:hover { border-color: rgba(0,242,254,.55); background: rgba(0,242,254,.1); }

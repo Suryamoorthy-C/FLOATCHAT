@@ -26,6 +26,13 @@ FALLBACK_FLOATS = [
 ]
 
 
+def _pressure_to_depth(pressure_dbar: float | None) -> float | None:
+    """Use a documented near-surface approximation for display ordering only."""
+    if pressure_dbar is None or pressure_dbar < 0:
+        return None
+    return round(float(pressure_dbar) * 0.995, 3)
+
+
 def _clean(value: Any) -> float | None:
     try:
         number = float(value)
@@ -62,7 +69,7 @@ class LiveArgoStore:
             f"&pres>=0&pres<=10&time>={start}&time<={end}"
             "&latitude!=NaN&longitude!=NaN"
         )
-        response = requests.get(SOURCE_URL + "?" + query, timeout=90)
+        response = requests.get(SOURCE_URL + "?" + query, timeout=15)
         response.raise_for_status()
         latest: dict[str, dict[str, Any]] = {}
         for item in _rows(response.text):
@@ -101,7 +108,7 @@ class LiveArgoStore:
             if not self.enabled:
                 raise RuntimeError("live adapter disabled")
             query = f'platform_number,cycle_number,pres,temp,psal,time&platform_number="{float_id}"&pres>=0&pres<=2000&orderBy("time")'
-            response = requests.get(SOURCE_URL + "?" + quote(query, safe='(),>=&="'), timeout=90)
+            response = requests.get(SOURCE_URL + "?" + quote(query, safe='(),>=&="'), timeout=15)
             response.raise_for_status()
             records = _rows(response.text)
             cycles = [int(float(row["cycle_number"])) for row in records if row.get("cycle_number", "").strip()]
@@ -111,7 +118,7 @@ class LiveArgoStore:
             for row in selected:
                 pressure = _clean(row.get("pres")); temp = _clean(row.get("temp")); sal = _clean(row.get("psal"))
                 if pressure is not None and (temp is not None or sal is not None):
-                    data.append({"pressure_dbar": pressure, "depth_m": None, "temperature_c": temp, "salinity_psu": sal, "qc_flags": {"pres": None, "temp": None, "psal": None}})
+                    data.append({"pressure_dbar": pressure, "depth_m": _pressure_to_depth(pressure), "temperature_c": temp, "salinity_psu": sal, "qc_flags": {"pres": None, "temp": None, "psal": None}})
             result = {"float_id": float_id, "cycle": selected_cycle, "data": sorted(data, key=lambda item: item["depth_m"]), "source": SOURCE_LABEL, "source_url": SOURCE_URL, "fetched_at": datetime.now(timezone.utc).isoformat(), "latest_observation": max((row.get("time", "") for row in selected), default=None), "live": True}
         except Exception as exc:
             result = {"float_id": float_id, "cycle": cycle or 0, "data": [], "source": "FLOATCHAT demo fallback", "live": False, "error": str(exc)[:180]}

@@ -136,12 +136,12 @@ export function normaliseFloat(row, anomalies = new Set()) {
  * Callbacks fire incrementally so the UI can type the answer out word by
  * word and then attach provenance once the terminal event arrives.
  */
-export async function streamChat(message, { onToken, onDone, onError, signal } = {}) {
+export async function streamChat(message, { history = [], context = {}, onToken, onDone, onError, signal } = {}) {
   try {
     const res = await fetch(buildUrl('/api/chat'), {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, history: history.slice(-12), context }),
       signal,
     })
     if (!res.ok) throw new Error(`chat ${res.status} ${res.statusText}`)
@@ -152,7 +152,7 @@ export async function streamChat(message, { onToken, onDone, onError, signal } =
       const payload = await res.json()
       const text = payload.answer || payload.text || payload.message || ''
       if (text) onToken?.(text)
-      onDone?.({ citations: payload.citations || [], source: payload.source, fetched_at: payload.fetched_at, live: payload.live })
+      onDone?.({ ...payload, citations: payload.citations || [], source: payload.source, fetched_at: payload.fetched_at, live: payload.live })
       return { ok: true }
     }
     if (!res.body) throw new Error('no response body')

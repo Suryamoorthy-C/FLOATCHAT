@@ -19,6 +19,8 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
+    history: list[dict[str, Any]] = Field(default_factory=list, max_length=12)
+    context: dict[str, Any] = Field(default_factory=dict)
 
 
 @app.get("/api/health")
@@ -83,18 +85,18 @@ def pearl_index(payload: dict):
 @app.post("/api/query")
 async def query(payload: ChatRequest) -> dict[str, Any]:
     """Structured ASK -> UNDERSTAND -> RETRIEVE -> ANALYZE -> EXPLAIN contract."""
-    return await asyncio.to_thread(analyze, payload.message)
+    return await asyncio.to_thread(analyze, payload.message, payload.history, payload.context)
 
 
 @app.post("/api/chat")
 async def chat(payload: ChatRequest):
-    result = await asyncio.to_thread(analyze, payload.message)
+    result = await asyncio.to_thread(analyze, payload.message, payload.history, payload.context)
     answer = render_answer(result)
 
     async def stream():
         for word in answer.split():
             yield f"data: {json.dumps({'token': word + ' '})}\n\n"
             await asyncio.sleep(0.004)
-        yield f"data: {json.dumps({'done': True, 'result': result})}\n\n"
+        yield f"data: {json.dumps({'done': True, 'result': result, 'citations': result.get('citations', []), 'research_sources': result.get('research_sources', []), 'workflow': result.get('workflow', []), 'suggested_followups': result.get('suggested_followups', []), 'source': (result.get('data_sources') or [{}])[0].get('name'), 'fetched_at': result.get('retrieved_at'), 'live': any(source.get('live') for source in result.get('data_sources', []))})}\n\n"
 
     return StreamingResponse(stream(), media_type="text/event-stream")
