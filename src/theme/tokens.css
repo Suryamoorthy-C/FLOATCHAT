@@ -1,0 +1,192 @@
+/* ==========================================================================
+   FLOATCHAT — Lusion design tokens
+   Source: design.md / skill.md
+   "Lusion — Award Winning 3D and Interactive Web Studio"
+
+   Rule for every component in this project: reference these tokens by name.
+   Never hardcode a hex value, a px size, or a font stack.
+
+   Note on the font stack: the system specifies "Aeonik", which is a licensed
+   commercial typeface and is not redistributable. The stack below keeps Aeonik
+   first (so a licensed copy, if you add one, wins automatically) and falls back
+   to Inter — the closest free grotesque — then system UI fonts.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+
+:root {
+  /* color-scheme is set per route in base.css, because the console page is a
+     dark surface and the marketing pages are light. */
+
+  /* ------------------------------------------------------------------ color
+     Exactly the palette from design.md. No additions.                        */
+
+  /* Background */
+  --color-off-white-semi: #F0F1FA;
+
+  /* Text Primary */
+  --color-black: #000000;
+  --color-dark-blue: #071BDF;
+  --color-blue: #1A2FFB;
+
+  /* Accent */
+  --color-purple: #8832F7;
+  --color-error: #E90000;
+  --color-red: #FF4C41;
+  --color-6: #F40009;
+
+  /* Text Light — these are light values. They pass contrast on dark surfaces
+     only, so they are mapped below to on-dark roles, never to body text. */
+  --color-dark-white: #E4E6EF;
+  --color-green: #C1FF00;
+  --color-8: #C2C3C7;
+  --color-12: #FFFFFF;
+
+  /* ------------------------------------------------- semantic color aliases
+     Components use these, so a role change is a one-line edit here.
+
+     Contrast, measured against the --color-off-white-semi background:
+       --color-text-primary  #000000  18.7:1  AAA
+       --color-text-link     #071BDF   8.4:1  AAA
+       --color-accent        #8832F7   4.9:1  AA
+       --color-accent-alt    #1A2FFB   6.6:1  AA
+       --color-text-quiet    #1A2FFB   6.6:1  AA  (de-emphasis without low contrast)
+       --color-danger-text   #E90000   4.2:1  AA large only, fails for body copy
+     color-8 (#C2C3C7, 1.6:1) and green (#C1FF00, 1.1:1) are NOT usable as
+     text on this background; they are routed to on-dark / fill roles only.   */
+
+  --color-bg: var(--color-off-white-semi);
+  --color-surface: var(--color-12);
+  --color-surface-sunken: var(--color-dark-white);
+  --color-surface-dark: var(--color-black);
+  --color-border: var(--color-dark-white);
+  --color-border-strong: var(--color-black);
+
+  --color-text-primary: var(--color-black);
+  --color-text-link: var(--color-dark-blue);
+  --color-text-quiet: var(--color-blue);
+  --color-text-inverse: var(--color-12);
+
+  --color-accent: var(--color-purple);
+  --color-accent-alt: var(--color-blue);
+  --color-highlight: var(--color-green);
+
+  /* On-dark roles — the "Text Light" tokens, used on --color-surface-dark. */
+  --color-on-dark: var(--color-12);
+  --color-on-dark-muted: var(--color-8);
+  --color-on-dark-subtle: var(--color-dark-white);
+  --color-on-dark-accent: var(--color-green);
+  --color-on-dark-alert: var(--color-red);
+
+  /* Status */
+  --color-danger: var(--color-error);
+  --color-danger-text: var(--color-error);
+  --color-danger-alt: var(--color-red);
+  --color-alert: var(--color-6);
+
+  /* ------------------------------------------------------------- typography */
+  --font-family-base: 'Aeonik', 'Inter', system-ui, -apple-system, 'Segoe UI',
+    Roboto, Helvetica, Arial, sans-serif;
+  --font-family-mono: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo,
+    Consolas, monospace;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+
+  /* Scale */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 26px;
+  --text-2xl: 38px;
+  --text-3xl: 72px;
+
+  /* Line heights — the extracted set, paired to the scale for readability.
+     Body copy runs generously because the system optimises for sustained
+     reading, not scanning. */
+  --leading-xs: 16px;      /* 12px */
+  --leading-sm: 18.4px;    /* 14px */
+  --leading-base: 26px;    /* 16px — body */
+  --leading-lg: 29.9px;    /* 20px */
+  --leading-xl: 26px;      /* 26px */
+  --leading-2xl: 43.7px;   /* 38px */
+  --leading-3xl: 68.4px;   /* 72px */
+
+  /* Remaining extracted line heights, kept so no value is lost. */
+  --leading-13-8: 13.8px;
+  --leading-16-1: 16.1px;
+  --leading-16-8: 16.8px;
+  --leading-18: 18px;
+  --leading-23: 23px;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.06em;
+  --tracking-caps: 0.16em; /* acronyms and eyebrow labels only */
+
+  /* ---------------------------------------------------------------- spacing
+     4px base unit. The full scale from design.md — no arbitrary gaps.        */
+  --space-1: 2px;
+  --space-2: 6px;
+  --space-3: 9px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 14px;
+  --space-7: 16px;
+  --space-8: 21px;
+  --space-9: 23px;
+  --space-10: 24px;
+  --space-11: 25px;
+  --space-12: 26px;
+  --space-13: 28px;
+  --space-14: 48px;
+  --space-15: 50px;
+  --space-16: 77px;
+  --space-17: 109px;
+  --space-18: 168px;
+  --space-19: 384px;
+  --space-20: 768px;
+
+  /* ----------------------------------------------------------------- shapes */
+  --radius-sm: 3px;
+  --radius-md: 16px;
+  --radius-lg: 18px;
+  --radius-xl: 87.5px;
+  --radius-full: 100%;
+  --radius-6: 100px;
+
+  /* -------------------------------------------------------- layout (system)
+     Layout dimensions are not part of the extracted spacing scale; they are
+     declared once here so no component invents its own.                      */
+  --layout-max-width: 1440px;
+  --layout-measure: 68ch;
+  --layout-gutter: var(--space-14);
+  --layout-gutter-tight: var(--space-10);
+  --layout-header-height: var(--space-16);
+
+  /* ----------------------------------------------------------------- motion */
+  --duration-100: 0.1s;
+  --duration-250: 0.25s;
+  --duration-300: 0.3s;
+  --duration-400: 0.4s;
+  --duration-500: 0.5s;
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.1, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Composite transitions, exactly as extracted. */
+  --transition-color-base: color var(--duration-250);
+  --transition-transform-fast: transform var(--duration-100) var(--ease-standard);
+  --transition-transform-base: transform var(--duration-300) var(--ease-standard);
+  --transition-transform-emphasized: transform var(--duration-300) var(--ease-emphasized);
+  --transition-transform-slow: transform var(--duration-400) var(--ease-standard);
+  --transition-bg-slow: background-color var(--duration-400);
+  --transition-color-slow: color var(--duration-500);
+  --transition-color-bg-slow: color var(--duration-400), background-color var(--duration-400);
+  --transition-lift: color var(--duration-500), transform var(--duration-400) var(--ease-standard);
+  --transition-lift-base: color var(--duration-400), transform var(--duration-400) var(--ease-standard);
+
+  /* Elevation: none detected in the source system. Separation comes from
+     --color-border and background contrast instead of shadow. */
+}

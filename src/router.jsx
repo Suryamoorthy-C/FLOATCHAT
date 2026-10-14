@@ -69,7 +69,7 @@ export function useSection() {
 
 /**
  * Anchor to a route. Renders a real <a href> so middle-click, "open in new
-tab" and "copy link address" all behave normally.
+ * tab" and "copy link address" all behave normally.
  */
 export function Link({ to, children, ...rest }) {
   const href = `#${String(to || '/').replace(/^#/, '')}`;
