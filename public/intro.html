@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#04080f"/>
+<title>FLOATCHAT — Ocean Intelligence</title>
+<meta name="description" content="FLOATCHAT — AI-powered ocean intelligence and habitat analytics."/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{ --bg:#04080f; --cyan:#00f2fe; --teal:#2dd4bf; --deep:#0b2a3f; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--bg);overflow-x:hidden;overflow-y:auto;scroll-behavior:smooth;
+    font-family:'Space Grotesk',system-ui,sans-serif;color:#d6e2ee;-webkit-font-smoothing:antialiased}
+  ::selection{background:rgba(0,242,254,.3)}
+
+  #scene{position:fixed;inset:0;display:block;z-index:1}
+
+  /* ---------- ambient backdrop ---------- */
+  .glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(1000px 620px at 50% 42%, rgba(0,242,254,.10), transparent 62%),
+      radial-gradient(760px 520px at 14% 108%, rgba(13,148,136,.10), transparent 64%),
+      radial-gradient(680px 480px at 92% -10%, rgba(14,116,144,.10), transparent 66%),
+      var(--bg);}
+  .grain{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  .vignette{position:fixed;inset:0;z-index:4;pointer-events:none;
+    box-shadow:inset 0 0 240px 40px rgba(0,0,0,.85)}
+  .scan{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:.5;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px)}
+
+  /* corner brackets — echoes the console UI */
+  .brk{position:fixed;z-index:5;width:36px;height:36px;pointer-events:none;opacity:.55}
+  .brk::before,.brk::after{content:'';position:absolute;background:var(--cyan)}
+  .brk::before{width:100%;height:1.5px}.brk::after{width:1.5px;height:100%}
+  .brk.tl{top:18px;left:18px}.brk.tr{top:18px;right:18px;transform:scaleX(-1)}
+  .brk.bl{bottom:18px;left:18px;transform:scaleY(-1)}.brk.br{bottom:18px;right:18px;transform:scale(-1)}
+
+  /* ---------- overlays ---------- */
+  .ui{position:relative;z-index:6;pointer-events:none}
+  .hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;
+    justify-content:space-between;gap:40px}
+
+  .top{display:flex;justify-content:space-between;align-items:center;padding:26px 30px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;color:#5b7188}
+  .top b{color:#7ce6ed;font-weight:500}
+  .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;
+    box-shadow:0 0 9px 2px rgba(52,211,153,.7);margin-right:7px;vertical-align:middle;
+    animation:blip 2.2s ease-in-out infinite}
+  @keyframes blip{0%,100%{opacity:.35}50%{opacity:1}}
+
+  .bottom{display:flex;flex-direction:column;align-items:center;gap:16px;padding:0 30px 34px;text-align:center}
+  .tagline{
+    font-size:clamp(.72rem,1.45vw,.95rem);letter-spacing:.3em;text-transform:uppercase;
+    color:#7fa6c2;opacity:0;animation:fadeUp 1s ease .35s forwards}
+  .tagline span{color:var(--cyan)}
+  .sub{
+    max-width:640px;font-size:clamp(.8rem,1.5vw,1rem);line-height:1.6;color:#8ba7bd;opacity:0;
+    animation:fadeUp 1s ease .55s forwards}
+  .cue{
+    display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;letter-spacing:.32em;color:#48627d;opacity:0;animation:fadeUp 1s ease .9s forwards}
+  .cue .line{width:52px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,242,254,.6),transparent)}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* thin progress/entry bar */
+  .bar{position:fixed;left:0;right:0;bottom:0;height:2px;z-index:7;background:rgba(0,242,254,.08)}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#00f2fe,#2dd4bf);
+    box-shadow:0 0 14px rgba(0,242,254,.8);animation:load 2.6s cubic-bezier(.5,0,.1,1) forwards}
+  @keyframes load{to{width:100%}}
+
+  /* ---------- top navigation ---------- */
+  .nav{display:flex;gap:20px;pointer-events:auto}
+  .nav a{color:#6d8aa3;text-decoration:none;letter-spacing:.26em;transition:color .2s,text-shadow .2s}
+  .nav a:hover{color:var(--cyan);text-shadow:0 0 16px rgba(0,242,254,.6)}
+
+  /* ---------- primary call to action ---------- */
+  .cta{
+    pointer-events:auto;display:inline-flex;align-items:center;gap:11px;
+    padding:15px 30px;border-radius:13px;text-decoration:none;
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.22em;font-weight:500;
+    color:#e2fdff;border:1px solid rgba(0,242,254,.5);
+    background:linear-gradient(120deg,rgba(8,145,178,.34),rgba(13,148,136,.24));
+    box-shadow:0 0 0 1px rgba(0,242,254,.22), 0 20px 55px -20px rgba(0,242,254,.85);
+    transition:transform .28s cubic-bezier(.2,.7,.2,1), box-shadow .28s, background .28s}
+  .cta:hover{transform:translateY(-2px);
+    background:linear-gradient(120deg,rgba(8,145,178,.5),rgba(13,148,136,.38));
+    box-shadow:0 0 0 1px rgba(0,242,254,.6), 0 26px 66px -18px rgba(0,242,254,1)}
+  .cta .arw{transition:transform .28s}
+  .cta:hover .arw{transform:translateX(4px)}
+
+  /* ---------- scroll-away exit section ---------- */
+  .next{position:relative;z-index:6;padding:20px 30px 90px;
+    display:flex;flex-direction:column;align-items:center;gap:26px;pointer-events:auto}
+  .next-head{display:flex;align-items:center;gap:16px;
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.32em;color:#48627d}
+  .next-head .nav-line{width:64px;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(0,242,254,.55),transparent)}
+  .cards{display:grid;width:min(1080px,100%);gap:16px;
+    grid-template-columns:repeat(auto-fit,minmax(255px,1fr))}
+  .card{display:flex;flex-direction:column;gap:7px;padding:22px 22px 20px;
+    border-radius:16px;text-decoration:none;color:#c5d5e3;
+    border:1px solid rgba(148,197,255,.14);background:rgba(148,197,255,.035);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    transition:transform .28s cubic-bezier(.2,.7,.2,1), border-color .28s, background .28s, box-shadow .28s}
+  .card:hover{transform:translateY(-4px);border-color:rgba(0,242,254,.5);
+    background:rgba(0,242,254,.07);box-shadow:0 26px 60px -30px rgba(0,242,254,.7)}
+  .card-ico{font-size:22px;line-height:1}
+  .card-t{font-weight:600;font-size:16px;color:#eaf6ff;letter-spacing:.01em}
+  .card-d{font-size:12.5px;line-height:1.55;color:#7f9bb2}
+  .card-go{margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9.5px;
+    letter-spacing:.24em;color:rgba(0,242,254,.75)}
+  .card:hover .card-go{color:var(--cyan)}
+
+  /* CSS fallback wordmark */
+  .fallback{position:fixed;inset:0;z-index:3;display:none;align-items:center;justify-content:center;pointer-events:none}
+  .fallback span{
+    font-weight:700;letter-spacing:.06em;font-size:clamp(2.4rem,11vw,9rem);
+    background:linear-gradient(100deg,#7ff0ff,#00f2fe 45%,#2dd4bf);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 60px rgba(0,242,254,.35);opacity:0;animation:fadeUp 1.2s ease .2s forwards}
+  body.no-webgl .fallback{display:flex}
+  body.no-webgl #scene{display:none}
+
+  @media (prefers-reduced-motion: reduce){
+    .dot,.bar i{animation:none}
+    .tagline,.sub,.cue{animation:none;opacity:1}
+  }
+</style>
+</head>
+<body>
+
+<div class="glow"></div>
+<canvas id="scene"></canvas>
+<div class="fallback"><span>FLOATCHAT</span></div>
+<div class="scan"></div>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<div class="brk tl"></div><div class="brk tr"></div><div class="brk bl"></div><div class="brk br"></div>
+
+<div class="ui">
+  <div class="hero">
+    <div class="top">
+      <div><span class="dot"></span>ARGO GDAC <b>· LIVE WINDOW</b> &nbsp;·&nbsp; FLOATCHAT <b>// v0.2</b></div>
+      <nav class="nav">
+        <a href="/">CONSOLE</a>
+        <a href="https://github.com/Suryamoorthy-C/FLOATCHAT" target="_blank" rel="noopener">GITHUB</a>
+      </nav>
+    </div>
+
+    <div class="bottom">
+      <div class="tagline">AI-Powered <span>Ocean Intelligence</span> &amp; Habitat Analytics</div>
+      <p class="sub">
+        Interrogate ARGO float observations in plain language — depth profiles, salinity anomalies
+        and verified provenance, resolved from live ocean data.
+      </p>
+      <a class="cta" href="/">ENTER OCEAN CONSOLE <span class="arw">→</span></a>
+      <div class="cue"><span class="line"></span> SCROLL FOR MORE <span class="line"></span></div>
+    </div>
+  </div>
+
+  <section class="next">
+    <div class="next-head"><span class="nav-line"></span> CONTINUE <span class="nav-line"></span></div>
+    <div class="cards">
+      <a class="card" href="/">
+        <span class="card-ico">🛰️</span>
+        <span class="card-t">Live Console</span>
+        <span class="card-d">4D globe, depth profiles, anomaly signals and the AI query interface.</span>
+        <span class="card-go">ENTER →</span>
+      </a>
+      <a class="card" href="https://github.com/Suryamoorthy-C/FLOATCHAT" target="_blank" rel="noopener">
+        <span class="card-ico">💻</span>
+        <span class="card-t">Source Code</span>
+        <span class="card-d">React + Vite frontend with a FastAPI ARGO data service.</span>
+        <span class="card-go">GITHUB →</span>
+      </a>
+      <a class="card" href="https://github.com/Suryamoorthy-C/FLOATCHAT#readme" target="_blank" rel="noopener">
+        <span class="card-ico">📖</span>
+        <span class="card-t">Documentation</span>
+        <span class="card-d">Setup, API endpoints and the ARGO data sources behind the console.</span>
+        <span class="card-go">READ →</span>
+      </a>
+    </div>
+  </section>
+</div>
+
+<div class="bar"><i></i></div>
+
+<script>
+(function () {
+  'use strict';
+
+  const WORD = 'FLOATCHAT';
+  const canvas = document.getElementById('scene');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------------------------------------------------------
+     1) Sample the wordmark into points via an offscreen canvas.
+        Rendered with the real webfont so the particle word matches
+        the typeface used across the console.
+     --------------------------------------------------------------- */
+  function sampleWord(text) {
+    const FONT_PX = 260;
+    const font = `700 ${FONT_PX}px \"Space Grotesk\", Inter, system-ui, sans-serif`;
+    const probe = document.createElement('canvas').getContext('2d');
+    probe.font = font;
+    const textW = Math.ceil(probe.measureText(text).width);
+
+    const c = document.createElement('canvas');
+    c.width = textW + 80;
+    c.height = Math.ceil(FONT_PX * 1.5);
+    const ctx = c.getContext('2d');
+    ctx.font = font;
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, c.width / 2, c.height / 2);
+
+    const { data, width, height } = ctx.getImageData(0, 0, c.width, c.height);
+    const pts = [];
+    const gap = 3;
+    for (let y = 0; y < height; y += gap) {
+      for (let x = 0; x < width; x += gap) {
+        if (data[(y * width + x) * 4 + 3] > 140) {
+          pts.push({
+            x: x - width / 2,
+            y: height / 2 - y,          // flip to GL orientation
+            nx: (x / width) - 0.5,      // -0.5..0.5 for colour ramp
+          });
+        }
+      }
+    }
+    return { pts, width, height };
+  }
+
+  /* Soft round particle sprite (avoids square points). */
+  function dotTexture() {
+    const s = 64;
+    const c = document.createElement('canvas');
+    c.width = c.height = s;
+    const g = c.getContext('2d');
+    const grd = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    grd.addColorStop(0, 'rgba(255,255,255,1)');
+    grd.addColorStop(.4, 'rgba(255,255,255,.6)');
+    grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, s, s);
+    return new THREE.CanvasTexture(c);
+  }
+
+  let scene, camera, renderer, wordGroup, wordPoints, halo, dust, sweep;
+  const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+  const state = { t0: 0, target: null, start: null, colors: null, geometry: null, formed: 0 };
+
+  function build() {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight, false);
+
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x04080f, 0.0016);
+
+    camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 4000);
+    camera.position.set(0, 0, 150);
+
+    /* ---- visible width at the word's plane, so we can size it ---- */
+    const distToWord = 150;             // camera z - word z (word at z = 0)
+    const visH = 2 * distToWord * Math.tan((46 * Math.PI / 180) / 2);
+    const visW = visH * (innerWidth / innerHeight);
+
+    /* ---- sample + build the particle word ---- */
+    const { pts, width } = sampleWord(WORD);
+    const scale = (visW * 0.80) / width;
+
+    const count = pts.length;
+    const positions = new Float32Array(count * 3);
+    const targets = new Float32Array(count * 3);
+    const starts = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const delays = new Float32Array(count);
+
+    const cCyan = new THREE.Color(0x00f2fe);
+    const cTeal = new THREE.Color(0x2dd4bf);
+    const cIce = new THREE.Color(0xbdf3ff);
+
+    for (let i = 0; i < count; i++) {
+      const p = pts[i];
+      const tx = p.x * scale;
+      const ty = p.y * scale;
+      // extrude: a thin front layer + scattered back layer for depth
+      const tz = (Math.random() - 0.35) * 5.5;
+
+      targets[i * 3] = tx;
+      targets[i * 3 + 1] = ty;
+      targets[i * 3 + 2] = tz;
+
+      // scatter origin: wide volume, biased upward (letters fall & land)
+      const ang = Math.random() * Math.PI * 2;
+      const rad = (18 + Math.random() * 46);
+      starts[i * 3] = Math.cos(ang) * rad * 1.9;
+      starts[i * 3 + 1] = 30 + Math.random() * 70;
+      starts[i * 3 + 2] = -120 - Math.random() * 260;
+
+      positions[i * 3] = starts[i * 3];
+      positions[i * 3 + 1] = starts[i * 3 + 1];
+      positions[i * 3 + 2] = starts[i * 3 + 2];
+
+      // colour ramp: cyan -> teal across the word, ice at the depth face
+      const col = cCyan.clone().lerp(cTeal, p.nx + 0.5);
+      if (tz > 0) col.lerp(cIce, 0.35);
+      colors[i * 3] = col.r;
+      colors[i * 3 + 1] = col.g;
+      colors[i * 3 + 2] = col.b;
+
+      // stagger left→right so the word \"lands\" as a wave
+      delays[i] = (p.nx + 0.5) * 0.45 + Math.random() * 0.12;
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+      size: 2.0,
+      map: dotTexture(),
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      sizeAttenuation: true,
+    });
+
+    wordPoints = new THREE.Points(geometry, material);
+    wordGroup = new THREE.Group();
+    wordGroup.add(wordPoints);
+    scene.add(wordGroup);
+
+    state.target = targets;
+    state.start = starts;
+    state.geometry = geometry;
+    state.delays = delays;
+    state.count = count;
+    state.wordWidth = width * scale;
+
+    /* ---- halo behind the wordmark ---- */
+    const haloGeo = new THREE.PlaneGeometry(state.wordWidth * 1.6, state.wordWidth * 0.55);
+    const haloMat = new THREE.MeshBasicMaterial({
+      map: dotTexture(),
+      color: 0x0a6f86,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    halo = new THREE.Mesh(haloGeo, haloMat);
+    halo.position.set(0, 0, -26);
+    scene.add(halo);
+
+    /* ---- ambient dust ---- */
+    const dustN = 1100;
+    const dustPos = new Float32Array(dustN * 3);
+    for (let i = 0; i < dustN; i++) {
+      dustPos[i * 3] = (Math.random() - 0.5) * 900;
+      dustPos[i * 3 + 1] = (Math.random() - 0.5) * 520;
+      dustPos[i * 3 + 2] = -60 - Math.random() * 900;
+    }
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+    dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+      size: 1.15, color: 0x8fd8ff, transparent: true, opacity: .5,
+      depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
+    }));
+    scene.add(dust);
+
+    /* ---- light sweep that passes once the word lands ---- */
+    const swGeo = new THREE.PlaneGeometry(state.wordWidth * 0.34, state.wordWidth * 0.42);
+    const swMat = new THREE.MeshBasicMaterial({
+      map: dotTexture(), color: 0x9ff4ff, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    sweep = new THREE.Mesh(swGeo, swMat);
+    sweep.position.set(-state.wordWidth * 0.75, 0, 8);
+    scene.add(sweep);
+
+    state.t0 = performance.now();
+
+    if (reduced) {                    // place immediately, no travel
+      for (let i = 0; i < count; i++) {
+        positions[i * 3] = targets[i * 3];
+        positions[i * 3 + 1] = targets[i * 3 + 1];
+        positions[i * 3 + 2] = targets[i * 3 + 2];
+      }
+      geometry.attributes.position.needsUpdate = true;
+      state.formed = 1;
+    }
+
+    bind();
+    animate();
+  }
+
+  function bind() {
+    addEventListener('resize', () => {
+      if (!renderer) return;
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight, false);
+    }, { passive: true });
+
+    addEventListener('pointermove', (e) => {
+      mouse.tx = (e.clientX / innerWidth - 0.5) * 2;
+      mouse.ty = (e.clientY / innerHeight - 0.5) * 2;
+    }, { passive: true });
+
+    /* Fade the 3D wordmark out as the user scrolls past the hero so it
+       never fights with the content below. */
+    const onScroll = () => {
+      const k = Math.min(1, scrollY / Math.max(1, innerHeight * 0.6));
+      canvas.style.opacity = String(1 - k * 0.78);
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
+  const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const now = performance.now();
+    const t = (now - state.t0) / 1000;
+
+    /* --- letter landing --- */
+    if (!reduced && state.geometry) {
+      const pos = state.geometry.attributes.position;
+      const arr = pos.array;
+      const DUR = 2.1;
+      let done = 0;
+      for (let i = 0; i < state.count; i++) {
+        const local = (t - state.delays[i]) / DUR;
+        const p = Math.max(0, Math.min(1, local));
+        if (p >= 1) done++;
+        const e = easeOutCubic(p);
+        const i3 = i * 3;
+        arr[i3]     = state.start[i3]     + (state.target[i3]     - state.start[i3])     * e;
+        arr[i3 + 1] = state.start[i3 + 1] + (state.target[i3 + 1] - state.start[i3 + 1]) * e;
+        arr[i3 + 2] = state.start[i3 + 2] + (state.target[i3 + 2] - state.start[i3 + 2]) * e;
+      }
+      pos.needsUpdate = true;
+      state.formed = done / state.count;
+    }
+
+    /* --- settle shimmer: gentle z wave once formed --- */
+    if (state.geometry && state.formed > 0.6) {
+      const pos = state.geometry.attributes.position;
+      const arr = pos.array;
+      for (let i = 0; i < state.count; i += 7) {
+        const i3 = i * 3;
+        arr[i3 + 2] = state.target[i3 + 2] + Math.sin(t * 1.5 + arr[i3] * 0.09) * 1.5;
+      }
+      pos.needsUpdate = true;
+    }
+
+    /* --- parallax --- */
+    mouse.x += (mouse.tx - mouse.x) * 0.045;
+    mouse.y += (mouse.ty - mouse.y) * 0.045;
+    if (wordGroup) {
+      wordGroup.rotation.y = mouse.x * 0.13;
+      wordGroup.rotation.x = mouse.y * 0.09;
+      wordGroup.position.x = mouse.x * 4.2;
+      wordGroup.position.y = -mouse.y * 2.6;
+    }
+    camera.position.x = mouse.x * 9;
+    camera.position.y = -mouse.y * 6;
+    camera.lookAt(0, 0, 0);
+
+    /* --- halo breathing --- */
+    if (halo) halo.material.opacity = 0.30 + 0.16 * Math.sin(t * 0.9);
+
+    /* --- single light sweep after landing --- */
+    if (sweep) {
+      const s = Math.max(0, (t - 1.9) / 1.6);
+      if (s > 0 && s < 1.4) {
+        sweep.position.x = -state.wordWidth * 0.75 + s * state.wordWidth * 1.5;
+        sweep.material.opacity = Math.sin(Math.min(1, s) * Math.PI) * 0.55;
+      } else if (s >= 1.4) {
+        sweep.material.opacity = 0;
+      }
+    }
+
+    /* --- drifting dust --- */
+    if (dust) {
+      dust.rotation.y = t * 0.012;
+      dust.rotation.z = t * 0.004;
+    }
+
+    renderer.render(scene, camera);
+  }
+
+  /* ---------------------------------------------------------------
+     2) Boot — wait for the webfont so the particle word is shaped
+        by the real typeface, then start.
+     --------------------------------------------------------------- */
+  if (!window.THREE) { document.body.classList.add('no-webgl'); return; }
+
+  const start = () => { try { build(); } catch (e) { document.body.classList.add('no-webgl'); } };
+
+  if (document.fonts && document.fonts.ready) {
+    const timeout = new Promise((r) => setTimeout(r, 1500));   // never hang on fonts
+    Promise.race([document.fonts.ready, timeout]).then(start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>
