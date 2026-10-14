@@ -30,11 +30,13 @@
 
 .site-footer__name {
   margin-block: var(--space-10) var(--space-5);
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--leading-lg);
-  letter-spacing: var(--tracking-caps);
+  font-family: var(--font-family-display);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.075em;
   color: var(--color-on-dark);
+  text-shadow: 0 0 22px rgba(193, 255, 0, 0.18), 0 0 1px currentColor;
 }
 
 .site-footer__tagline {

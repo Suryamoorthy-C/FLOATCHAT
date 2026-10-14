@@ -56,7 +56,7 @@ export default function Home() {
 
         <div className="container home-hero__inner">
           <Reveal variant="fade" persistKey="home-hero-eyebrow">
-            <p className="eyebrow home-hero__eyebrow">Argo · Indian Ocean · Source-labelled</p>
+            <p className="eyebrow home-hero__eyebrow">Argo · Indian Ocean · Live</p>
           </Reveal>
 
           <Reveal variant="zoom" delay={80} persistKey="home-hero-wordmark">
@@ -74,7 +74,7 @@ export default function Home() {
                 repelRadius={140}
                 idleDrift={0.8}
                 trigger="hover"
-                fontSize={isNarrow ? 'clamp(2.6rem, 15vw, 4.5rem)' : 'clamp(3.5rem, 12vw, 8.5rem)'}
+                fontSize={isNarrow ? 'clamp(2.3rem, 13vw, 3.6rem)' : 'clamp(2.8rem, 7.4vw, 4.2rem)'}
                 fontWeight={800}
                 glow
               />
@@ -84,7 +84,7 @@ export default function Home() {
           <Reveal variant="up" delay={160} persistKey="home-hero-copy">
             <p className="home-hero__headline">Ask the ocean a question.</p>
             <p className="home-hero__sub">
-              Plain-language answers over source-labelled Argo profiles, with citations on every claim.
+              Plain-language answers over live Argo float data, with citations on every claim.
               Move your cursor — the water ripples, the letters breathe.
             </p>
           </Reveal>
