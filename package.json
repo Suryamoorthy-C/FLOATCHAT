@@ -9,10 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hugeicons/core-free-icons": "^4.3.5",
+    "@hugeicons/react": "^1.1.10",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
     "@vitejs/plugin-react": "latest",
+    "globe.gl": "^2.46.2",
     "lucide-react": "latest",
+    "ogl": "^1.0.11",
     "react": "latest",
     "react-dom": "latest",
     "three": "^0.186.1",
