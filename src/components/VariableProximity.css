@@ -6,6 +6,14 @@
   font-optical-sizing: auto;
 }
 
+.animated-text {
+  display: inline;
+}
+
+code .variable-proximity {
+  font-family: var(--font-family-mono, ui-monospace, SFMono-Regular, Consolas, monospace);
+}
+
 .variable-proximity__word {
   display: inline-block;
   white-space: nowrap;

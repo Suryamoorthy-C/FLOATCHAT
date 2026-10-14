@@ -1,54 +1,6 @@
-import { forwardRef, useEffect, useMemo, useRef } from 'react';
+import { forwardRef, useMemo, useRef } from 'react';
 import { motion } from 'motion/react';
 import './VariableProximity.css';
-
-function useAnimationFrame(callback) {
-  const callbackRef = useRef(callback);
-
-  useEffect(() => {
-    callbackRef.current = callback;
-  }, [callback]);
-
-  useEffect(() => {
-    let frameId;
-    const loop = () => {
-      callbackRef.current();
-      frameId = requestAnimationFrame(loop);
-    };
-    frameId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frameId);
-  }, []);
-}
-
-function useMousePositionRef(containerRef) {
-  const positionRef = useRef({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const updatePosition = (x, y) => {
-      if (containerRef?.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        positionRef.current = { x: x - rect.left, y: y - rect.top };
-      } else {
-        positionRef.current = { x, y };
-      }
-    };
-
-    const handleMouseMove = event => updatePosition(event.clientX, event.clientY);
-    const handleTouchMove = event => {
-      const touch = event.touches[0];
-      if (touch) updatePosition(touch.clientX, touch.clientY);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchmove', handleTouchMove);
-    };
-  }, [containerRef]);
-
-  return positionRef;
-}
 
 const VariableProximity = forwardRef(function VariableProximity(props, ref) {
   const {
@@ -65,8 +17,6 @@ const VariableProximity = forwardRef(function VariableProximity(props, ref) {
   } = props;
 
   const letterRefs = useRef([]);
-  const mousePositionRef = useMousePositionRef(containerRef);
-  const lastPositionRef = useRef({ x: null, y: null });
 
   const parsedSettings = useMemo(() => {
     const parseSettings = settingsString => new Map(
@@ -87,32 +37,32 @@ const VariableProximity = forwardRef(function VariableProximity(props, ref) {
     }));
   }, [fromFontVariationSettings, toFontVariationSettings]);
 
-  const calculateFalloff = distance => {
-    const norm = Math.min(Math.max(1 - distance / radius, 0), 1);
+  const calculateFalloff = (distance, influenceRadius) => {
+    const norm = Math.min(Math.max(1 - distance / influenceRadius, 0), 1);
     if (falloff === 'exponential') return norm ** 2;
-    if (falloff === 'gaussian') return Math.exp(-((distance / (radius / 2)) ** 2) / 2);
+    if (falloff === 'gaussian') return Math.exp(-((distance / (influenceRadius / 2)) ** 2) / 2);
     return norm;
   };
 
-  useAnimationFrame(() => {
-    if (!containerRef?.current) return;
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const { x, y } = mousePositionRef.current;
-    if (lastPositionRef.current.x === x && lastPositionRef.current.y === y) return;
-    lastPositionRef.current = { x, y };
-
+  const handlePointerMove = event => {
+    if (event.pointerType === 'touch') return;
+    const container = containerRef?.current ?? event.currentTarget;
+    const containerRect = container.getBoundingClientRect();
+    const x = event.clientX - containerRect.left;
+    const y = event.clientY - containerRect.top;
+    const influenceRadius = Math.max(1, Number(radius) || 50);
     letterRefs.current.forEach(letterRef => {
       if (!letterRef) return;
       const rect = letterRef.getBoundingClientRect();
       const letterCenterX = rect.left + rect.width / 2 - containerRect.left;
       const letterCenterY = rect.top + rect.height / 2 - containerRect.top;
       const distance = Math.hypot(x - letterCenterX, y - letterCenterY);
-      if (distance >= radius) {
+      if (distance >= influenceRadius) {
         letterRef.style.fontVariationSettings = fromFontVariationSettings;
         return;
       }
 
-      const falloffValue = calculateFalloff(distance);
+      const falloffValue = calculateFalloff(distance, influenceRadius);
       const settings = parsedSettings
         .map(({ axis, fromValue, toValue }) => {
           const value = fromValue + (toValue - fromValue) * falloffValue;
@@ -121,7 +71,13 @@ const VariableProximity = forwardRef(function VariableProximity(props, ref) {
         .join(', ');
       letterRef.style.fontVariationSettings = settings;
     });
-  });
+  };
+
+  const resetVariation = () => {
+    letterRefs.current.forEach(letterRef => {
+      if (letterRef) letterRef.style.fontVariationSettings = fromFontVariationSettings;
+    });
+  };
 
   const words = label.split(' ');
   let letterIndex = 0;
@@ -131,6 +87,8 @@ const VariableProximity = forwardRef(function VariableProximity(props, ref) {
       ref={ref}
       className={`${className} variable-proximity`.trim()}
       onClick={onClick}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetVariation}
       style={{ display: 'inline', ...style }}
       {...restProps}
     >

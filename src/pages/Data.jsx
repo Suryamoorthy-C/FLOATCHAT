@@ -4,6 +4,7 @@ import { api, normaliseFloat } from '../api';
 import { Link } from '../router';
 import { CONSOLE_PATH } from '../routes';
 import SpecularButton from '../components/SpecularButton';
+import AnimatedContent from '../components/AnimatedContent';
 import './Page.css';
 
 const FILTERS = [
@@ -85,6 +86,7 @@ export default function Data() {
   const loading = state.phase === 'loading';
 
   return (
+    <AnimatedContent>
     <div className="page" id="data">
       <div className="container">
         <Reveal>
@@ -183,7 +185,7 @@ export default function Data() {
                     <th scope="col">Position</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody data-no-text-animation>
                   {state.floats.map(float => (
                     <tr key={float.id}>
                       <th scope="row">
@@ -243,5 +245,6 @@ export default function Data() {
         </div>
       </section>
     </div>
+    </AnimatedContent>
   );
 }

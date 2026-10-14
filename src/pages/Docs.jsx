@@ -1,4 +1,5 @@
 import Reveal from '../components/Reveal';
+import AnimatedContent from '../components/AnimatedContent';
 import SpecularButton from '../components/SpecularButton';
 import { GITHUB_URL } from '../routes';
 import './Page.css';
@@ -50,6 +51,7 @@ const TOKEN_GROUPS = [
 
 export default function Docs() {
   return (
+    <AnimatedContent>
     <div className="page" id="docs">
       <div className="container">
         <Reveal>
@@ -225,5 +227,6 @@ export default function Docs() {
         </div>
       </section>
     </div>
+    </AnimatedContent>
   );
 }

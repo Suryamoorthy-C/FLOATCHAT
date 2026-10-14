@@ -1,6 +1,7 @@
 import { Link } from '../router';
 import { CONSOLE_PATH, GITHUB_URL } from '../routes';
 import SpecularButton from '../components/SpecularButton';
+import AnimatedContent from '../components/AnimatedContent';
 import Reveal from '../components/Reveal';
 import './Page.css';
 
@@ -48,6 +49,7 @@ const STEPS = [
 
 export default function Platform() {
   return (
+    <AnimatedContent>
     <div className="page" id="platform">
       <div className="container">
         <Reveal>
@@ -127,5 +129,6 @@ export default function Platform() {
         </div>
       </section>
     </div>
+    </AnimatedContent>
   );
 }
