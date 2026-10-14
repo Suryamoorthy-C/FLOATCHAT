@@ -2,7 +2,7 @@
 
 ## Script
 1. “Ocean operators need a fast way to understand device readings and act on anomalies.”
-2. Open ARGOCHAT and show the welcome examples.
+2. Open FLOATCHAT and show the welcome examples.
 3. Ask: “The buoy temperature rose sharply and dissolved oxygen dropped. What should I check first?”
 4. Show the loading state, then read the anomaly explanation, possible causes, confidence, and recommended next steps.
 5. Refresh or open recent incidents to show the device event and response were saved.
