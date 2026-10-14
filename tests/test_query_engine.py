@@ -20,6 +20,19 @@ FLEET = {
 
 
 class QueryEngineTests(unittest.TestCase):
+    def test_casual_greeting_is_answered_without_data_retrieval(self):
+        result = analyze("Hey there")
+        self.assertEqual(result["status"], "success")
+        self.assertIn("FloatChat", result["summary"])
+        self.assertEqual(result["query_parameters"]["intent"], "casual")
+        self.assertEqual(result["observations"], [])
+
+    def test_casual_thanks_and_help_are_supported(self):
+        thanks = analyze("Thanks, that helps")
+        help_result = analyze("What can you do?")
+        self.assertIn("welcome", thanks["summary"])
+        self.assertIn("casually", help_result["summary"])
+
     def test_interpret_supports_contextual_follow_up(self):
         parsed = interpret("What about salinity?", [{"role": "user", "content": "Compare temperature in the Bay of Bengal"}])
         self.assertEqual(parsed["region"], "Bay Of Bengal")

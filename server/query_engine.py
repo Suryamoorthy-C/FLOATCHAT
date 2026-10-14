@@ -45,10 +45,44 @@ def _previous_user_text(history: list[dict[str, Any]] | None) -> str:
     return ""
 
 
+def _casual_kind(question: str) -> str | None:
+    """Recognize low-risk conversational turns before scientific routing."""
+    normalized = re.sub(r"[^a-z0-9?' ]+", "", question.strip().lower())
+    if re.fullmatch(r"(hi|hello|hey|hiya|yo|good morning|good afternoon|good evening)( there)?", normalized):
+        return "greeting"
+    if any(phrase in normalized for phrase in ("how are you", "how's it going", "how is it going")):
+        return "wellbeing"
+    if any(phrase in normalized for phrase in ("thank you", "thanks", "thx", "appreciate it")):
+        return "thanks"
+    if any(phrase in normalized for phrase in ("who are you", "what are you", "your name")):
+        return "identity"
+    if any(phrase in normalized for phrase in ("what can you do", "how can you help", "help me", "capabilities")):
+        return "help"
+    if any(phrase in normalized for phrase in ("tell me a joke", "make me laugh")):
+        return "joke"
+    if normalized in {"bye", "goodbye", "see you", "see ya", "talk later"}:
+        return "goodbye"
+    return None
+
+
+def _casual_reply(kind: str) -> str:
+    replies = {
+        "greeting": "Hi! I’m FloatChat. We can chat normally, or dig into ARGO observations, ocean science, and regional comparisons whenever you’re ready.",
+        "wellbeing": "I’m doing well and ready to help. What’s on your mind—something casual, or an ocean question you want to investigate?",
+        "thanks": "You’re welcome. I’m happy to help—ask a follow-up whenever you like.",
+        "identity": "I’m FloatChat, a conversational ocean research assistant. I can handle casual conversation, then switch into evidence-based analysis when you ask about the ocean or ARGO data.",
+        "help": "I can chat casually, explain ocean science in simple language, retrieve available ARGO observations, compare the Bay of Bengal and Arabian Sea, inspect float profiles, screen potential anomalies, and cite research when it adds context.",
+        "joke": "Why did the oceanographer bring a ladder? To get a little closer to the deep end. I can also answer a real ocean question if you want.",
+        "goodbye": "See you later. I’ll be here when you want to chat or explore the ocean data.",
+    }
+    return replies[kind]
+
+
 def interpret(question: str, history: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     normalized = question.strip().lower()
     prior = _previous_user_text(history).lower()
     contextual_text = f"{prior} {normalized}".strip()
+    casual_kind = _casual_kind(question)
     region, bounds = _region(contextual_text)
     float_match = re.search(r"(?:wmo|float|platform|profile)\s*(?:id|number)?\s*[:#-]?\s*(\d{6,8})", contextual_text)
     float_id = float_match.group(1) if float_match else None
@@ -63,7 +97,9 @@ def interpret(question: str, history: list[dict[str, Any]] | None = None) -> dic
         variables = ["temperature", "salinity"]
 
     research_terms = ("why", "what is", "explain", "mechanism", "research", "study", "published", "literature", "meaning", "ecosystem")
-    if any(word in normalized for word in ("anomal", "unusual", "outlier")):
+    if casual_kind:
+        intent = "casual"
+    elif any(word in normalized for word in ("anomal", "unusual", "outlier")):
         intent = "anomaly"
     elif any(word in normalized for word in ("compare", "comparison", "versus", " vs ")):
         intent = "compare"
@@ -98,6 +134,7 @@ def interpret(question: str, history: list[dict[str, Any]] | None = None) -> dic
         "needs_research": needs_research,
         "visualization": "profile" if intent == "profile" else "globe_markers" if needs_data else None,
         "method": "2-sigma screening" if intent == "anomaly" else "regional comparison" if intent == "compare" else "descriptive statistics",
+        "casual_kind": casual_kind,
         "context_used": bool(prior),
     }
 
@@ -170,6 +207,16 @@ def analyze(question: str, history: list[dict[str, Any]] | None = None, context:
     result = _base_result(parsed, question)
     if context:
         parsed["ui_context"] = {key: context.get(key) for key in ("selected_float_id", "selected_region", "depth_m") if context.get(key) is not None}
+
+    if parsed["intent"] == "casual":
+        result.update({
+            "status": "success",
+            "summary": _casual_reply(parsed["casual_kind"] or "greeting"),
+            "analysis": {"method": "conversational reply", "results": [], "assumptions": [], "limitations": []},
+            "suggested_followups": ["Ask me anything about ocean science or ARGO data.", "Or just keep chatting—what are you thinking about?"],
+            "workflow": _workflow(retrieved=False, researched=False, analyzed=False),
+        })
+        return result
 
     if parsed["intent"] == "profile" and not parsed["float_id"]:
         result.update({

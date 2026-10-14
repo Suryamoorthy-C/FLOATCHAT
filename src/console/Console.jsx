@@ -94,7 +94,7 @@ function App() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      text: 'FloatChat is online. Ask about salinity, temperature, pressure, regions, or a depth layer.',
+      text: 'Hi — I’m FloatChat. Ask me anything, chat casually, or investigate ARGO observations, ocean science, regions, and depth layers.',
       at: nowClock(),
     },
   ])
@@ -424,7 +424,7 @@ function App() {
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && ask(draft)}
               disabled={busy}
-              placeholder={busy ? 'FloatChat is analyzing…' : 'Ask FloatChat about ocean metrics...'}
+              placeholder={busy ? 'FloatChat is thinking…' : 'Ask anything or explore ocean data...'}
             />
             <button onClick={() => ask(draft)} disabled={busy}><Send size={15} /></button>
           </div>
