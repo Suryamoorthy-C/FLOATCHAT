@@ -6,23 +6,23 @@ import './Page.css';
 const FEATURES = [
   {
     title: 'Conversational query',
-    body: 'A natural-language front end over the float network. Ask about a basin, a depth band, a parameter or a time window and get a written answer rather than a raw table.',
+    body: 'A natural-language front end over the current float window. Ask about a basin, a depth band, a parameter or a time window and get a written answer rather than a raw table.',
   },
   {
     title: 'Three-dimensional globe',
-    body: 'Every float is plotted at its real position. Colour encodes the active metric, and the depth layer drives the whole view from the surface down to 2,000 m.',
+    body: 'Every displayed float is plotted at its reported position. Colour encodes the active metric, and the depth layer follows the core Argo observing range from the surface down to 2,000 m.',
   },
   {
     title: 'Depth profiles',
-    body: 'Select any float to load its temperature and salinity against depth, with live values read at whichever layer the sweep is currently on.',
+    body: 'Select a float to inspect temperature and salinity against depth. The panel keeps the source, fetch time and live-versus-cached mode visible with the profile.',
   },
   {
     title: 'Anomaly surfacing',
-    body: 'Outliers beyond two standard deviations are flagged automatically and collected into a signal strip you can click straight into.',
+    body: 'Potential outliers beyond two standard deviations are flagged against the retrieved window and collected into a signal strip you can inspect. They are screening signals, not proof of cause.',
   },
   {
     title: 'Trajectory replay',
-    body: 'Each float carries its cycle history, drawn as an animated path across the globe so drift and drift rate are visible at a glance.',
+    body: 'Where cycle history is available, it is drawn as an animated path across the globe so movement and sampling coverage are visible at a glance.',
   },
   {
     title: 'Provenance on every answer',
@@ -56,8 +56,9 @@ export default function Platform() {
               A working console for the Argo fleet, with a chat interface over the top.
             </h1>
             <p className="page-head__lede">
-              FLOATCHAT reads live float telemetry and lets you interrogate it in plain language. It
-              is built for the Indian Ocean basin, but nothing in the pipeline is specific to it.
+              FLOATCHAT reads the configured Argo data window and lets you interrogate it in plain
+              language. It is tuned for Indian Ocean questions, while the pipeline remains usable
+              for other regions when the source provides coverage.
             </p>
           </header>
         </Reveal>

@@ -253,6 +253,14 @@
   inline-size: 100%;
 }
 
+.site-header__link--panel {
+  inline-size: 100%;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+
 @keyframes fc-panel-in {
   from {
     opacity: 0;
@@ -275,6 +283,10 @@
     display: none;
   }
 
+  .site-header__gooey {
+    display: none;
+  }
+
   .site-header__source {
     display: none;
   }
@@ -285,6 +297,7 @@
 
   .site-header__toggle {
     display: grid;
+    margin-inline-start: auto;
   }
 
   .site-header__panel {

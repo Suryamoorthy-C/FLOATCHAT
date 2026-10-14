@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import './Reveal.css';
 
+const persistedRevealKeys = new Set();
+
 /**
  * Reveal — scroll-triggered entrance wrapper used across the marketing site.
  * IntersectionObserver adds .is-visible once; CSS handles the motion.
@@ -12,6 +14,7 @@ export default function Reveal({
   className = '',
   delay = 0,
   variant = 'up',
+  persistKey = null,
   ...rest
 }) {
   const ref = useRef(null);
@@ -19,13 +22,19 @@ export default function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
+    if (persistKey && persistedRevealKeys.has(persistKey)) {
+      el.classList.add('is-visible');
+      return undefined;
+    }
     if (typeof IntersectionObserver === 'undefined') {
       el.classList.add('is-visible');
+      if (persistKey) persistedRevealKeys.add(persistKey);
       return undefined;
     }
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (reduce) {
       el.classList.add('is-visible');
+      if (persistKey) persistedRevealKeys.add(persistKey);
       return undefined;
     }
     const io = new IntersectionObserver(
@@ -33,6 +42,7 @@ export default function Reveal({
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             entry.target.classList.add('is-visible');
+            if (persistKey) persistedRevealKeys.add(persistKey);
             io.unobserve(entry.target);
           }
         });
@@ -41,7 +51,7 @@ export default function Reveal({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [persistKey]);
 
   return (
     <Tag

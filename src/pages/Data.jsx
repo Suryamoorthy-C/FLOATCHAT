@@ -91,8 +91,9 @@ export default function Data() {
           <p className="eyebrow">Live data</p>
           <h1 className="page-head__title">The fleet, as the current window reports it.</h1>
           <p className="page-head__lede">
-            Positions, temperatures and salinities are read straight from the Argo GDAC window.
-            Filter by status, or open the console for the full globe view.
+            Positions, temperatures and salinities are read from the configured Argo data window.
+            The source, fetch time and live-versus-cached mode are shown below. Filter by status,
+            or open the console for the full globe view.
           </p>
           <p className="page-head__meta">
             <span>Source · {state.source ?? 'unknown'}</span>
@@ -146,8 +147,8 @@ export default function Data() {
 
           {state.phase === 'error' && (
             <p className="notice notice--error" role="alert">
-              Live telemetry is unavailable. The backend may be offline — the console will keep
-              running against its cached fleet view.
+              The requested live window is unavailable. The console may still show its explicitly
+              labelled cached or demo fleet view; it does not treat that fallback as a live reading.
             </p>
           )}
 

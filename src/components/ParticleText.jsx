@@ -71,6 +71,9 @@ const ParticleText = ({
 }) => {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  // Persists across Strict Mode effect re-runs and resize/reduced-motion
+  // rebuilds, so the entrance sequence belongs to this page session only.
+  const entrancePlayedRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -326,8 +329,20 @@ const ParticleText = ({
           particle.delay = 0;
         });
         gathering = false;
-      } else {
+      } else if (!entrancePlayedRef.current) {
         startGather(false);
+        entrancePlayedRef.current = true;
+      } else {
+        // Rebuilding the canvas after a resize or preference change must keep
+        // the finished wordmark visible instead of replaying its entrance.
+        particles.forEach(particle => {
+          particle.x = particle.targetX;
+          particle.y = particle.targetY;
+          particle.startX = particle.targetX;
+          particle.startY = particle.targetY;
+          particle.delay = 0;
+        });
+        gathering = false;
       }
 
       ensureRenderLoop();
@@ -351,7 +366,6 @@ const ParticleText = ({
 
     const handlePointerEnter = event => {
       handlePointerMove(event);
-      if (trigger === 'hover') startGather(true);
     };
 
     const handleClick = () => {

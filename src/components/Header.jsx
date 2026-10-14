@@ -23,6 +23,7 @@ const SECTIONS = [
 export default function Header() {
   const [active, setActive] = useState(0);
   const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -53,6 +54,7 @@ export default function Header() {
 
   const go = index => {
     setActive(index);
+    setMobileOpen(false);
     document
       .getElementById(SECTIONS[index].id)
       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -73,6 +75,17 @@ export default function Header() {
           />
         </nav>
 
+        <button
+          type="button"
+          className="site-header__toggle"
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-navigation"
+          aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+          onClick={() => setMobileOpen(open => !open)}
+        >
+          <span className="site-header__bars" aria-hidden="true" />
+        </button>
+
         <div className="site-header__actions">
           <a
             className="site-header__source"
@@ -87,6 +100,32 @@ export default function Header() {
           </Link>
         </div>
       </div>
+
+      {mobileOpen && (
+        <div className="site-header__panel" id="mobile-navigation">
+          <div className="container">
+            <nav aria-label="Mobile primary">
+              <ul className="site-header__list site-header__list--panel">
+                {SECTIONS.map((section, index) => (
+                  <li className="site-header__item--panel" key={section.id}>
+                    <button
+                      type="button"
+                      className="site-header__link site-header__link--panel"
+                      aria-current={active === index ? 'page' : undefined}
+                      onClick={() => go(index)}
+                    >
+                      {section.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <Link to={CONSOLE_PATH} className="btn btn--primary site-header__panel-cta" onClick={() => setMobileOpen(false)}>
+              Launch console <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

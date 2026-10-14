@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ParticleText from '../components/ParticleText';
 import RippleDistortion from '../components/RippleDistortion';
 import MagicBento from '../components/MagicBento';
 import Reveal from '../components/Reveal';
@@ -54,19 +55,41 @@ export default function Home() {
         </div>
 
         <div className="container home-hero__inner">
-          <Reveal variant="fade">
-            <p className="eyebrow home-hero__eyebrow">Argo · Indian Ocean · Live</p>
+          <Reveal variant="fade" persistKey="home-hero-eyebrow">
+            <p className="eyebrow home-hero__eyebrow">Argo · Indian Ocean · Source-labelled</p>
           </Reveal>
 
-          <Reveal variant="up" delay={160}>
+          <Reveal variant="zoom" delay={80} persistKey="home-hero-wordmark">
+            <div className="home-hero__particles">
+              <ParticleText
+                text="FLOATCHAT"
+                particleSize={2.2}
+                density={3}
+                color="#ffffff"
+                highlightColor="#c1ff00"
+                scatter={220}
+                gatherDuration={1800}
+                stagger={500}
+                pointerRepel={55}
+                repelRadius={140}
+                idleDrift={0.8}
+                trigger="hover"
+                fontSize={isNarrow ? 'clamp(2.6rem, 15vw, 4.5rem)' : 'clamp(3.5rem, 12vw, 8.5rem)'}
+                fontWeight={800}
+                glow
+              />
+            </div>
+          </Reveal>
+
+          <Reveal variant="up" delay={160} persistKey="home-hero-copy">
             <p className="home-hero__headline">Ask the ocean a question.</p>
             <p className="home-hero__sub">
-              Plain-language answers over live Argo float data, with citations on every claim.
+              Plain-language answers over source-labelled Argo profiles, with citations on every claim.
               Move your cursor — the water ripples, the letters breathe.
             </p>
           </Reveal>
 
-          <Reveal variant="up" delay={240}>
+          <Reveal variant="up" delay={240} persistKey="home-hero-actions">
             <div className="home-hero__actions">
               <Link to={CONSOLE_PATH} className="btn btn--primary btn--lg">
                 Launch console <span aria-hidden="true">→</span>
@@ -77,7 +100,7 @@ export default function Home() {
             </div>
           </Reveal>
 
-          <Reveal variant="fade" delay={320}>
+          <Reveal variant="fade" delay={320} persistKey="home-hero-hint">
             <p className="home-hero__hint">Hover the wordmark to scatter it · move anywhere to ripple the water</p>
           </Reveal>
         </div>
@@ -106,9 +129,16 @@ export default function Home() {
           </Reveal>
           <Reveal variant="left" delay={120}>
             <p className="home-provenance__body">
-              Positions, temperatures and salinities come from the Argo GDAC via Ifremer ERDDAP.
-              The interface reports the source and the fetch time alongside each answer, so an
-              offline estimate can never be mistaken for a live reading.
+              Core Argo floats profile temperature and salinity from the surface to about 2,000 m.
+              FloatChat reports the source, fetch time and live-versus-cached mode beside the data,
+              so a fallback value cannot be mistaken for a live reading. Learn more from the{' '}
+              <a href="https://www.aoml.noaa.gov/argo/" target="_blank" rel="noreferrer noopener">
+                NOAA Argo programme
+              </a>{' '}
+              and the{' '}
+              <a href="https://globalocean.noaa.gov/research/argo-program/" target="_blank" rel="noreferrer noopener">
+                NOAA Global Ocean Monitoring and Observing programme
+              </a>.
             </p>
           </Reveal>
         </div>

@@ -134,8 +134,17 @@ export default function Docs() {
           </div>
           <div className="prose">
             <p>
-              Readings originate from the Argo programme: autonomous profiling floats that cycle
-              between the surface and 2,000 m and publish temperature, salinity and pressure.
+              Readings originate from the international Argo programme. Core profiling floats
+              repeatedly sample temperature and salinity from the surface to about 2,000 m; some
+              missions also carry biogeochemical sensors with their own data-management rules. See
+              the{' '}
+              <a href="https://www.aoml.noaa.gov/argo/" target="_blank" rel="noreferrer noopener">
+                NOAA Argo overview
+              </a>{' '}
+              and{' '}
+              <a href="https://biogeochemical-argo.org/data-management.php" target="_blank" rel="noreferrer noopener">
+                BGC-Argo data-management guidance
+              </a>.
             </p>
             <p>
               FLOATCHAT reads the aggregated GDAC window through Ifremer ERDDAP. Each response
