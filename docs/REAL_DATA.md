@@ -1,6 +1,6 @@
 # FLOATCHAT live ARGO data
 
-FLOATCHAT now queries the official Argo data ecosystem through `argopy` and the Ifremer ERDDAP service.
+FLOATCHAT now queries the official Argo data ecosystem through the official Ifremer ERDDAP CSV service directly.
 
 ## What is live
 
@@ -29,7 +29,7 @@ The Vite frontend and FastAPI service should be deployed separately. Set this Ve
 VITE_API_BASE_URL=https://your-api-host.example.com
 ```
 
-The backend must allow the Vercel origin in production instead of using `*` for long-term operation. The public ARGO endpoints do not require an API key, but they are rate-limited public infrastructure, which is why the server cache is enabled.
+The backend must allow the Vercel origin in production instead of using `*` for long-term operation. The public ARGO endpoint does not require an API key, but they are rate-limited public infrastructure, which is why the server cache is enabled.
 
 ## Data interpretation
 
@@ -37,6 +37,5 @@ ARGO profile values include pressure, temperature, salinity, timestamps, WMO pla
 
 ## Sources
 
-- [argopy data selection](https://argopy.readthedocs.io/en/latest/user-guide/fetching-argo-data/data_selection.html)
-- [argopy data sources](https://argopy.readthedocs.io/en/latest/user-guide/fetching-argo-data/data_sources.html)
+- [Ifremer ERDDAP ARGO source](https://erddap.ifremer.fr/erddap/)
 - [Argo profile files and QC guidance](https://argo.ucsd.edu/data/how-to-use-argo-files/)

@@ -1,5 +1,3 @@
 fastapi>=0.110
 uvicorn[standard]>=0.29
-argopy>=1.5
-xarray>=2025.7
-numpy>=1.26
+requests>=2.31
