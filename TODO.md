@@ -25,4 +25,4 @@
 - [x] `git diff --check` and route-manifest JSON validation passed.
 
 ## Release
-- [ ] Commit and push to `origin/main`; verify whether the repository’s linked Vercel deployment runs successfully.
+- [x] Push to `origin/main`; Vercel reported deployment success for feature commit `71920e3`.
