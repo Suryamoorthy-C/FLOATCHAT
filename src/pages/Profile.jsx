@@ -17,6 +17,8 @@ import {
   X,
 } from "lucide-react";
 import { Link } from "../router";
+import SpotlightCard from "../components/SpotlightCard";
+import Stepper, { Step } from "../components/Stepper";
 import samplePayload from "../../docs/profile-subscription.example.json";
 import "./Profile.css";
 
@@ -377,21 +379,41 @@ export default function Profile({
           </div>
           <aside className="account-cycle-aside">
             <p className="account-label">PLAN TIMELINE</p>
-            <div className="account-date-row">
-              <span className="account-date-marker account-date-marker--start" />
-              <div>
-                <small>PLAN STARTED</small>
-                <strong>{formatDate(subscription.startedAt)}</strong>
-              </div>
-            </div>
-            <div className="account-date-connector" aria-hidden="true" />
-            <div className="account-date-row">
-              <span className="account-date-marker account-date-marker--end" />
-              <div>
-                <small>RENEWS / ENDS</small>
-                <strong>{formatDate(subscription.currentPeriodEnd)}</strong>
-              </div>
-            </div>
+            <Stepper
+              initialStep={1}
+              backButtonText="Back"
+              nextButtonText="Continue"
+              indicator="numbers"
+              orientation="horizontal"
+              transition="slide"
+              width={360}
+              radius={18}
+              frame
+              linear={false}
+              disableStepIndicators={false}
+              showFooter
+              completeButtonText="Complete"
+              ariaLabel="Plan timeline"
+            >
+              <Step title="Plan started">
+                <div className="account-date-row">
+                  <span className="account-date-marker account-date-marker--start" />
+                  <div>
+                    <small>PLAN STARTED</small>
+                    <strong>{formatDate(subscription.startedAt)}</strong>
+                  </div>
+                </div>
+              </Step>
+              <Step title="Renews / ends">
+                <div className="account-date-row">
+                  <span className="account-date-marker account-date-marker--end" />
+                  <div>
+                    <small>RENEWS / ENDS</small>
+                    <strong>{formatDate(subscription.currentPeriodEnd)}</strong>
+                  </div>
+                </div>
+              </Step>
+            </Stepper>
             <p className="account-cycle-foot">
               <Clock3 size={13} aria-hidden="true" /> Dates shown in UTC
             </p>
@@ -423,9 +445,22 @@ export default function Profile({
               const isCurrent = plan.id === subscription.planId;
               const Icon = PLAN_ICON[plan.id] || Sparkles;
               return (
-                <article
+                <SpotlightCard
                   className={`account-plan-card${isCurrent ? " is-current" : ""}${plan.id === "enterprise-fleet" ? " is-enterprise" : ""}`}
                   key={plan.id}
+                  theme="dark"
+                  spotlightColor="#ffffff"
+                  intensity={0.15}
+                  spotlightSize={240}
+                  softness={0.7}
+                  shape="circle"
+                  borderGlow={0.6}
+                  proximity={80}
+                  smoothing={0.3}
+                  grain={0}
+                  ambient={false}
+                  flare
+                  radius={15}
                 >
                   {isCurrent && (
                     <span className="account-current-ribbon">
@@ -469,7 +504,7 @@ export default function Profile({
                         : "Choose Starter"}
                     {!isCurrent && <ArrowRight size={15} aria-hidden="true" />}
                   </button>
-                </article>
+                </SpotlightCard>
               );
             })}
           </div>

@@ -543,18 +543,30 @@
   min-width: 0;
   min-height: 330px;
   padding: 17px;
+  border: 1px solid color-mix(in srgb, var(--spotlight-color, #fff) var(--spotlight-border-mix, 0%), rgba(164, 207, 221, 0.13));
   border-radius: 15px;
   transition:
     transform 0.2s,
     border-color 0.2s,
-    background 0.2s;
+    background 0.2s,
+    box-shadow 0.2s,
+    --spotlight-x var(--spotlight-smoothing, 150ms) ease-out,
+    --spotlight-y var(--spotlight-smoothing, 150ms) ease-out;
 }
+
+.account-plan-card .spotlight-card__content {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
 .account-plan-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(125, 202, 212, 0.26);
+  border-color: color-mix(in srgb, var(--spotlight-color, #fff) var(--spotlight-border-mix, 0%), rgba(125, 202, 212, 0.26));
 }
 .account-plan-card.is-current {
-  border-color: rgba(56, 225, 198, 0.48);
+  border-color: color-mix(in srgb, var(--spotlight-color, #fff) var(--spotlight-border-mix, 0%), rgba(56, 225, 198, 0.48));
   background: linear-gradient(
     145deg,
     rgba(44, 198, 183, 0.12),
@@ -563,7 +575,7 @@
   box-shadow: 0 16px 48px rgba(20, 167, 152, 0.07);
 }
 .account-plan-card.is-enterprise {
-  border-color: rgba(150, 152, 255, 0.24);
+  border-color: color-mix(in srgb, var(--spotlight-color, #fff) var(--spotlight-border-mix, 0%), rgba(150, 152, 255, 0.24));
 }
 .account-current-ribbon,
 .account-featured-ribbon {
