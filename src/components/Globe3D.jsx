@@ -74,7 +74,7 @@ function GlobeMarker({ marker, radius, color, selected, onClick }) {
         <meshBasicMaterial color={color} />
       </mesh>
       <group position={top}>
-        <Html transform center sprite distanceFactor={8} style={{ pointerEvents: 'auto' }}>
+        <Html transform center sprite distanceFactor={8} style={{ pointerEvents: 'auto', overflow: 'visible' }}>
           <button
             type="button"
             className={'argo-marker' + (selected ? ' is-selected' : '') + (hovered ? ' is-hovered' : '')}
@@ -107,7 +107,7 @@ function GlobeScene({ markers, path, mode, selectedId, rotating, onMarkerClick }
   }, [earth, bump])
 
   useEffect(() => {
-    camera.position.set(0, 0, 7)
+    camera.position.set(0, 0, 5.8)
     camera.lookAt(0, 0, 0)
   }, [camera])
 
@@ -154,7 +154,7 @@ function GlobeScene({ markers, path, mode, selectedId, rotating, onMarkerClick }
         })}
       </group>
       <Atmosphere />
-      <OrbitControls makeDefault enablePan={false} enableZoom minDistance={4.8} maxDistance={10} rotateSpeed={0.45} enableDamping dampingFactor={0.08} />
+      <OrbitControls makeDefault enablePan={false} enableZoom minDistance={4.2} maxDistance={8.5} rotateSpeed={0.45} enableDamping dampingFactor={0.08} />
     </>
   )
 }
@@ -168,7 +168,7 @@ export default function Globe3D({ markers = [], path = [], mode = 'telemetry', s
     <div className="globe-3d-shell">
       <Canvas
         dpr={[1, 1.5]}
-        camera={{ fov: 42, near: 0.1, far: 100, position: [0, 0, 7] }}
+        camera={{ fov: 42, near: 0.1, far: 100, position: [0, 0, 5.8] }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
         <Suspense fallback={<LoadingGlobe />}>
