@@ -1,46 +1,115 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { createRoot } from 'react-dom/client'
-import Globe from 'globe.gl'
-import { Activity, ArrowUp, ArrowDown, ChevronDown, Database, Download, Gauge, Menu, Pause, Play, RotateCcw, Send, Thermometer, Waves, X, Zap } from 'lucide-react'
-import './styles.css'
+import { Suspense, lazy, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 
-const FLOATS = [
-  { id:'2902746', lat:12.8, lng:72.4, region:'Arabian Sea', temp:27.4, sal:34.8, status:'active', anomaly:false, cycles:184, battery:92 },
-  { id:'2902751', lat:16.2, lng:80.1, region:'Bay of Bengal', temp:26.9, sal:35.1, status:'active', anomaly:true, cycles:97, battery:84 },
-  { id:'2902738', lat:8.6, lng:67.2, region:'Arabian Sea', temp:29.8, sal:33.9, status:'warning', anomaly:true, cycles:201, battery:76 },
-  { id:'2902777', lat:20.4, lng:91.3, region:'Bay of Bengal', temp:25.8, sal:34.5, status:'active', anomaly:false, cycles:65, battery:88 },
-  { id:'2902699', lat:-2.4, lng:78.5, region:'Equatorial Indian', temp:26.1, sal:34.7, status:'offline', anomaly:false, cycles:132, battery:31 },
-  { id:'2902712', lat:3.2, lng:61.6, region:'Equatorial Indian', temp:28.2, sal:34.2, status:'active', anomaly:false, cycles:118, battery:96 },
-  { id:'2902810', lat:-22.1, lng:76.4, region:'Subtropical Gyre', temp:19.2, sal:35.2, status:'active', anomaly:false, cycles:44, battery:79 },
-  { id:'2902844', lat:-45.6, lng:83.1, region:'Southern Frontier', temp:8.4, sal:34.3, status:'active', anomaly:true, cycles:38, battery:67 }
-]
-const QUICK_QUERIES = ['Salinity anomalies · BoB', 'Thermocline · Arabian Sea', 'Full 4D sweep']
-const depthTemp = d => 2.2 + (27.6 - 2.2) / (1 + Math.exp((d - 165) / 55))
-const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
-const depthSal = d => 34.55 + (35.05 - 34.55) / (1 + Math.exp((d - 140) / 95)) + .22 * Math.exp(-((d - 700) ** 2) / (2 * 150 ** 2))
+import Header from './components/Header';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Platform from './pages/Platform';
+import Data from './pages/Data';
+import Docs from './pages/Docs';
+import { Link, useRoute, useSection } from './router';
 
-function App(){
-  const globeRef = useRef(null); const globeInstance = useRef(null)
-  const [mode,setMode] = useState('telemetry'); const [depth,setDepth] = useState(0); const [floats,setFloats] = useState(FLOATS); const [liveMeta,setLiveMeta] = useState({live:false,source:'demo'}); const [rotating,setRotating] = useState(true); const [sweeping,setSweeping] = useState(false); const [selected,setSelected] = useState(null); const [draft,setDraft] = useState(''); const [busy,setBusy] = useState(false); const [messages,setMessages] = useState([{role:'assistant',text:'FloatChat is online. Ask about salinity, temperature, pressure, regions, or a depth layer.'}]); const [clock,setClock] = useState(new Date())
-  const active = useMemo(()=>floats.filter(f=>f.status==='active').length,[floats])
-  const focus = selected || {id:'FLEET AGGREGATE',region:'Global Ocean',temp:depthTemp(depth),sal:depthSal(depth),cycles:3842,battery:100}
-  useEffect(()=>{const t=setInterval(()=>setClock(new Date()),1000);return()=>clearInterval(t)},[])
-  useEffect(()=>{let cancelled=false; const applyPayload=payload=>{if(cancelled||!payload?.data?.length)return;setFloats(payload.data.map(f=>({id:String(f.platform_number),lat:f.lat,lng:f.lon,region:f.project_name||'Global Ocean',temp:f.temperature_c??0,sal:f.salinity_psu??0,status:f.status||'active',anomaly:false,cycles:f.cycle||0,battery:100})));setLiveMeta({live:true,source:payload.source||'ARGO GDAC / Ifremer ERDDAP',fetchedAt:payload.fetched_at})}; const directGlobal=()=>{const now=Date.now()/1000;const start=now-3*86400;const q=`platform_number,latitude,longitude,time,pres,temp,psal&longitude>=-180&longitude<=180&latitude>=-90&latitude<=90&pres>=0&pres<=10&time>=${start}&time<=${now}&latitude!=NaN&longitude!=NaN`;return fetch(`https://erddap.ifremer.fr/erddap/tabledap/ArgoFloats.csv?${q}`).then(r=>r.ok?r.text():Promise.reject()).then(text=>{const lines=text.trim().split(/\r?\n/);const rows=lines.slice(2).map(line=>line.split(','));const latest={};rows.forEach(row=>{if(row.length<7)return;const [id,lat,lon,time,pres,temp,sal]=row;if(!latest[id]||time>latest[id].last_seen)latest[id]={platform_number:id,project_name:'Global ARGO array',lat:Number(lat),lon:Number(lon),last_seen:time,temperature_c:Number(temp),salinity_psu:Number(sal),status:'active'}});applyPayload({data:Object.values(latest),source:'ARGO GDAC / Ifremer ERDDAP (direct)',live:true})})}; fetch(`${API_BASE}/api/floats?live=true`).then(r=>r.ok?r.json():Promise.reject()).then(applyPayload).catch(()=>directGlobal().catch(()=>setLiveMeta({live:false,source:'demo fallback'})));return()=>{cancelled=true}},[])
-  useEffect(()=>{if(globeInstance.current)globeInstance.current.pointsData(floats)},[floats])
-  useEffect(()=>{if(!globeRef.current)return; const g=Globe()(globeRef.current).globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg').bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png').backgroundColor('rgba(0,0,0,0)').showAtmosphere(true).atmosphereColor('#00f2fe').atmosphereAltitude(.22).showGraticules(true).pointsData(floats).pointLat('lat').pointLng('lng').pointColor(f=>colorFor(f,mode,depth)).pointAltitude(f=>selected?.id===f.id?.08:.025).pointRadius(f=>selected?.id===f.id?.34:.18).pointLabel(f=>`${f.id} · ${f.region}<br/>T ${f.temp.toFixed(1)}°C · S ${f.sal.toFixed(2)} PSU`).onPointClick(f=>setSelected(f)).onGlobeClick(()=>setSelected(null)); const controls=g.controls(); controls.autoRotate=rotating;controls.autoRotateSpeed=.45;controls.enableDamping=true;g.pointOfView({lat:14,lng:80,altitude:2.2});globeInstance.current=g; const ro=new ResizeObserver(()=>{g.width(globeRef.current.clientWidth);g.height(globeRef.current.clientHeight)});ro.observe(globeRef.current);return()=>ro.disconnect()},[])
-  useEffect(()=>{const g=globeInstance.current;if(!g)return;g.pointColor(f=>colorFor(f,mode,depth));g.pointAltitude(f=>selected?.id===f.id?.08:.025);g.pointRadius(f=>selected?.id===f.id?.34:.18);g.controls().autoRotate=rotating},[mode,depth,rotating,selected])
-  useEffect(()=>{if(!sweeping)return;const t=setInterval(()=>setDepth(d=>{if(d>=2000){setSweeping(false);return 0}return d+25}),75);return()=>clearInterval(t)},[sweeping])
-  const runQuery=async(q)=>{if(!q.trim()||busy)return;setBusy(true);setDraft('');setMessages(m=>[...m,{role:'user',text:q},{role:'assistant',text:'Analyzing cited observations…'}]);try{const r=await fetch(`${API_BASE}/api/chat`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({message:q})});const raw=await r.text();const answer=[...raw.matchAll(/"token":"([^"]*)/g)].map(m=>m[1]).join('').trim();setMessages(m=>[...m.slice(0,-1),{role:'assistant',text:answer||fallback(q)}])}catch{setMessages(m=>[...m.slice(0,-1),{role:'assistant',text:fallback(q)}])}setBusy(false)}
-  const queryText=()=>{const q=draft.trim();if(q)runQuery(q)}
-  return <div className="command-app"><header className="command-header"><div className="brand"><div className="brand-mark"><Waves size={17}/></div><div><b>FLOATCHAT</b><span>// ARGO 4D</span></div><div className="live-label"><i/> {liveMeta.live?'LIVE ARGO TELEMETRY ACTIVE':'DEMO FALLBACK · API OFFLINE'}</div></div><div className="header-ticker"><span>ACTIVE FLOATS <b>{floats.length.toLocaleString()}</b></span><span>AVG DEPTH <b>2,000m</b></span><span>REGION <b>Global Ocean</b></span><span>UTC <b>{clock.toISOString().slice(11,19)}</b></span></div><button className="mobile-menu"><Menu size={18}/></button></header><main className="command-layout">
-    <section className="glass chat-side"><div className="panel-cap">AI QUERY INTERFACE <b>MODEL · FC-4D</b></div><div className="chat-feed">{messages.map((m,i)=><div className={m.role==='user'?'msg-user':'msg-ai'} key={i}>{m.role==='assistant'&&<div className="ai-head"><span className="sonar"><Waves size={12}/></span> FLOATCHAT <small>{clock.toISOString().slice(11,16)}</small></div>}<div className="msg-bubble">{m.text}</div>{m.role==='assistant'&&i>0&&<div className="ai-detail"><span>FLOATS SCANNED <b>{selected?'001':'142'}</b></span><span>DEPTH LAYER <b>{String(depth).padStart(4,'0')} m</b></span><span>PROVENANCE <b>ARGO GDAC</b></span></div>}</div>)}</div><div className="quick-row">{QUICK_QUERIES.map((q,i)=><button key={q} onClick={()=>runQuery(i===0?'Show salinity anomalies below 500m depth in the Bay of Bengal':i===1?'Map temperature across the thermocline in the Arabian Sea':'Sweep the water column from 0 to 2000m')}>{q}</button>)}</div><div className="query-box"><input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>e.key==='Enter'&&queryText()} disabled={busy} placeholder={busy?'FloatChat is analyzing…':'Ask FloatChat about ocean metrics...'}/><button onClick={queryText} disabled={busy}><Send size={15}/></button></div></section>
-    <section className="glass globe-side"><span className="corner tl"/><span className="corner tr"/><span className="corner bl"/><span className="corner br"/><div ref={globeRef} className="globe-canvas"/><div className="depth-hud"><small>ACTIVE DEPTH LAYER</small><b>{String(depth).padStart(4,'0')} <em>m</em></b></div><div className="globe-actions"><button className={rotating?'active':''} onClick={()=>setRotating(v=>!v)}><RotateCcw size={13}/></button><button onClick={()=>{setDepth(0);setSelected(null);globeInstance.current?.pointOfView({lat:14,lng:80,altitude:2.2},900)}}><RotateCcw size={13}/></button></div><div className="globe-hud">CAM {selected?`${Math.abs(selected.lat).toFixed(1)}°${selected.lat>=0?'N':'S'} ${Math.abs(selected.lng).toFixed(1)}°${selected.lng>=0?'E':'W'}`:'14.0°N 80.0°E'} · ALT 2.20 R</div><div className="globe-controls"><div className="mode-row"><button className={mode==='telemetry'?'active':''} onClick={()=>setMode('telemetry')}>TELEMETRY</button><button className={mode==='spectral'?'active':''} onClick={()=>setMode('spectral')}>SPECTRAL BANDS</button><button className={mode==='salinity'?'active':''} onClick={()=>setMode('salinity')}>SALINITY HEATMAP</button></div><div className="depth-row"><span>DEPTH LAYER<br/>0–2000m</span><input type="range" min="0" max="2000" step="10" value={depth} onChange={e=>{setSweeping(false);setDepth(+e.target.value)}}/><b>{String(depth).padStart(4,'0')} m</b><button onClick={()=>setSweeping(v=>!v)}>{sweeping?<Pause size={14}/>:<Play size={14}/>}</button></div></div></section>
-    <section className="glass metrics-side"><div className="metrics-head"><div className="panel-cap">LIVE METRICS</div><span><i/> SYNC</span><small>SOURCE // {selected?`${selected.id} · ${selected.region.toUpperCase()}`:'FLEET AGGREGATE'}</small></div><div className="metrics-scroll"><Metric icon={<Thermometer/>} label="TEMPERATURE" value={focus.temp.toFixed(2)} unit="°C" color="amber" trend="+0.18"/><Metric icon={<Waves/>} label="SALINITY" value={focus.sal.toFixed(3)} unit="PSU" color="cyan" trend="+0.024"/><Metric icon={<Gauge/>} label="PRESSURE" value={(depth*1.025+1.2).toFixed(1)} unit="dbar" color="sky" trend="+2.4"/><div className="glass-card profile-mini"><div className="panel-cap">THERMOCLINE · SALINITY</div><div className="legend"><span className="amber-line"/> TEMP °C <span className="cyan-line"/> SAL PSU</div><MiniChart depth={depth}/><small>Layer readout: {depth}m · temp {focus.temp.toFixed(2)}°C · sal {focus.sal.toFixed(2)} PSU</small></div><div className="glass-card fleet-card"><div className="panel-cap">FLEET STATUS</div><div className="fleet-stat"><b>{active}</b><span>active in view</span></div><div className="bar"><i style={{width:'76%'}}/></div><div className="fleet-foot"><span><Zap size={11}/> 5 anomalies</span><span>87.4% coverage</span></div></div></div></section>
-  </main><footer className="command-footer"><span>FLOATCHAT v0.2 · ARGO 4D OPERATIONS CONSOLE</span><span><Database size={12}/> GROUNDED IN OBSERVATIONS · <Download size={12}/> EXPORT READY</span></footer></div>
+import './theme/tokens.css';
+import './theme/base.css';
+// The shell's own 404 uses the shared page primitives, so make that guarantee
+// explicit here rather than relying on another page importing them.
+import './pages/Page.css';
+
+/* globe.gl pulls in three.js — about 2 MB — so the console is loaded on demand
+   instead of on first paint. Everything else is small enough to ship up front. */
+const ConsolePage = lazy(() => import('./pages/Console'));
+
+const PAGES = {
+  '/': Home,
+  '/platform': Platform,
+  '/data': Data,
+  '/docs': Docs,
+};
+
+/** Skip link. It must not touch the hash, because the hash is the router. */
+function skipToMain(event) {
+  event.preventDefault();
+  const main = document.getElementById('main');
+  if (!main) return;
+  main.focus();
+  main.scrollIntoView({ block: 'start' });
 }
-function colorFor(f,mode,d){if(mode==='salinity')return f.anomaly?'#ffc857':'#00cfe8';if(mode==='spectral')return f.temp>28?'#ff5577':f.temp>24?'#ffd166':'#4e9cf5';return f.anomaly?'#8ff7ff':'#00f2fe'}
-function fallback(q){return /salin/i.test(q)?'Salinity is elevated at the eastern edge of the Bay of Bengal, with 3 cited profiles between 34.8 and 35.1 PSU. The strongest signal is around 600–1,000 m.':'I cross-referenced the live ARGO index. The Global Ocean array is streaming and healthy. I can resolve salinity, temperature, pressure, a region, or any depth layer.'}
-function Metric({icon,label,value,unit,color,trend}){return <div className="glass-card metric-card"><div className="metric-label"><span className={color}>{icon} {label}</span><ArrowUp size={12}/></div><strong>{value}<small>{unit}</small></strong><Spark color={color}/><div className="metric-trend">↗ {trend} from last sample</div></div>}
-function Spark({color}){return <svg viewBox="0 0 100 24" className={'spark '+color}><polyline points="0,18 10,15 20,17 30,10 40,13 50,8 60,12 70,5 80,10 90,4 100,7"/></svg>}
-function MiniChart({depth}){const pts=Array.from({length:18},(_,i)=>{const d=i*110;return `${i*5.8},${13+depthTemp(d)/30*28}`}).join(' ');return <svg viewBox="0 0 100 48" className="mini-chart"><polyline points={pts} fill="none" stroke="#ffb454" strokeWidth="1.4"/><polyline points={Array.from({length:18},(_,i)=>`${i*5.8},${40-depthSal(i*110)*.55}`).join(' ')} fill="none" stroke="#00f2fe" strokeWidth="1.4"/><line x1="0" x2="100" y1={Math.min(45,13+depth/2000*35)} y2={Math.min(45,13+depth/2000*35)} stroke="#ffc857" strokeDasharray="2 2" opacity=".7"/></svg>}
-createRoot(document.getElementById('root')).render(<App/>)
+
+function NotFound() {
+  return (
+    <div className="page">
+      <div className="container">
+        <header className="page-head">
+          <p className="eyebrow">Not found</p>
+          <h1 className="page-head__title">That page does not exist.</h1>
+          <p className="page-head__lede">
+            The link may be out of date. Use the navigation above, or start again from the home
+            page.
+          </p>
+          <div className="actions">
+            <Link to="/" className="btn btn--primary">
+              Back to home
+            </Link>
+          </div>
+        </header>
+      </div>
+    </div>
+  );
+}
+
+function ConsoleFallback() {
+  return (
+    <div className="site-shell">
+      <div className="container section">
+        <p className="empty" aria-busy="true" aria-live="polite">
+          Loading the operations console…
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const path = useRoute();
+  const section = useSection();
+
+  // Each navigation starts at the top of the new page, unless the route names an
+  // anchor (for example #/docs#api), in which case that is scrolled into view.
+  useEffect(() => {
+    if (section) {
+      const target = document.getElementById(section);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [path, section]);
+
+  if (path === '/console') {
+    return (
+      <Suspense fallback={<ConsoleFallback />}>
+        <ConsolePage />
+      </Suspense>
+    );
+  }
+
+  const Page = PAGES[path] ?? NotFound;
+
+  return (
+    <div className="site-shell">
+      <a className="u-skip-link" href="#main" onClick={skipToMain}>
+        Skip to content
+      </a>
+      <Header />
+      <main id="main" tabIndex={-1}>
+        <Page />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+// No StrictMode: it double-invokes effects in development, which would
+// initialise the globe twice.
+createRoot(document.getElementById('root')).render(<App />);
