@@ -85,22 +85,45 @@ function App() {
     if (!target) return;
     scrollToElement(target, { duration: 0.95 });
 
-    // Live content above this section can expand after the first scroll starts.
-    // Re-align the Pearl Zones route once layout settles, unless the visitor has
-    // already taken control of scrolling.
+    // The Live Data table can arrive asynchronously and expand substantially
+    // above Pearl Zones. Keep its deep-link aligned while that layout settles,
+    // unless the visitor has already taken control of scrolling.
     if (path !== '/pearl-zones' || section) return;
     let cancelled = false;
-    const cancelCorrection = () => { cancelled = true; window.clearTimeout(timer); };
-    const timer = window.setTimeout(() => {
+    let correctionTimer;
+    let stopTimer;
+    const alignTarget = () => {
       if (cancelled || !window.location.hash.startsWith('#/pearl-zones')) return;
       const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
       const top = target.getBoundingClientRect().top + window.scrollY - margin;
       scrollToPosition(Math.max(0, top), { duration: 0.35 });
-    }, 1200);
+    };
+    const scheduleAlignment = () => {
+      window.clearTimeout(correctionTimer);
+      correctionTimer = window.setTimeout(alignTarget, 300);
+    };
+    const main = document.getElementById('main');
+    const resizeObserver = typeof ResizeObserver !== 'undefined' && main
+      ? new ResizeObserver(scheduleAlignment)
+      : null;
+    resizeObserver?.observe(main);
+    correctionTimer = window.setTimeout(alignTarget, 1200);
+    stopTimer = window.setTimeout(() => {
+      resizeObserver?.disconnect();
+      alignTarget();
+    }, 15000);
     const userEvents = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+    const cancelCorrection = () => {
+      cancelled = true;
+      window.clearTimeout(correctionTimer);
+      window.clearTimeout(stopTimer);
+      resizeObserver?.disconnect();
+    };
     userEvents.forEach((eventName) => window.addEventListener(eventName, cancelCorrection, { once: true, passive: true }));
     return () => {
-      window.clearTimeout(timer);
+      window.clearTimeout(correctionTimer);
+      window.clearTimeout(stopTimer);
+      resizeObserver?.disconnect();
       userEvents.forEach((eventName) => window.removeEventListener(eventName, cancelCorrection));
     };
   }, [path, section]);

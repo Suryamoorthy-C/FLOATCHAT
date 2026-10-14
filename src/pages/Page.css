@@ -327,3 +327,29 @@
 .data-table .status {
   margin-inline-start: var(--space-5);
 }
+
+.data-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-7);
+  margin-block-start: var(--space-7);
+  padding: var(--space-7) var(--space-10);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.data-pagination p {
+  margin: 0;
+  color: var(--color-text-quiet);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+@media (max-width: 520px) {
+  .data-pagination > .specular-button {
+    inline-size: 100%;
+  }
+}

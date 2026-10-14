@@ -13,6 +13,7 @@ const FILTERS = [
   { value: 'warning', label: 'Warning' },
   { value: 'offline', label: 'Offline' },
 ];
+const FLOATS_PAGE_SIZE = 100;
 
 const INITIAL = {
   phase: 'loading',
@@ -43,7 +44,12 @@ const position = float =>
 export default function Data() {
   const [status, setStatus] = useState('all');
   const [nonce, setNonce] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(FLOATS_PAGE_SIZE);
   const [state, setState] = useState(INITIAL);
+
+  useEffect(() => {
+    setVisibleCount(FLOATS_PAGE_SIZE);
+  }, [status, nonce]);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +90,7 @@ export default function Data() {
   }, [status, nonce]);
 
   const loading = state.phase === 'loading';
+  const visibleFloats = state.floats.slice(0, visibleCount);
 
   return (
     <AnimatedContent>
@@ -169,8 +176,9 @@ export default function Data() {
           )}
 
           {state.phase === 'ready' && (
-            <div className="table-wrap">
-              <table className="data-table">
+            <>
+              <div className="table-wrap">
+                <table className="data-table" id="fleet-data-table">
                 <caption>
                   {state.floats.length} floats · {state.source ?? 'unknown source'}
                 </caption>
@@ -186,7 +194,7 @@ export default function Data() {
                   </tr>
                 </thead>
                 <tbody data-no-text-animation>
-                  {state.floats.map(float => (
+                  {visibleFloats.map(float => (
                     <tr key={float.id}>
                       <th scope="row">
                         {float.id}
@@ -205,6 +213,20 @@ export default function Data() {
                 </tbody>
               </table>
             </div>
+            {visibleFloats.length < state.floats.length && (
+              <div className="data-pagination" aria-live="polite">
+                <p>Showing {visibleFloats.length.toLocaleString()} of {state.floats.length.toLocaleString()} floats</p>
+                <SpecularButton
+                  type="button"
+                  size="sm"
+                  aria-controls="fleet-data-table"
+                  onClick={() => setVisibleCount(count => Math.min(count + FLOATS_PAGE_SIZE, state.floats.length))}
+                >
+                  Show {Math.min(FLOATS_PAGE_SIZE, state.floats.length - visibleFloats.length)} more
+                </SpecularButton>
+              </div>
+            )}
+            </>
           )}
         </div>
       </section>
