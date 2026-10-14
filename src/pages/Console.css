@@ -1,0 +1,68 @@
+/* ==========================================================================
+   Console route
+   --------------------------------------------------------------------------
+   This bar is chrome for the operations console, so it deliberately uses the
+   console's own dark palette (--bg, --cyan, --line, defined on .console-route
+   in src/styles.css) rather than the Lusion tokens. Keeping it in the console's
+   palette is what makes the boundary between the marketing site and the tool
+   read as intentional instead of accidental.
+   ========================================================================== */
+
+.console-route {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.console-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-7);
+  padding: var(--space-3) var(--space-7);
+  border-block-end: 1px solid rgba(0, 242, 254, 0.12);
+  background-color: rgba(10, 17, 32, 0.72);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+
+.console-bar__link {
+  color: #7ce6ed;
+  text-decoration: none;
+  transition: var(--transition-color-base);
+}
+
+.console-bar__link:hover,
+.console-bar__link:focus-visible {
+  color: var(--cyan);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+.console-bar__label {
+  color: #4e6880;
+}
+
+/* Focus ring must read against the dark bar, not the light page. */
+.console-bar :focus-visible {
+  outline-color: var(--cyan);
+}
+
+/* On desktop the bar and the console together fill exactly one viewport, so
+   the console's own 100vh no longer overflows. Below the console's own
+   breakpoint it manages its own height and the page scrolls normally, so this
+   override is deliberately desktop-only. */
+@media (min-width: 861px) {
+  .console-route {
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .console-route .command-app {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
+}
