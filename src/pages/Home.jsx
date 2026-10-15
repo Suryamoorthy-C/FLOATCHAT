@@ -154,7 +154,44 @@ export default function Home() {
         <ConsoleApp />
       </section>
 
+      <HomeApiAndFishermen />
+
     </>
+  );
+}
+
+function HomeApiAndFishermen() {
+  return (
+    <section className="home-impact section" aria-labelledby="home-impact-title">
+      <div className="container">
+        <div className="home-impact__grid">
+          <article className="home-impact__card" id="api-overview">
+            <p className="eyebrow">API · open by design</p>
+            <h2 id="home-impact-title">A clear path from ocean data to useful tools.</h2>
+            <p>
+              The FastAPI layer exposes live fleet positions, profiles, anomaly signals, statistics,
+              health and a cited chat stream. Every response keeps its source, fetch time and live-versus-cached
+              status visible, so builders can use the same evidence as the console without copying its UI.
+            </p>
+            <div className="home-impact__links">
+              <Link to="/docs#api">View the API reference <span aria-hidden="true">→</span></Link>
+              <Link to="/docs#provenance">Read the provenance notes <span aria-hidden="true">→</span></Link>
+            </div>
+          </article>
+
+          <article className="home-impact__card home-impact__card--fishermen" id="fishermen">
+            <p className="eyebrow">For fishing communities</p>
+            <h2>Turn ocean intelligence into practical decisions.</h2>
+            <ul>
+              <li><strong>Is it safer to go?</strong> Surface official warnings and explain conditions in simple, local-language terms.</li>
+              <li><strong>Where might conditions fit?</strong> Compare temperature, chlorophyll, currents and trusted catch context with confidence levels—not promises.</li>
+              <li><strong>How can the trip be more efficient?</strong> Support route and fuel planning around weather, currents and legal boundaries.</li>
+            </ul>
+            <p className="home-impact__note">ARGO is broad-scale evidence, not a real-time fish finder. Safety guidance must come from authoritative marine warnings and local observations.</p>
+          </article>
+        </div>
+      </div>
+    </section>
   );
 }
 

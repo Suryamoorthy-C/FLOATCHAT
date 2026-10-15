@@ -269,6 +269,96 @@
 .home-bento .section__title { margin-block-end: 0; }
 .home-bento .discover { align-items: stretch; }
 
+/* API and community impact slots sit after the console and before the footer. */
+.home-impact {
+  padding-block: clamp(64px, 9vw, 112px);
+  background: #0b1220;
+}
+
+.home-impact__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.home-impact__card {
+  display: flex;
+  min-height: 300px;
+  flex-direction: column;
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid #2a394d;
+  border-radius: 16px;
+  background: #111c2e;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+}
+
+.home-impact__card h2 {
+  max-width: 19ch;
+  margin: 12px 0 16px;
+  color: #e8edf5;
+  font-size: clamp(24px, 3vw, 38px);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.home-impact__card > p:not(.eyebrow):not(.home-impact__note) {
+  max-width: 54ch;
+  margin: 0;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.home-impact__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-top: auto;
+  padding-top: 28px;
+}
+
+.home-impact__links a {
+  color: #7ccfc3;
+  font-size: 12px;
+  font-weight: 650;
+  text-underline-offset: 4px;
+}
+
+.home-impact__links a:hover { color: #5b8def; }
+
+.home-impact__card--fishermen { background: #182538; }
+
+.home-impact__card--fishermen ul {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-impact__card--fishermen li {
+  padding-left: 18px;
+  border-left: 2px solid #7ccfc3;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.home-impact__card--fishermen li strong { color: #e8edf5; }
+
+.home-impact__note {
+  margin: auto 0 0;
+  padding-top: 22px;
+  color: #7f91a8;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+  .home-impact__grid { grid-template-columns: 1fr; }
+  .home-impact__card { min-height: auto; }
+}
+
 /* Scroll cue is now a button (no hash change, no redirect). */
 button.home-hero__scroll {
   background: none;
