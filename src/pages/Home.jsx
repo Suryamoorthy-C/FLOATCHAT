@@ -5,13 +5,14 @@ import VariableProximity from '../components/VariableProximity';
 import SpecularButton from '../components/SpecularButton';
 import MagicBento from '../components/MagicBento';
 import Reveal from '../components/Reveal';
+import ConsoleApp from '../console/Console';
 import { Link } from '../router';
-import { CONSOLE_PATH } from '../routes';
 import { api } from '../api';
 import { useMediaQuery } from '../hooks';
 import { scrollToElement } from '../smoothScroll';
 import './Home.css';
 import './HomeGlass.css';
+import './Console.css';
 
 const ArgoExplodedView = lazy(() => import('../components/ArgoExplodedView'));
 
@@ -36,6 +37,10 @@ export default function Home() {
 
   return (
     <>
+      <section className="console-route home-console" id="console" aria-label="FloatChat operations console">
+        <ConsoleApp />
+      </section>
+
       <h1 className="u-visually-hidden">FLOATCHAT — ocean intelligence for the Argo fleet</h1>
 
       <section className="home-hero" id="home" aria-label="FLOATCHAT introduction">
@@ -273,7 +278,7 @@ function BentoShowcase() {
       title: 'Open the console',
       description: 'Full globe, depth sweep, trajectories and the anomaly strip.',
       visual: 'integration',
-      href: CONSOLE_PATH
+      href: '/#console'
     },
     {
       label: 'Provenance',
@@ -304,7 +309,7 @@ function BentoShowcase() {
 
   return (
     <section className="section home-bento" id="capabilities" aria-labelledby="capabilities-title">
-      <div className="container" id="console">
+      <div className="container">
         <Reveal>
           <p className="eyebrow">Capabilities · Fleet right now</p>
           <h2 className="section__title" id="capabilities-title">

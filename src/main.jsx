@@ -8,8 +8,8 @@ import Platform from './pages/Platform';
 import Data from './pages/Data';
 import Docs from './pages/Docs';
 import PearlZones from './pages/PearlZones';
-import { useRoute, useSection } from './router';
-import { scrollToElement, scrollToPosition, startSmoothScroll } from './smoothScroll';
+import { navigate, useRoute, useSection } from './router';
+import { scrollToElement, startSmoothScroll } from './smoothScroll';
 import './theme/tokens.css';
 import './theme/base.css';
 // The shell's own views use the shared page primitives, so make that guarantee
@@ -17,19 +17,15 @@ import './theme/base.css';
 import './pages/Page.css';
 import './theme/glass.css';
 
-/* globe.gl pulls in three.js — about 2 MB — so the console is loaded on demand
-   instead of on first paint. Everything else is small enough to ship up front. */
-const ConsolePage = lazy(() => import('./pages/Console'));
 const ProfilePage = lazy(() => import('./pages/Profile'));
 
 /**
- * Old route paths still resolve, but they scroll instead of redirecting: the
- * whole site is one page with the sections stacked (home → platform → live
- * data → docs). Footer deep-links like /data#anomalies land on the right
- * anchor the same way.
+ * Route anchors keep deep-links such as /data#anomalies working while each
+ * primary page owns its content. Home owns the interactive console; Pearl Data
+ * is intentionally not mounted on Home.
  */
 const ROUTE_SECTION = {
-  '/': 'home',
+  '/': 'console',
   '/platform': 'platform',
   '/data': 'data',
   '/pearl-zones': 'pearl-zones',
@@ -43,18 +39,6 @@ function skipToMain(event) {
   if (!main) return;
   main.focus();
   scrollToElement(main);
-}
-
-function ConsoleFallback() {
-  return (
-    <div className="site-shell">
-      <div className="container section">
-        <p className="empty" aria-busy="true" aria-live="polite">
-          Loading the operations console…
-        </p>
-      </div>
-    </div>
-  );
 }
 
 function ProfileFallback() {
@@ -73,10 +57,7 @@ function App() {
   const path = useRoute();
   const section = useSection();
 
-  useEffect(() => {
-    if (path === '/console') return undefined;
-    return startSmoothScroll();
-  }, [path]);
+  useEffect(() => (path === '/profile' || path === '/console' ? undefined : startSmoothScroll()), [path]);
 
   useEffect(() => {
     if (path === '/console' || path === '/profile') return;
@@ -84,57 +65,9 @@ function App() {
     const target = document.getElementById(id);
     if (!target) return;
     scrollToElement(target, { duration: 0.95 });
-
-    // The Live Data table can arrive asynchronously and expand substantially
-    // above Pearl Zones. Keep its deep-link aligned while that layout settles,
-    // unless the visitor has already taken control of scrolling.
-    if (path !== '/pearl-zones' || section) return;
-    let cancelled = false;
-    let correctionTimer;
-    let stopTimer;
-    const alignTarget = () => {
-      if (cancelled || !window.location.hash.startsWith('#/pearl-zones')) return;
-      const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
-      const top = target.getBoundingClientRect().top + window.scrollY - margin;
-      scrollToPosition(Math.max(0, top), { duration: 0.35 });
-    };
-    const scheduleAlignment = () => {
-      window.clearTimeout(correctionTimer);
-      correctionTimer = window.setTimeout(alignTarget, 300);
-    };
-    const main = document.getElementById('main');
-    const resizeObserver = typeof ResizeObserver !== 'undefined' && main
-      ? new ResizeObserver(scheduleAlignment)
-      : null;
-    resizeObserver?.observe(main);
-    correctionTimer = window.setTimeout(alignTarget, 1200);
-    stopTimer = window.setTimeout(() => {
-      resizeObserver?.disconnect();
-      alignTarget();
-    }, 15000);
-    const userEvents = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
-    const cancelCorrection = () => {
-      cancelled = true;
-      window.clearTimeout(correctionTimer);
-      window.clearTimeout(stopTimer);
-      resizeObserver?.disconnect();
-    };
-    userEvents.forEach((eventName) => window.addEventListener(eventName, cancelCorrection, { once: true, passive: true }));
-    return () => {
-      window.clearTimeout(correctionTimer);
-      window.clearTimeout(stopTimer);
-      resizeObserver?.disconnect();
-      userEvents.forEach((eventName) => window.removeEventListener(eventName, cancelCorrection));
-    };
   }, [path, section]);
 
-  if (path === '/console') {
-    return (
-      <Suspense fallback={<ConsoleFallback />}>
-        <ConsolePage />
-      </Suspense>
-    );
-  }
+  if (path === '/console') return <LegacyConsoleRedirect />;
 
   if (path === '/profile') {
     return (
@@ -144,22 +77,29 @@ function App() {
     );
   }
 
+  const page = path === '/pearl-zones' ? <PearlZones />
+    : path === '/platform' ? <Platform />
+      : path === '/data' ? <Data />
+        : path === '/docs' ? <Docs />
+          : <Home />;
+
+  return <SiteShell>{page}</SiteShell>;
+}
+
+function SiteShell({ children }) {
   return (
     <div className="site-shell">
-      <a className="u-skip-link" href="#main" onClick={skipToMain}>
-        Skip to content
-      </a>
+      <a className="u-skip-link" href="#main" onClick={skipToMain}>Skip to content</a>
       <Header />
-      <main id="main" tabIndex={-1}>
-        <Home />
-        <Platform />
-        <Data />
-        <PearlZones />
-        <Docs />
-      </main>
+      <main id="main" tabIndex={-1}>{children}</main>
       <Footer />
     </div>
   );
+}
+
+function LegacyConsoleRedirect() {
+  useEffect(() => { navigate('/'); }, []);
+  return <div className="console-route"><p className="empty" aria-busy="true">Opening FloatChat Home…</p></div>;
 }
 
 // No StrictMode: it double-invokes effects in development, which would

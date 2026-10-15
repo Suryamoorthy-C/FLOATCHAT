@@ -4,7 +4,7 @@ export const NAV_ITEMS = [
   { to: '/', label: 'Home' },
   { to: '/platform', label: 'Platform' },
   { to: '/data', label: 'Live data' },
-  { to: '/pearl-zones', label: 'Pearl zones' },
+  { to: '/pearl-zones', label: 'Pearl data' },
   { to: '/docs', label: 'Docs' },
 ];
 

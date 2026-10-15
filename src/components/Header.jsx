@@ -1,30 +1,29 @@
 import { useEffect, useState } from 'react';
 import GooeyNav from './GooeyNav';
 import SpecularButton from './SpecularButton';
-import { Link, navigate } from '../router';
+import { Link, navigate, useRoute } from '../router';
 import { GITHUB_URL, PROFILE_PATH } from '../routes';
-import { scrollToElement } from '../smoothScroll';
 import './Header.css';
 
 /**
- * Site header — GooeyNav pill nav over a single scrolling page.
+ * Site header — GooeyNav pill nav shared by the console and dedicated pages.
  *
- * There are no route redirects between sections: every nav item is a button
- * that smooth-scrolls to its section, with Pearl data as the standalone route
- * entry. Launch console points to the integrated console section on home.
+ * Each primary item is a route so direct URLs and browser history work from
+ * every page. Launch console returns to the integrated console on Home.
  */
 const SECTIONS = [
-  { label: 'Home', id: 'home' },
-  { label: 'Platform', id: 'platform' },
-  { label: 'Live data', id: 'data' },
+  { label: 'Home', route: '/' },
+  { label: 'Platform', route: '/platform' },
+  { label: 'Live data', route: '/data' },
   { label: 'Pearl data', route: '/pearl-zones' },
-  { label: 'Docs', id: 'docs' }
+  { label: 'Docs', route: '/docs' }
 ];
 
 export default function Header() {
   const [active, setActive] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const path = useRoute();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -33,35 +32,15 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Scroll-spy: the section crossing the middle of the viewport owns the pill.
   useEffect(() => {
-    const ids = SECTIONS.map(section => section.id).filter(Boolean);
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return;
-          const index = SECTIONS.findIndex(section => section.id === entry.target.id);
-          if (index >= 0) setActive(index);
-        });
-      },
-      { rootMargin: '-38% 0px -55% 0px' }
-    );
-    ids.forEach(id => {
-      const element = document.getElementById(id);
-      if (element) observer.observe(element);
-    });
-    return () => observer.disconnect();
-  }, []);
+    const index = SECTIONS.findIndex(section => section.route === path);
+    if (index >= 0) setActive(index);
+  }, [path]);
 
   const go = index => {
     setActive(index);
     setMobileOpen(false);
-    const section = SECTIONS[index];
-    if (section.route) {
-      navigate(section.route);
-      return;
-    }
-    scrollToElement(document.getElementById(section.id), { duration: 0.95 });
+    navigate(SECTIONS[index].route);
   };
 
   return (
@@ -116,7 +95,7 @@ export default function Header() {
             <nav aria-label="Mobile primary">
               <ul className="site-header__list site-header__list--panel">
                 {SECTIONS.map((section, index) => (
-                  <li className="site-header__item--panel" key={section.id}>
+                  <li className="site-header__item--panel" key={section.route}>
                     <SpecularButton
                       type="button"
                       size="md"
