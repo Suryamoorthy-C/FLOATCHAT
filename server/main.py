@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sqlite3
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field, root_validator
 
 from .live_data import FALLBACK_FLOATS, store
@@ -14,10 +15,18 @@ from .pearl_index import calculate_pearl_index, species_thresholds
 from .query_engine import analyze, render_answer
 from .threshold_alerts import ThresholdStore, Thresholds, check_and_notify
 from .pearl_suitability import calculate_pearl_suitability
+from .profile_avatars import (
+    MAX_AVATAR_BYTES,
+    ALLOWED_IMAGE_FORMATS,
+    AvatarUploadError,
+    ProfileAvatarStore,
+    sanitize_avatar,
+)
 
 app = FastAPI(title="FLOATCHAT API", version="0.3.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 threshold_store = ThresholdStore()
+profile_avatar_store = ProfileAvatarStore()
 
 
 class ThresholdSettings(BaseModel):
@@ -71,6 +80,63 @@ def get_user_thresholds(user_id: str):
 @app.put("/api/users/{user_id}/thresholds")
 def save_user_thresholds(user_id: str, payload: ThresholdProfileUpdate):
     return threshold_store.save(user_id, payload.email, Thresholds(**payload.thresholds.dict()))
+
+
+@app.get("/api/users/{user_id}/profile")
+def get_user_profile(user_id: str):
+    try:
+        return profile_avatar_store.get_profile(user_id)
+    except AvatarUploadError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/api/users/{user_id}/avatar")
+async def upload_user_avatar(user_id: str, file: UploadFile = File(...)):
+    """Validate, sanitize, and persist a JPEG/PNG profile image."""
+    if file.content_type not in {None, "application/octet-stream", *ALLOWED_IMAGE_FORMATS.values()}:
+        await file.close()
+        raise HTTPException(status_code=415, detail="Only JPEG and PNG images are supported.")
+    try:
+        payload = await file.read(MAX_AVATAR_BYTES + 1)
+    finally:
+        await file.close()
+    if len(payload) > MAX_AVATAR_BYTES:
+        raise HTTPException(status_code=413, detail="Image must be 4 MiB or smaller.")
+    try:
+        sanitized, mime_type = sanitize_avatar(payload)
+        return profile_avatar_store.save_avatar(user_id, sanitized, mime_type)
+    except AvatarUploadError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except (OSError, sqlite3.Error) as exc:
+        raise HTTPException(status_code=503, detail="Avatar storage is unavailable.") from exc
+
+
+@app.get("/api/users/{user_id}/avatar")
+def get_user_avatar(user_id: str):
+    try:
+        avatar = profile_avatar_store.get_avatar(user_id)
+    except AvatarUploadError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    if avatar is None:
+        raise HTTPException(status_code=404, detail="No profile photo is saved for this user.")
+    image_data, mime_type, updated_at = avatar
+    return Response(
+        content=image_data,
+        media_type=mime_type,
+        headers={
+            "Cache-Control": "private, no-cache, max-age=0",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": "inline",
+        },
+    )
+
+
+@app.delete("/api/users/{user_id}/avatar")
+def delete_user_avatar(user_id: str):
+    try:
+        return profile_avatar_store.delete_avatar(user_id)
+    except AvatarUploadError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/api/telemetry/ingest")

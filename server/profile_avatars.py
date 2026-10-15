@@ -1,0 +1,160 @@
+"""Profile avatar validation and SQLite persistence.
+
+Images are decoded and re-encoded before storage, which strips metadata and
+prevents untrusted uploaded bytes from being served back unchanged. The avatar
+BLOB lives in the same SQLite database configured by FLOATCHAT_DB_PATH.
+"""
+from __future__ import annotations
+
+import io
+import os
+import re
+import sqlite3
+import warnings
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+from urllib.parse import quote
+
+from PIL import Image, ImageOps, UnidentifiedImageError
+
+MAX_AVATAR_BYTES = 4 * 1024 * 1024
+MAX_AVATAR_PIXELS = 16_000_000
+ALLOWED_IMAGE_FORMATS = {"JPEG": "image/jpeg", "PNG": "image/png"}
+_USER_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,119}$")
+
+
+class AvatarUploadError(ValueError):
+    """An avatar file is invalid or exceeds configured limits."""
+
+
+def validate_user_id(user_id: str) -> str:
+    """Accept safe opaque IDs; never use user input as a filesystem path."""
+    if not isinstance(user_id, str) or not _USER_ID_RE.fullmatch(user_id):
+        raise AvatarUploadError("Invalid user ID.")
+    return user_id
+
+
+def sanitize_avatar(data: bytes) -> tuple[bytes, str]:
+    """Validate JPEG/PNG bytes, bound image complexity and re-encode safely."""
+    if not data:
+        raise AvatarUploadError("Choose a JPEG or PNG image.")
+    if len(data) > MAX_AVATAR_BYTES:
+        raise AvatarUploadError("Image must be 4 MiB or smaller.")
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(io.BytesIO(data)) as image:
+                image_format = image.format
+                if image_format not in ALLOWED_IMAGE_FORMATS:
+                    raise AvatarUploadError("Only JPEG and PNG images are supported.")
+                if image.width < 1 or image.height < 1 or image.width * image.height > MAX_AVATAR_PIXELS:
+                    raise AvatarUploadError("Image dimensions are too large. Use an image under 16 megapixels.")
+                if getattr(image, "n_frames", 1) != 1:
+                    raise AvatarUploadError("Animated images are not supported.")
+                image.verify()
+
+            with Image.open(io.BytesIO(data)) as image:
+                image = ImageOps.exif_transpose(image)
+                if image_format == "JPEG":
+                    cleaned = image.convert("RGB")
+                    output_format = "JPEG"
+                    save_options = {"quality": 88, "optimize": True, "progressive": True}
+                else:
+                    cleaned = image.convert("RGBA" if "A" in image.getbands() else "RGB")
+                    output_format = "PNG"
+                    save_options = {"optimize": True}
+                output = io.BytesIO()
+                cleaned.save(output, format=output_format, **save_options)
+                cleaned.close()
+                sanitized = output.getvalue()
+    except AvatarUploadError:
+        raise
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError, Image.DecompressionBombWarning, ValueError) as exc:
+        raise AvatarUploadError("That image could not be decoded. Choose a valid JPEG or PNG.") from exc
+
+    if len(sanitized) > MAX_AVATAR_BYTES:
+        raise AvatarUploadError("Image must be 4 MiB or smaller after processing.")
+    return sanitized, ALLOWED_IMAGE_FORMATS[output_format]
+
+
+class ProfileAvatarStore:
+    """Persist sanitized user avatars in a dedicated SQLite profile table."""
+
+    def __init__(self, db_path: str | None = None):
+        self.db_path = db_path or os.getenv("FLOATCHAT_DB_PATH", "./data/floatchat.sqlite3")
+        self._initialize()
+
+    def _connect(self) -> sqlite3.Connection:
+        if self.db_path != ":memory:":
+            Path(self.db_path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(self.db_path, timeout=10)
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    def _initialize(self) -> None:
+        with self._connect() as db:
+            db.execute(
+                """CREATE TABLE IF NOT EXISTS user_profiles (
+                    user_id TEXT PRIMARY KEY,
+                    avatar_url TEXT,
+                    avatar_data BLOB,
+                    avatar_mime_type TEXT,
+                    avatar_updated_at TEXT
+                )"""
+            )
+
+    @staticmethod
+    def _avatar_url(user_id: str, updated_at: str | None) -> str | None:
+        if not updated_at:
+            return None
+        safe_id = quote(user_id, safe="")
+        version = quote(updated_at, safe="")
+        return f"/api/users/{safe_id}/avatar?v={version}"
+
+    def get_profile(self, user_id: str) -> dict[str, Any]:
+        validate_user_id(user_id)
+        with self._connect() as db:
+            row = db.execute(
+                "SELECT avatar_updated_at FROM user_profiles WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+        updated_at = row["avatar_updated_at"] if row else None
+        return {"user_id": user_id, "avatarUrl": self._avatar_url(user_id, updated_at), "updated_at": updated_at}
+
+    def get_avatar(self, user_id: str) -> tuple[bytes, str, str] | None:
+        validate_user_id(user_id)
+        with self._connect() as db:
+            row = db.execute(
+                "SELECT avatar_data, avatar_mime_type, avatar_updated_at FROM user_profiles WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+        if row is None or row["avatar_data"] is None:
+            return None
+        return bytes(row["avatar_data"]), row["avatar_mime_type"], row["avatar_updated_at"]
+
+    def save_avatar(self, user_id: str, data: bytes, mime_type: str) -> dict[str, Any]:
+        validate_user_id(user_id)
+        if mime_type not in ALLOWED_IMAGE_FORMATS.values():
+            raise AvatarUploadError("Only JPEG and PNG images are supported.")
+        updated_at = datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
+        avatar_url = self._avatar_url(user_id, updated_at)
+        with self._connect() as db:
+            db.execute(
+                """INSERT INTO user_profiles (user_id, avatar_url, avatar_data, avatar_mime_type, avatar_updated_at)
+                   VALUES (?, ?, ?, ?, ?)
+                   ON CONFLICT(user_id) DO UPDATE SET
+                     avatar_url=excluded.avatar_url,
+                     avatar_data=excluded.avatar_data,
+                     avatar_mime_type=excluded.avatar_mime_type,
+                     avatar_updated_at=excluded.avatar_updated_at""",
+                (user_id, avatar_url, sqlite3.Binary(data), mime_type, updated_at),
+            )
+        return {"user_id": user_id, "avatarUrl": avatar_url, "updated_at": updated_at}
+
+    def delete_avatar(self, user_id: str) -> dict[str, Any]:
+        validate_user_id(user_id)
+        with self._connect() as db:
+            db.execute("DELETE FROM user_profiles WHERE user_id = ?", (user_id,))
+        return {"user_id": user_id, "avatarUrl": None, "updated_at": None}

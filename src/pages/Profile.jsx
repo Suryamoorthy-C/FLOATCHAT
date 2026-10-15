@@ -112,6 +112,8 @@ export default function Profile({
   const [thresholdSaving, setThresholdSaving] = useState(false);
   const [thresholdLoading, setThresholdLoading] = useState(true);
   const [avatarError, setAvatarError] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarRemoved, setAvatarRemoved] = useState(false);
   const dialogRef = useRef(null);
   const [draft, setDraft] = useState({
     name: profile.name,
@@ -140,6 +142,19 @@ export default function Profile({
   }, [data.profile?.id]);
 
   useEffect(() => {
+    const userId = data.profile?.id || samplePayload.profile.id;
+    const controller = new AbortController();
+    api.userProfile(userId, { signal: controller.signal })
+      .then((saved) => {
+        setProfile((current) => current.id === userId
+          ? { ...current, avatarUrl: saved.avatarUrl || null }
+          : current);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [data.profile?.id]);
+
+  useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (editOpen && !dialog.open) dialog.showModal();
@@ -159,6 +174,8 @@ export default function Profile({
       role: profile.role || "",
       avatarUrl: profile.avatarUrl || "",
     });
+    setAvatarFile(null);
+    setAvatarRemoved(false);
     setAvatarError("");
     setEditOpen(true);
   };
@@ -166,16 +183,19 @@ export default function Profile({
   function selectAvatar(event) {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setAvatarError("Choose an image file such as JPG, PNG, or WebP.");
+    if (!new Set(["image/jpeg", "image/png"]).has(file.type)) {
+      setAvatarError("Choose a JPEG or PNG image.");
       event.target.value = "";
       return;
     }
-    if (file.size > 3 * 1024 * 1024) {
-      setAvatarError("Choose an image smaller than 3 MB.");
+    if (file.size > 4 * 1024 * 1024) {
+      setAvatarError("Choose an image that is 4 MiB or smaller.");
       event.target.value = "";
       return;
     }
+    setAvatarFile(file);
+    setAvatarRemoved(false);
+    event.target.value = "";
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -192,20 +212,32 @@ export default function Profile({
 
   async function saveProfile(event) {
     event.preventDefault();
-    const nextProfile = { ...profile, ...draft };
+    let nextProfile = { ...profile, ...draft };
     setSaving(true);
     try {
+      const userId = profile.id || samplePayload.profile.id;
+      if (avatarFile) {
+        const stored = await api.uploadUserAvatar(userId, avatarFile);
+        nextProfile = { ...nextProfile, avatarUrl: stored.avatarUrl };
+      } else if (avatarRemoved) {
+        await api.deleteUserAvatar(userId);
+        nextProfile = { ...nextProfile, avatarUrl: null };
+      }
       if (onProfileSave) {
         const result = await onProfileSave(nextProfile);
         if (result?.ok === false)
           throw new Error(result.message || "The profile could not be saved.");
       }
       setProfile(nextProfile);
-      setNotice(
-        onProfileSave
+      setAvatarFile(null);
+      setAvatarRemoved(false);
+      setNotice(avatarFile || avatarRemoved
+        ? onProfileSave
+          ? "Profile and photo updated."
+          : "Profile photo saved. Other profile details remain preview-only until onProfileSave is connected."
+        : onProfileSave
           ? "Profile updated."
-          : "Profile updated in this preview only. Connect onProfileSave to persist it.",
-      );
+          : "Profile updated in this preview only. Connect onProfileSave to persist it.");
       setEditOpen(false);
     } catch (error) {
       setNotice(
@@ -713,7 +745,7 @@ export default function Profile({
                 id="account-avatar-file"
                 className="account-avatar-upload__input"
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png"
                 onChange={selectAvatar}
                 aria-describedby="account-avatar-help account-avatar-error"
               />
@@ -723,13 +755,15 @@ export default function Profile({
                   type="button"
                   onClick={() => {
                     setDraft((current) => ({ ...current, avatarUrl: "" }));
+                    setAvatarFile(null);
+                    setAvatarRemoved(true);
                     setAvatarError("");
                   }}
                 >
                   Remove photo
                 </button>
               )}
-              <small id="account-avatar-help">JPG, PNG, or WebP · up to 3 MB</small>
+              <small id="account-avatar-help">JPEG or PNG · up to 4 MiB</small>
               {avatarError && <small id="account-avatar-error" className="account-avatar-upload__error" role="alert">{avatarError}</small>}
             </div>
           </div>
@@ -748,7 +782,7 @@ export default function Profile({
             <button
               className="account-button account-button--save"
               type="submit"
-              disabled={saving}
+              disabled={saving || Boolean(avatarError)}
             >
               {saving ? "Saving…" : "Save profile"}
             </button>

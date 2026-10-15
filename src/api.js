@@ -13,6 +13,10 @@
  *   GET  /api/anomalies
  *   GET  /api/stats/overview
  *   POST /api/chat                       (Server-Sent Events stream)
+ *   GET  /api/users/{id}/profile          (profile image metadata)
+ *   POST /api/users/{id}/avatar           (multipart JPEG/PNG upload)
+ *   GET  /api/users/{id}/avatar           (stored profile image)
+ *   DELETE /api/users/{id}/avatar         (remove profile image)
  */
 
 /* In dev, Vite proxies /api -> http://127.0.0.1:8000 (see vite.config.js).
@@ -98,6 +102,59 @@ async function putJSON(path, payload, { timeout = 12000, signal } = {}) {
   }
 }
 
+/** Upload a file as multipart/form-data without setting its boundary manually. */
+async function postFile(path, file, { timeout = 30000, signal } = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeout)
+  const onAbort = () => controller.abort()
+  signal?.addEventListener('abort', onAbort, { once: true })
+  const form = new FormData()
+  form.append('file', file, file.name || 'profile-photo')
+  try {
+    const res = await fetch(buildUrl(path), {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { accept: 'application/json' },
+      body: form,
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.detail || `${res.status} ${res.statusText}`)
+    }
+    return await res.json()
+  } finally {
+    clearTimeout(timer)
+    signal?.removeEventListener('abort', onAbort)
+  }
+}
+
+async function deleteJSON(path, { timeout = 12000, signal } = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeout)
+  const onAbort = () => controller.abort()
+  signal?.addEventListener('abort', onAbort, { once: true })
+  try {
+    const res = await fetch(buildUrl(path), {
+      method: 'DELETE',
+      signal: controller.signal,
+      headers: { accept: 'application/json' },
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.detail || `${res.status} ${res.statusText}`)
+    }
+    return await res.json()
+  } finally {
+    clearTimeout(timer)
+    signal?.removeEventListener('abort', onAbort)
+  }
+}
+
+function resolveApiResource(resource) {
+  if (!resource || /^(?:[a-z]+:)?\/\//i.test(resource)) return resource
+  return `${API_BASE}${resource}`
+}
+
 export const api = {
   /** {status, service, data_source, live, fetched_at} */
   health: (opts) => getJSON('/api/health', null, opts),
@@ -127,6 +184,18 @@ export const api = {
   /** User-specific custom alert bounds. */
   userThresholds: (userId, opts) => getJSON(`/api/users/${encodeURIComponent(userId)}/thresholds`, null, opts),
   saveUserThresholds: (userId, profile, opts) => putJSON(`/api/users/${encodeURIComponent(userId)}/thresholds`, profile, opts),
+  userProfile: async (userId, opts) => {
+    const profile = await getJSON(`/api/users/${encodeURIComponent(userId)}/profile`, null, opts)
+    return { ...profile, avatarUrl: resolveApiResource(profile.avatarUrl) }
+  },
+  uploadUserAvatar: async (userId, file, opts) => {
+    const profile = await postFile(`/api/users/${encodeURIComponent(userId)}/avatar`, file, opts)
+    return { ...profile, avatarUrl: resolveApiResource(profile.avatarUrl) }
+  },
+  deleteUserAvatar: async (userId, opts) => {
+    const profile = await deleteJSON(`/api/users/${encodeURIComponent(userId)}/avatar`, opts)
+    return { ...profile, avatarUrl: null }
+  },
 }
 
 /**
