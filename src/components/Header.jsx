@@ -14,6 +14,7 @@ import './Header.css';
 const SECTIONS = [
   { label: 'Home', route: '/' },
   { label: 'Platform', route: '/platform' },
+  { label: 'Pricing', route: '/pricing' },
   { label: 'Live data', route: '/data' },
   { label: 'Launch console', route: '/#console' },
   { label: 'Pearl data', route: '/pearl-zones' },

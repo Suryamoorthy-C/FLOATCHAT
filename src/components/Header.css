@@ -367,7 +367,7 @@ button.site-header__brand {
   row-gap: var(--space-5);
 }
 /* Anchored sections must clear the sticky header when scrolled to. */
-#home, #platform, #data, #pearl-zones, #docs, #capabilities {
+#home, #platform, #pricing, #data, #pearl-zones, #docs, #capabilities {
   scroll-margin-top: calc(var(--layout-header-height) + 16px);
 }
 @media (max-width: 860px) {
@@ -447,7 +447,7 @@ button.site-header__brand {
   border-radius: 999px;
 }
 
-#home, #platform, #data, #pearl-zones, #docs, #capabilities {
+#home, #platform, #pricing, #data, #pearl-zones, #docs, #capabilities {
   scroll-margin-top: 100px;
 }
 

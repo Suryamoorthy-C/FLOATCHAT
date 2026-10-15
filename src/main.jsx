@@ -8,6 +8,7 @@ import Platform from './pages/Platform';
 import Data from './pages/Data';
 import Docs from './pages/Docs';
 import PearlZones from './pages/PearlZones';
+import Pricing from './pages/Pricing';
 import Login from './pages/Login';
 import SiteRippleBackground from './components/SiteRippleBackground';
 import { navigate, useRoute, useSection } from './router';
@@ -33,7 +34,8 @@ const ROUTE_SECTION = {
   '/platform': 'platform',
   '/data': 'data',
   '/pearl-zones': 'pearl-zones',
-  '/docs': 'docs'
+  '/docs': 'docs',
+  '/pricing': 'pricing'
 };
 
 /** Skip link. It must not touch the hash, because the hash is the router. */
@@ -115,6 +117,7 @@ function App() {
   const page = path === '/pearl-zones' ? <PearlZones />
     : path === '/platform' ? <Platform />
       : path === '/data' ? <Data />
+        : path === '/pricing' ? <Pricing />
         : path === '/docs' ? <Docs />
           : <Home />;
 

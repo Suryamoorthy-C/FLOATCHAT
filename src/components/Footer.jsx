@@ -18,6 +18,7 @@ export default function Footer() {
 
         <nav className="site-footer__nav" aria-label="Essential footer links">
           <Link className="site-footer__link" to="/">Home</Link>
+          <Link className="site-footer__link" to="/pricing">Pricing</Link>
           <Link className="site-footer__link" to="/data">Live data</Link>
           <Link className="site-footer__link" to="/pearl-zones">Pearl data</Link>
           <Link className="site-footer__link" to="/docs">Docs</Link>
