@@ -17,10 +17,24 @@ import {
   X,
 } from "lucide-react";
 import { Link } from "../router";
+import { api } from "../api";
 import samplePayload from "../../docs/profile-subscription.example.json";
 import "./Profile.css";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const EMPTY_THRESHOLDS = {
+  min_temperature_c: "",
+  max_temperature_c: "",
+  min_pressure_dbar: "",
+  max_pressure_dbar: "",
+};
+
+function thresholdFormValues(values = {}) {
+  return Object.fromEntries(Object.keys(EMPTY_THRESHOLDS).map((key) => [
+    key,
+    values[key] === null || values[key] === undefined ? "" : String(values[key]),
+  ]));
+}
 
 function formatDate(value) {
   const date = new Date(value);
@@ -103,10 +117,13 @@ export default function Profile({
     data.subscription || samplePayload.subscription,
   );
   const [plans, setPlans] = useState(data.plans || samplePayload.plans);
+  const [thresholds, setThresholds] = useState(thresholdFormValues(profile.thresholds));
   const [notice, setNotice] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
+  const [thresholdSaving, setThresholdSaving] = useState(false);
+  const [thresholdLoading, setThresholdLoading] = useState(true);
   const dialogRef = useRef(null);
   const [draft, setDraft] = useState({
     name: profile.name,
@@ -119,6 +136,19 @@ export default function Profile({
     setSubscription(data.subscription || samplePayload.subscription);
     setPlans(data.plans || samplePayload.plans);
   }, [data]);
+
+  useEffect(() => {
+    const userId = data.profile?.id || samplePayload.profile.id;
+    const controller = new AbortController();
+    setThresholdLoading(true);
+    api.userThresholds(userId, { signal: controller.signal })
+      .then((saved) => setThresholds(thresholdFormValues(saved.thresholds)))
+      .catch((error) => {
+        if (error.name !== "AbortError") setThresholds(thresholdFormValues(data.profile?.thresholds));
+      })
+      .finally(() => setThresholdLoading(false));
+    return () => controller.abort();
+  }, [data.profile?.id]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -167,6 +197,43 @@ export default function Profile({
       );
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveThresholds(event) {
+    event.preventDefault();
+    const userId = profile.id || samplePayload.profile.id;
+    if (!profile.email) {
+      setNotice("Add an email address to your profile before enabling email alerts.");
+      return;
+    }
+    for (const [minKey, maxKey, label] of [
+      ["min_temperature_c", "max_temperature_c", "temperature"],
+      ["min_pressure_dbar", "max_pressure_dbar", "pressure / depth"],
+    ]) {
+      const min = thresholds[minKey] === "" ? null : Number(thresholds[minKey]);
+      const max = thresholds[maxKey] === "" ? null : Number(thresholds[maxKey]);
+      if (min !== null && max !== null && min >= max) {
+        setNotice(`Minimum ${label} must be lower than maximum ${label}.`);
+        return;
+      }
+    }
+    const payload = {
+      email: profile.email,
+      thresholds: Object.fromEntries(Object.entries(thresholds).map(([key, value]) => [
+        key,
+        value === "" ? null : Number(value),
+      ])),
+    };
+    setThresholdSaving(true);
+    try {
+      const saved = await api.saveUserThresholds(userId, payload);
+      setThresholds(thresholdFormValues(saved.thresholds));
+      setNotice("Your custom alert thresholds have been saved.");
+    } catch (error) {
+      setNotice(error.message || "Threshold settings could not be saved. Check the API connection and try again.");
+    } finally {
+      setThresholdSaving(false);
     }
   }
 
@@ -314,6 +381,54 @@ export default function Profile({
               <LogOut size={15} aria-hidden="true" /> Log out
             </button>
           </div>
+        </section>
+
+        <section className="account-thresholds" aria-labelledby="thresholds-title">
+          <div className="account-thresholds__heading">
+            <div>
+              <p className="account-eyebrow">SENSOR ALERTS <span>·</span> PERSONAL LIMITS</p>
+              <h2 id="thresholds-title">Custom threshold alerts</h2>
+              <p>Choose the temperature and pressure bounds that matter for your operation. Leave a bound blank to disable it.</p>
+            </div>
+            <span className="account-thresholds__unit">EMAIL TO {profile.email || "NO EMAIL SET"}</span>
+          </div>
+          <form className="account-threshold-form" onSubmit={saveThresholds}>
+            <fieldset disabled={thresholdSaving || thresholdLoading}>
+              <legend className="u-visually-hidden">Custom sensor threshold ranges</legend>
+              <div className="account-threshold-row">
+                <div className="account-threshold-row__label">
+                  <strong>Temperature</strong><span>°C</span>
+                </div>
+                <label>
+                  <span>Minimum</span>
+                  <input type="number" step="any" min="-5" max="60" inputMode="decimal" value={thresholds.min_temperature_c} onChange={(event) => setThresholds({ ...thresholds, min_temperature_c: event.target.value })} aria-label="Minimum temperature in degrees Celsius" />
+                </label>
+                <label>
+                  <span>Maximum</span>
+                  <input type="number" step="any" min="-5" max="60" inputMode="decimal" value={thresholds.max_temperature_c} onChange={(event) => setThresholds({ ...thresholds, max_temperature_c: event.target.value })} aria-label="Maximum temperature in degrees Celsius" />
+                </label>
+              </div>
+              <div className="account-threshold-row">
+                <div className="account-threshold-row__label">
+                  <strong>Pressure / depth</strong><span>dbar</span>
+                </div>
+                <label>
+                  <span>Minimum</span>
+                  <input type="number" step="any" min="0" max="12000" inputMode="decimal" value={thresholds.min_pressure_dbar} onChange={(event) => setThresholds({ ...thresholds, min_pressure_dbar: event.target.value })} aria-label="Minimum pressure in dbar" />
+                </label>
+                <label>
+                  <span>Maximum</span>
+                  <input type="number" step="any" min="0" max="12000" inputMode="decimal" value={thresholds.max_pressure_dbar} onChange={(event) => setThresholds({ ...thresholds, max_pressure_dbar: event.target.value })} aria-label="Maximum pressure in dbar" />
+                </label>
+              </div>
+            </fieldset>
+            <div className="account-threshold-form__footer">
+              <p>{thresholdLoading ? "Loading saved limits…" : "Alerts are sent only when an incoming reading is outside a configured bound."}</p>
+              <button className="account-button account-button--save" type="submit" disabled={thresholdSaving || thresholdLoading}>
+                {thresholdSaving ? "Saving…" : "Save thresholds"}
+              </button>
+            </div>
+          </form>
         </section>
 
         <section

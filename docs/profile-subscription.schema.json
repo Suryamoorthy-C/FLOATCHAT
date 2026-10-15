@@ -15,7 +15,18 @@
         "name": { "type": "string", "minLength": 1, "maxLength": 100 },
         "email": { "type": "string", "format": "email", "maxLength": 254 },
         "role": { "type": "string", "minLength": 1, "maxLength": 120 },
-        "avatarUrl": { "type": ["string", "null"], "format": "uri" }
+        "avatarUrl": { "type": ["string", "null"], "format": "uri" },
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min_temperature_c", "max_temperature_c", "min_pressure_dbar", "max_pressure_dbar"],
+          "properties": {
+            "min_temperature_c": { "type": ["number", "null"], "minimum": -5, "maximum": 60 },
+            "max_temperature_c": { "type": ["number", "null"], "minimum": -5, "maximum": 60 },
+            "min_pressure_dbar": { "type": ["number", "null"], "minimum": 0, "maximum": 12000 },
+            "max_pressure_dbar": { "type": ["number", "null"], "minimum": 0, "maximum": 12000 }
+          }
+        }
       }
     },
     "subscription": {

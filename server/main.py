@@ -7,14 +7,45 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator
 
 from .live_data import FALLBACK_FLOATS, store
 from .pearl_index import calculate_pearl_index, species_thresholds
 from .query_engine import analyze, render_answer
+from .threshold_alerts import ThresholdStore, Thresholds, check_and_notify
+from .pearl_suitability import calculate_pearl_suitability
 
 app = FastAPI(title="FLOATCHAT API", version="0.3.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+threshold_store = ThresholdStore()
+
+
+class ThresholdSettings(BaseModel):
+    min_temperature_c: float | None = Field(default=None, ge=-5, le=60)
+    max_temperature_c: float | None = Field(default=None, ge=-5, le=60)
+    min_pressure_dbar: float | None = Field(default=None, ge=0, le=12000)
+    max_pressure_dbar: float | None = Field(default=None, ge=0, le=12000)
+
+    @root_validator(skip_on_failure=True)
+    def validate_ranges(cls, values):
+        for lower, upper in (("min_temperature_c", "max_temperature_c"), ("min_pressure_dbar", "max_pressure_dbar")):
+            lo, hi = values.get(lower), values.get(upper)
+            if lo is not None and hi is not None and lo >= hi:
+                raise ValueError(f"{lower} must be less than {upper}")
+        return values
+
+
+class ThresholdProfileUpdate(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+    thresholds: ThresholdSettings
+
+
+class TelemetryIngest(BaseModel):
+    user_id: str = Field(min_length=1, max_length=120)
+    device_id: str = Field(min_length=1, max_length=120)
+    observed_at: str | None = Field(default=None, max_length=80)
+    temperature_c: float | None = Field(default=None, ge=-100, le=100)
+    pressure_dbar: float | None = Field(default=None, ge=0, le=12000)
 
 
 class ChatRequest(BaseModel):
@@ -27,6 +58,28 @@ class ChatRequest(BaseModel):
 def health():
     fleet = store.fleet()
     return {"status": "ok", "service": "floatchat-api", "data_source": fleet.get("source"), "live": fleet.get("live", False), "fetched_at": fleet.get("fetched_at"), "query_engine": "structured-evidence-v1"}
+
+
+@app.get("/api/users/{user_id}/thresholds")
+def get_user_thresholds(user_id: str):
+    profile = threshold_store.get(user_id)
+    if profile is None:
+        return {"user_id": user_id, "email": None, "thresholds": Thresholds().as_dict(), "updated_at": None}
+    return profile
+
+
+@app.put("/api/users/{user_id}/thresholds")
+def save_user_thresholds(user_id: str, payload: ThresholdProfileUpdate):
+    return threshold_store.save(user_id, payload.email, Thresholds(**payload.thresholds.dict()))
+
+
+@app.post("/api/telemetry/ingest")
+def ingest_telemetry(payload: TelemetryIngest):
+    """Evaluate one incoming sample and email only for configured bound breaches."""
+    if payload.temperature_c is None and payload.pressure_dbar is None:
+        raise HTTPException(status_code=422, detail="At least one sensor reading is required.")
+    reading = payload.dict(exclude={"user_id"})
+    return {"accepted": True, **check_and_notify(threshold_store, payload.user_id, reading)}
 
 
 @app.get("/api/floats")
@@ -78,6 +131,16 @@ def pearl_thresholds(species: str = Query("pinctada_maxima")):
 def pearl_index(payload: dict):
     try:
         return calculate_pearl_index(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/api/pearl/suitability")
+def pearl_suitability(payload: dict):
+    """Calculate a five-sensor PPPI screening score and hazard patterns."""
+    species = payload.get("species", "pinctada_maxima")
+    try:
+        return calculate_pearl_suitability(payload, species=species)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 

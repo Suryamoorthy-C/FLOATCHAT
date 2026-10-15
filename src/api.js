@@ -74,6 +74,30 @@ async function postJSON(path, payload, { timeout = 12000, signal } = {}) {
   }
 }
 
+/** PUT JSON and return the saved resource. */
+async function putJSON(path, payload, { timeout = 12000, signal } = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeout)
+  const onAbort = () => controller.abort()
+  signal?.addEventListener('abort', onAbort, { once: true })
+  try {
+    const res = await fetch(buildUrl(path), {
+      method: 'PUT',
+      signal: controller.signal,
+      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.detail || `${res.status} ${res.statusText}`)
+    }
+    return await res.json()
+  } finally {
+    clearTimeout(timer)
+    signal?.removeEventListener('abort', onAbort)
+  }
+}
+
 export const api = {
   /** {status, service, data_source, live, fetched_at} */
   health: (opts) => getJSON('/api/health', null, opts),
@@ -100,6 +124,9 @@ export const api = {
     getJSON('/api/pearl/thresholds', { species }, opts),
   /** Score one multi-sensor telemetry sample. */
   pearlIndex: (telemetry, opts) => postJSON('/api/pearl/index', telemetry, opts),
+  /** User-specific custom alert bounds. */
+  userThresholds: (userId, opts) => getJSON(`/api/users/${encodeURIComponent(userId)}/thresholds`, null, opts),
+  saveUserThresholds: (userId, profile, opts) => putJSON(`/api/users/${encodeURIComponent(userId)}/thresholds`, profile, opts),
 }
 
 /**

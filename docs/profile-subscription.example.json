@@ -4,7 +4,13 @@
     "name": "Avery Morgan",
     "email": "avery@example.com",
     "role": "Pearl Aquaculture Manager",
-    "avatarUrl": null
+    "avatarUrl": null,
+    "thresholds": {
+      "min_temperature_c": null,
+      "max_temperature_c": null,
+      "min_pressure_dbar": null,
+      "max_pressure_dbar": null
+    }
   },
   "subscription": {
     "id": "sub_demo_001",
