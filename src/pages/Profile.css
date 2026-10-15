@@ -840,6 +840,81 @@
   font-size: 10px;
   line-height: 1.5;
 }
+.account-avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid rgba(164, 207, 221, 0.12);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+}
+.account-avatar-upload__preview {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(74, 222, 208, 0.35);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(45, 226, 210, 0.16), rgba(17, 41, 51, 0.95));
+  color: #9af5e9;
+  font-size: 17px;
+  font-weight: 650;
+}
+.account-avatar-upload__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.account-avatar-upload__controls {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 10px;
+}
+.account-avatar-upload__controls label {
+  width: fit-content;
+  margin: 0;
+  cursor: pointer;
+}
+.account-avatar-upload__input {
+  position: absolute;
+  width: 1px !important;
+  height: 1px;
+  padding: 0 !important;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+.account-avatar-upload__controls:has(.account-avatar-upload__input:focus-visible) label {
+  outline: 2px solid #52e0d0;
+  outline-offset: 3px;
+}
+.account-avatar-upload__remove {
+  padding: 5px 2px;
+  border: 0;
+  background: transparent;
+  color: #c99f9f;
+  font: 500 10px var(--font-family-base, Inter, system-ui, sans-serif);
+  cursor: pointer;
+}
+.account-avatar-upload__remove:hover {
+  color: #ffd4d4;
+}
+.account-avatar-upload__controls small {
+  flex-basis: 100%;
+  color: #718991;
+  font-size: 9px;
+  line-height: 1.4;
+}
+.account-avatar-upload__controls .account-avatar-upload__error {
+  color: #ffaaa1;
+}
 .account-dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -1015,6 +1090,11 @@
   }
   .account-edit-form {
     padding: 17px;
+  }
+  .account-avatar-upload {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
   }
 }
 @media (max-width: 380px) {

@@ -373,3 +373,143 @@
     transition: none;
   }
 }
+
+/* Portrait identity-card layout used by the account page. */
+.profile-card.account-profile-card {
+  display: flex;
+  width: min(100%, 430px);
+  min-height: 520px;
+  margin: 18px auto 22px;
+  padding: 30px 28px 26px;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.profile-card__avatar-wrap {
+  width: 156px;
+  height: 156px;
+  margin-top: 2px;
+}
+
+.profile-card__avatar {
+  border-radius: 32px;
+  font-size: 42px;
+}
+
+.profile-card__presence {
+  right: 0;
+  bottom: 0;
+  width: 17px;
+  height: 17px;
+}
+
+.profile-card__info {
+  width: 100%;
+  flex: 1;
+  transform: translate3d(var(--profile-shift-x), var(--profile-shift-y), 18px);
+}
+
+.profile-card__heading-row {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-card__name-block h2 {
+  font-size: clamp(23px, 4vw, 29px);
+}
+
+.profile-card__role {
+  min-height: 32px;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.profile-card__meta-row {
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.profile-card__email {
+  justify-content: center;
+  margin-top: 13px;
+}
+
+.profile-card__description {
+  max-width: 34ch;
+  margin: 10px auto 0;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.profile-card__actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+  justify-content: stretch;
+}
+
+.profile-card__action,
+.profile-card__actions > .account-button {
+  width: 100%;
+  min-height: 42px;
+}
+
+@media (max-width: 620px) {
+  .profile-card.account-profile-card {
+    width: min(100%, 390px);
+    min-height: 490px;
+    margin: 14px auto 18px;
+    padding: 24px 20px 20px;
+    gap: 17px;
+  }
+
+  .profile-card__avatar-wrap {
+    width: 138px;
+    height: 138px;
+  }
+
+  .profile-card__avatar {
+    border-radius: 28px;
+    font-size: 36px;
+  }
+
+  .profile-card__heading-row {
+    align-items: center;
+  }
+
+  .profile-card__name-block h2 {
+    font-size: 23px;
+  }
+
+  .profile-card__role {
+    min-height: 29px;
+  }
+
+  .profile-card__meta-row {
+    justify-content: center;
+  }
+
+  .profile-card__email {
+    font-size: 11px;
+  }
+
+  .profile-card__description {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .profile-card.account-profile-card {
+    min-height: 470px;
+    padding-inline: 16px;
+  }
+
+  .profile-card__avatar-wrap {
+    width: 124px;
+    height: 124px;
+  }
+}

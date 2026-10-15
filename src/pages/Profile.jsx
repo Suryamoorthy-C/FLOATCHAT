@@ -8,6 +8,7 @@ import {
   Clock3,
   CreditCard,
   LogOut,
+  ImagePlus,
   ShieldCheck,
   Sparkles,
   Waves,
@@ -110,11 +111,13 @@ export default function Profile({
   const [saving, setSaving] = useState(false);
   const [thresholdSaving, setThresholdSaving] = useState(false);
   const [thresholdLoading, setThresholdLoading] = useState(true);
+  const [avatarError, setAvatarError] = useState("");
   const dialogRef = useRef(null);
   const [draft, setDraft] = useState({
     name: profile.name,
     email: profile.email,
     role: profile.role,
+    avatarUrl: profile.avatarUrl || "",
   });
 
   useEffect(() => {
@@ -154,9 +157,38 @@ export default function Profile({
       name: profile.name || "",
       email: profile.email || "",
       role: profile.role || "",
+      avatarUrl: profile.avatarUrl || "",
     });
+    setAvatarError("");
     setEditOpen(true);
   };
+
+  function selectAvatar(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Choose an image file such as JPG, PNG, or WebP.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setAvatarError("Choose an image smaller than 3 MB.");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setDraft((current) => ({ ...current, avatarUrl: reader.result }));
+        setAvatarError("");
+      } else {
+        setAvatarError("This image could not be loaded. Please choose another.");
+      }
+    };
+    reader.onerror = () => setAvatarError("This image could not be loaded. Please choose another.");
+    reader.readAsDataURL(file);
+  }
 
   async function saveProfile(event) {
     event.preventDefault();
@@ -665,9 +697,45 @@ export default function Profile({
               setDraft({ ...draft, role: event.target.value })
             }
           />
+          <div className="account-avatar-upload">
+            <div className="account-avatar-upload__preview" aria-hidden="true">
+              {draft.avatarUrl ? (
+                <img src={draft.avatarUrl} alt="" />
+              ) : (
+                <span>{draft.name?.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "FC"}</span>
+              )}
+            </div>
+            <div className="account-avatar-upload__controls">
+              <label className="account-button account-button--soft" htmlFor="account-avatar-file">
+                <ImagePlus size={15} aria-hidden="true" /> Upload photo
+              </label>
+              <input
+                id="account-avatar-file"
+                className="account-avatar-upload__input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={selectAvatar}
+                aria-describedby="account-avatar-help account-avatar-error"
+              />
+              {draft.avatarUrl && (
+                <button
+                  className="account-avatar-upload__remove"
+                  type="button"
+                  onClick={() => {
+                    setDraft((current) => ({ ...current, avatarUrl: "" }));
+                    setAvatarError("");
+                  }}
+                >
+                  Remove photo
+                </button>
+              )}
+              <small id="account-avatar-help">JPG, PNG, or WebP · up to 3 MB</small>
+              {avatarError && <small id="account-avatar-error" className="account-avatar-upload__error" role="alert">{avatarError}</small>}
+            </div>
+          </div>
           <p className="account-dialog-note">
             In this preview, changes stay in the browser unless onProfileSave is
-            connected.
+            connected. The selected photo is displayed on your profile card after saving.
           </p>
           <div className="account-dialog-actions">
             <button
