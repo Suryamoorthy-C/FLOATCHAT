@@ -6,6 +6,7 @@ import SpecularButton from '../components/SpecularButton';
 import MagicBento from '../components/MagicBento';
 import Reveal from '../components/Reveal';
 import ConsoleApp from '../console/Console';
+import SiteRippleBackground from '../components/SiteRippleBackground';
 import { Link } from '../router';
 import { api } from '../api';
 import { useMediaQuery } from '../hooks';
@@ -149,6 +150,7 @@ export default function Home() {
       <BentoShowcase />
 
       <section className="console-route home-console" id="console" aria-label="FloatChat operations console">
+        <SiteRippleBackground className="site-ripple-background--console" />
         <ConsoleApp />
       </section>
 

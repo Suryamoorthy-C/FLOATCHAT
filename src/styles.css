@@ -180,3 +180,8 @@ theme lives on the .console-route wrapper instead. */
 .followup-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
 .followup-row button { border: 1px solid rgba(0,242,254,.2); border-radius: 8px; padding: 5px 7px; background: rgba(0,242,254,.04); color: #8bdde5; font: 8px 'JetBrains Mono'; text-align: left; }
 .followup-row button:hover { border-color: rgba(0,242,254,.55); background: rgba(0,242,254,.1); }
+
+/* Keep the Global View's temperature and pressure readouts outside the ripple. */
+.console-route .metric-card--ripple-excluded {
+  background: #0b1420;
+}

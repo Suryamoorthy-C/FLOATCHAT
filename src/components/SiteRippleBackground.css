@@ -1,0 +1,50 @@
+.site-ripple-background {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.11;
+  pointer-events: none;
+  background: #07161b;
+  contain: strict;
+}
+
+.site-shell > .site-header,
+.site-shell > .u-skip-link,
+.site-shell > .site-footer {
+  z-index: 2;
+}
+
+.site-shell > #main {
+  position: relative;
+  z-index: 1;
+}
+
+.console-route > .console-bar,
+.console-route > .command-app {
+  position: relative;
+  z-index: 1;
+}
+
+.site-ripple-background--console {
+  position: absolute;
+  inset: 0;
+  opacity: 0.075;
+}
+
+.site-ripple-background .ripple-distortion {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 700px) {
+  .site-ripple-background {
+    opacity: 0.08;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-ripple-background {
+    opacity: 0.045;
+  }
+}

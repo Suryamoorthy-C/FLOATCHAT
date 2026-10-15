@@ -8,6 +8,7 @@ import Platform from './pages/Platform';
 import Data from './pages/Data';
 import Docs from './pages/Docs';
 import PearlZones from './pages/PearlZones';
+import SiteRippleBackground from './components/SiteRippleBackground';
 import { navigate, useRoute, useSection } from './router';
 import { scrollToElement, startSmoothScroll } from './smoothScroll';
 import './theme/tokens.css';
@@ -89,7 +90,10 @@ function App() {
 function SiteShell({ children }) {
   return (
     <div className="site-shell">
-      <a className="u-skip-link" href="#main" onClick={skipToMain}>Skip to content</a>
+      <SiteRippleBackground />
+      <a className="u-skip-link" href="#main" onClick={skipToMain}>
+        Skip to content
+      </a>
       <Header />
       <main id="main" tabIndex={-1}>{children}</main>
       <Footer />

@@ -31,6 +31,8 @@ body {
 /* The marketing site is a light surface; the console route is a dark one. */
 .site-shell {
   color-scheme: light;
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

@@ -479,11 +479,11 @@ function App() {
             <small>SOURCE // {selected ? `${selected.id} · ${selected.region.toUpperCase()}` : 'FLEET AGGREGATE'}</small>
           </div>
           <div className="metrics-scroll">
-            <Metric icon={<Thermometer />} label="TEMPERATURE" color="amber"
+            <Metric isolated icon={<Thermometer />} label="TEMPERATURE" color="amber"
               value={focus.temp != null ? focus.temp.toFixed(2) : '—'} unit="°C" trend={stepValue('temperature_c')} />
             <Metric icon={<Waves />} label="SALINITY" color="cyan"
               value={focus.sal != null ? focus.sal.toFixed(3) : '—'} unit="PSU" trend={stepValue('salinity_psu')} />
-            <Metric icon={<Gauge />} label="PRESSURE" color="sky" value={pressure} unit="dbar" trend="live" />
+            <Metric isolated icon={<Gauge />} label="PRESSURE" color="sky" value={pressure} unit="dbar" trend="live" />
 
             <div className="glass-card profile-mini">
               <div className="panel-cap">
@@ -592,9 +592,9 @@ function fallbackAnswer(q) {
   return `I couldn't reach the evidence service for “${q}”, so I won't invent an observation. Please retry when the ARGO service is available, or ask a general ocean-science question that can be answered from the attached references.`
 }
 
-function Metric({ icon, label, value, unit, color, trend }) {
+function Metric({ icon, label, value, unit, color, trend, isolated = false }) {
   return (
-    <div className="glass-card metric-card">
+    <div className={`glass-card metric-card${isolated ? ' metric-card--ripple-excluded' : ''}`}>
       <div className="metric-label">
         <span className={color}>{icon} {label}</span>
         <ArrowUp size={12} />
