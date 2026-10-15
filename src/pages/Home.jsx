@@ -118,7 +118,7 @@ export default function Home() {
 
           <Reveal variant="up" delay={240} persistKey="home-hero-actions">
             <div className="home-hero__actions">
-              <SpecularButton as={Link} to={CONSOLE_PATH} size="lg">
+              <SpecularButton as={Link} to="/#console" size="lg">
                 Launch console <span aria-hidden="true">→</span>
               </SpecularButton>
               <SpecularButton as={Link} to="/data" size="lg">
@@ -304,7 +304,7 @@ function BentoShowcase() {
 
   return (
     <section className="section home-bento" id="capabilities" aria-labelledby="capabilities-title">
-      <div className="container">
+      <div className="container" id="console">
         <Reveal>
           <p className="eyebrow">Capabilities · Fleet right now</p>
           <h2 className="section__title" id="capabilities-title">
