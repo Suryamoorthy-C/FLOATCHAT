@@ -55,7 +55,7 @@ export default function Platform() {
         <Reveal>
           <header className="page-head">
             <p className="eyebrow">Platform</p>
-            <h1 className="page-head__title">
+            <h1 className="page-head__title" data-no-text-animation>
               A working console for the Argo fleet, with a chat interface over the top.
             </h1>
             <p className="page-head__lede">
