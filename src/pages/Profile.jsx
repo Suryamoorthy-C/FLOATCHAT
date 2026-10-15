@@ -21,6 +21,7 @@ import Stepper, { Step } from "../components/Stepper";
 import ProfileCard from "../components/ProfileCard";
 import samplePayload from "../../docs/profile-subscription.example.json";
 import "./Profile.css";
+import "./ProfileTheme.css";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const EMPTY_THRESHOLDS = {

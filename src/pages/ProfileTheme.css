@@ -1,0 +1,667 @@
+/*
+ * Account-only visual theme inspired by the attached Roboto RB/25 reference.
+ * Deliberately scoped to .account-page so the rest of FLOATCHAT keeps its theme.
+ */
+.account-page {
+  --account-ink: #000000;
+  --account-white: #FFFFFF;
+  --account-paper: #F1F1F1;
+  --account-gray: #C9C9C9;
+  --account-muted: rgb(0 0 0 / 68%);
+  --account-font: "Aeonik", Arial, Helvetica, sans-serif;
+  --account-mono: "IBM Plex Mono", "Courier New", monospace;
+  --account-editorial: "Times New Roman", Times, serif;
+
+  color-scheme: light;
+  background: var(--account-paper);
+  color: var(--account-ink);
+  font-family: var(--account-font);
+}
+
+.account-page .account-orbit {
+  display: none;
+}
+
+.account-page .account-nav {
+  border-color: var(--account-gray);
+}
+
+.account-page .account-brand {
+  color: var(--account-ink);
+  font-family: var(--account-font);
+}
+
+.account-page .account-brand__mark {
+  border-color: var(--account-ink);
+  border-radius: 50%;
+  background: var(--account-ink);
+  color: var(--account-white);
+}
+
+.account-page .account-brand__sub,
+.account-page .account-eyebrow,
+.account-page .account-label,
+.account-page .account-demo-tag,
+.account-page .account-status,
+.account-page .account-cycle-meta strong,
+.account-page .account-progress-copy span:last-child,
+.account-page .account-date-row small,
+.account-page .account-date-row strong,
+.account-page .account-thresholds__unit,
+.account-page .account-threshold-row__label span,
+.account-page .account-threshold-row label > span,
+.account-page .account-current-ribbon,
+.account-page .account-featured-ribbon,
+.account-page .account-footer {
+  font-family: var(--account-mono);
+}
+
+.account-page .account-brand__sub,
+.account-page .account-eyebrow,
+.account-page .account-label,
+.account-page .account-cycle-meta,
+.account-page .account-date-row small,
+.account-page .account-progress-copy,
+.account-page .account-thresholds__unit,
+.account-page .account-threshold-row label > span,
+.account-page .account-footer {
+  color: var(--account-muted);
+}
+
+.account-page .account-back {
+  color: var(--account-ink);
+  transition: color 180ms ease;
+}
+
+.account-page .account-back:hover {
+  color: var(--account-muted);
+}
+
+.account-page .account-heading h1 {
+  max-width: 100%;
+  color: var(--account-ink);
+  font-family: var(--account-font);
+  font-size: clamp(3.5rem, 10vw, 7.75rem);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.075em;
+}
+
+.account-page .account-heading__lede,
+.account-page .account-plans-heading p:not(.account-eyebrow),
+.account-page .account-thresholds__heading p:last-child,
+.account-page .account-threshold-form__footer p {
+  color: var(--account-muted);
+}
+
+.account-page .account-demo-tag {
+  border-color: var(--account-gray);
+  border-radius: 999px;
+  background: var(--account-white);
+  color: var(--account-ink);
+}
+
+.account-page .account-demo-tag i,
+.account-page .account-status i {
+  background: var(--account-ink);
+  box-shadow: none;
+}
+
+.account-page .account-notice {
+  border: 1px solid var(--account-ink);
+  border-left-width: 4px;
+  border-radius: 0;
+  background: var(--account-white);
+  color: var(--account-ink);
+}
+
+.account-page .account-notice > svg,
+.account-page .account-notice button {
+  color: var(--account-ink);
+}
+
+.account-page .account-notice button:hover {
+  background: var(--account-paper);
+}
+
+.account-page .account-profile-card,
+.account-page .account-plan-overview,
+.account-page .account-plan-card,
+.account-page .account-thresholds {
+  border: 1px solid var(--account-gray);
+  border-radius: 0;
+  background: var(--account-white);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+/* Make the identity card a strong monochrome anchor while keeping the portrait layout. */
+.account-page .profile-card.account-profile-card {
+  border-color: var(--account-ink);
+  background: var(--account-ink);
+  color: var(--account-white);
+}
+
+.account-page .profile-card.account-profile-card::before {
+  background: radial-gradient(
+    360px circle at var(--profile-pointer-x) var(--profile-pointer-y),
+    rgb(255 255 255 / 18%),
+    transparent 68%
+  );
+  opacity: 0.42;
+  mix-blend-mode: screen;
+}
+
+.account-page .profile-card.account-profile-card::after {
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: radial-gradient(
+    400px circle at var(--profile-pointer-x) var(--profile-pointer-y),
+    rgb(255 255 255 / 12%),
+    transparent 62%
+  );
+  opacity: 0.45;
+  mix-blend-mode: screen;
+}
+
+.account-page .profile-card.account-profile-card[data-tilted="true"] {
+  border-color: var(--account-gray);
+  box-shadow: 0 16px 48px rgb(0 0 0 / 18%);
+}
+
+.account-page .profile-card__avatar {
+  border-color: var(--account-white);
+  border-radius: 50%;
+  background: var(--account-gray);
+  box-shadow: none;
+  color: var(--account-ink);
+}
+
+.account-page .profile-card__avatar::after {
+  opacity: 0;
+}
+
+.account-page .profile-card__presence {
+  border-color: var(--account-ink);
+  background: var(--account-white);
+  box-shadow: none;
+}
+
+.account-page .profile-card__eyebrow,
+.account-page .profile-card__handle,
+.account-page .profile-card__description {
+  color: var(--account-gray);
+}
+
+.account-page .profile-card__name-block h2,
+.account-page .profile-card__email,
+.account-page .profile-card__role,
+.account-page .profile-card__handle svg,
+.account-page .profile-card__email svg {
+  color: var(--account-white);
+}
+
+.account-page .profile-card__role {
+  border-color: var(--account-gray);
+  border-radius: 999px;
+  background: transparent;
+}
+
+.account-page .profile-card__status {
+  color: var(--account-white);
+}
+
+.account-page .profile-card__status i {
+  background: var(--account-white);
+  box-shadow: none;
+}
+
+.account-page .account-button,
+.account-page .account-plan-cta,
+.account-page .stepper__button.specular-button {
+  min-height: 42px;
+  border: 1px solid var(--account-ink);
+  border-radius: 999px;
+  background: var(--account-white);
+  box-shadow: none;
+  color: var(--account-ink);
+  font-family: var(--account-font);
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease,
+    border-color 180ms ease;
+}
+
+.account-page .account-button:hover:not(:disabled),
+.account-page .account-plan-cta:hover:not(:disabled),
+.account-page .stepper__button.specular-button:hover:not(:disabled) {
+  border-color: var(--account-ink);
+  background: var(--account-ink);
+  color: var(--account-white);
+  transform: translateY(-1px);
+}
+
+.account-page .profile-card__actions .account-button {
+  border-color: var(--account-white);
+}
+
+.account-page .profile-card__actions .account-button:hover:not(:disabled) {
+  border-color: var(--account-gray);
+  background: var(--account-gray);
+  color: var(--account-ink);
+}
+
+.account-page .account-button--logout {
+  background: transparent;
+  color: var(--account-white);
+}
+
+.account-page .account-button--logout:hover:not(:disabled) {
+  border-color: var(--account-white);
+  background: var(--account-white);
+  color: var(--account-ink);
+}
+
+.account-page .account-button:focus-visible,
+.account-page .account-plan-cta:focus-visible,
+.account-page .account-dialog-close:focus-visible,
+.account-page .stepper__indicator:focus-visible,
+.account-page .stepper__button:focus-visible,
+.account-page .account-avatar-upload__remove:focus-visible {
+  outline: 2px solid var(--account-ink);
+  outline-offset: 3px;
+}
+
+.account-page .profile-card__actions .account-button:focus-visible {
+  outline-color: var(--account-white);
+}
+
+.account-page .account-plan-overview {
+  gap: 24px;
+}
+
+.account-page .account-section-icon {
+  border-color: var(--account-ink);
+  border-radius: 50%;
+  background: var(--account-ink);
+  color: var(--account-white);
+}
+
+.account-page .account-section-topline h2,
+.account-page .account-plans-heading h2,
+.account-page .account-thresholds__heading h2 {
+  color: var(--account-ink);
+  font-family: var(--account-font);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+
+.account-page .account-status {
+  border-color: var(--account-ink);
+  border-radius: 999px;
+  background: var(--account-white);
+  color: var(--account-ink);
+}
+
+.account-page .account-status[data-status="past_due"],
+.account-page .account-status[data-status="canceled"],
+.account-page .account-status[data-status="inactive"],
+.account-page .account-status[data-status="trialing"] {
+  border-color: var(--account-ink);
+  background: var(--account-paper);
+  color: var(--account-ink);
+}
+
+.account-page .account-status[data-status="past_due"] i,
+.account-page .account-status[data-status="canceled"] i,
+.account-page .account-status[data-status="inactive"] i,
+.account-page .account-status[data-status="trialing"] i {
+  background: var(--account-ink);
+  box-shadow: none;
+}
+
+.account-page .account-cycle-meta {
+  border-color: var(--account-gray);
+}
+
+.account-page .account-cycle-meta > span svg,
+.account-page .account-cycle-meta strong,
+.account-page .account-cycle-meta strong span,
+.account-page .account-date-row small,
+.account-page .account-date-row strong,
+.account-page .account-cycle-foot,
+.account-page .account-cycle-foot svg {
+  color: var(--account-ink);
+}
+
+.account-page .account-cycle-meta strong,
+.account-page .account-date-row strong {
+  font-family: var(--account-editorial);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.account-page .account-progress-copy,
+.account-page .account-progress-copy span:last-child {
+  color: var(--account-ink);
+}
+
+.account-page .account-progress-track {
+  border-color: var(--account-gray);
+  border-radius: 999px;
+  background: var(--account-paper);
+}
+
+.account-page .account-progress-track span {
+  border-radius: inherit;
+  background: var(--account-ink);
+  box-shadow: none;
+}
+
+.account-page .account-cycle-aside {
+  border-color: var(--account-gray);
+}
+
+.account-page .account-date-marker,
+.account-page .account-date-marker--end {
+  border-color: var(--account-ink);
+  background: var(--account-white);
+  box-shadow: none;
+}
+
+.account-page .account-date-connector {
+  border-color: var(--account-ink);
+}
+
+.account-page .stepper {
+  color: var(--account-ink);
+  font-family: var(--account-font);
+}
+
+.account-page .stepper--frame {
+  border-color: var(--account-gray);
+  border-radius: 0;
+  background: var(--account-white);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.account-page .stepper__connector {
+  background: var(--account-gray);
+}
+
+.account-page .stepper__indicator {
+  border-color: var(--account-ink);
+  background: var(--account-white);
+  color: var(--account-ink);
+}
+
+.account-page .stepper__indicator:hover:not(:disabled) {
+  border-color: var(--account-ink);
+}
+
+.account-page .stepper__indicator[aria-current="step"] {
+  border-color: var(--account-ink);
+  background: var(--account-ink);
+  box-shadow: none;
+  color: var(--account-white);
+}
+
+.account-page .stepper__indicator-title,
+.account-page .stepper__indicator[aria-current="step"] + .stepper__indicator-title {
+  color: var(--account-ink);
+}
+
+.account-page .stepper__footer {
+  border-color: var(--account-gray);
+}
+
+.account-page .stepper__button--next.specular-button {
+  border-color: var(--account-ink);
+  background: var(--account-ink);
+  color: var(--account-white);
+}
+
+.account-page .stepper__button--next.specular-button:hover:not(:disabled) {
+  background: var(--account-gray);
+  color: var(--account-ink);
+}
+
+.account-page .stepper__complete-note {
+  color: var(--account-ink);
+}
+
+.account-page .account-plans-heading h2 {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+}
+
+.account-page .account-secure-note,
+.account-page .account-secure-note svg,
+.account-page .account-plan-disclaimer,
+.account-page .account-plan-disclaimer svg {
+  color: var(--account-ink);
+}
+
+.account-page .account-plan-card {
+  border-color: var(--account-gray);
+  background: var(--account-white);
+  color: var(--account-ink);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.account-page .account-plan-card:hover {
+  border-color: var(--account-ink);
+  background: var(--account-paper);
+  transform: translateY(-2px);
+}
+
+.account-page .account-plan-card.is-current,
+.account-page .account-plan-card.is-current:hover {
+  border-color: var(--account-ink);
+  border-width: 2px;
+  background: var(--account-white);
+  box-shadow: none;
+}
+
+.account-page .account-current-ribbon,
+.account-page .account-featured-ribbon {
+  border-color: var(--account-ink);
+  border-radius: 999px;
+  background: var(--account-ink);
+  color: var(--account-white);
+}
+
+.account-page .account-plan-icon,
+.account-page .is-current .account-plan-icon,
+.account-page .is-enterprise .account-plan-icon {
+  border-color: var(--account-ink);
+  border-radius: 50%;
+  background: var(--account-white);
+  color: var(--account-ink);
+}
+
+.account-page .account-plan-card h3,
+.account-page .account-plan-price strong,
+.account-page .is-current .account-plan-price strong {
+  color: var(--account-ink);
+  font-family: var(--account-font);
+}
+
+.account-page .account-plan-description,
+.account-page .account-plan-price span,
+.account-page .account-feature-list li,
+.account-page .account-plan-disclaimer {
+  color: var(--account-ink);
+}
+
+.account-page .account-plan-price {
+  border-color: var(--account-gray);
+}
+
+.account-page .account-feature-list li > span {
+  border-color: var(--account-ink);
+  border-radius: 50%;
+  background: var(--account-white);
+  color: var(--account-ink);
+}
+
+.account-page .account-plan-cta--current,
+.account-page .account-plan-cta--current:hover {
+  border-color: var(--account-ink);
+  background: var(--account-ink);
+  color: var(--account-white);
+  cursor: default;
+}
+
+.account-page .account-plan-cta--primary,
+.account-page .account-plan-cta--primary:hover:not(:disabled) {
+  border-color: var(--account-ink);
+  background: var(--account-ink);
+  color: var(--account-white);
+}
+
+.account-page .account-plan-cta--current:disabled {
+  background: var(--account-ink);
+  color: var(--account-white);
+  cursor: default;
+  opacity: 1;
+}
+
+.account-page .account-footer {
+  border-color: var(--account-gray);
+  color: var(--account-muted);
+}
+
+.account-page .account-footer span:first-child,
+.account-page .account-footer svg {
+  color: var(--account-ink);
+}
+
+.account-page .account-dialog {
+  border-color: var(--account-ink);
+  border-radius: 0;
+  background: var(--account-white);
+  color: var(--account-ink);
+  box-shadow: 0 24px 72px rgb(0 0 0 / 24%);
+}
+
+.account-page .account-dialog::backdrop {
+  background: rgb(0 0 0 / 62%);
+  backdrop-filter: blur(4px);
+}
+
+.account-page .account-dialog-heading h2,
+.account-page .account-edit-form label {
+  color: var(--account-ink);
+}
+
+.account-page .account-dialog-close {
+  border-color: var(--account-ink);
+  border-radius: 50%;
+  background: var(--account-white);
+  color: var(--account-ink);
+}
+
+.account-page .account-dialog-close:hover {
+  background: var(--account-ink);
+  color: var(--account-white);
+}
+
+.account-page .account-edit-form input {
+  border-color: var(--account-gray);
+  border-radius: 0;
+  background: var(--account-white);
+  color: var(--account-ink);
+  font-family: var(--account-font);
+}
+
+.account-page .account-edit-form input:focus,
+.account-page .account-threshold-row input:focus {
+  border-color: var(--account-ink);
+  box-shadow: 0 0 0 2px var(--account-ink);
+}
+
+.account-page .account-threshold-row input {
+  border-color: var(--account-gray);
+  border-radius: 0;
+  background: var(--account-white);
+  color: var(--account-ink);
+  font-family: var(--account-mono);
+}
+
+.account-page .account-threshold-row input:disabled {
+  background: var(--account-paper);
+  opacity: 0.72;
+}
+
+.account-page .account-dialog-note,
+.account-page .account-avatar-upload__controls small {
+  color: var(--account-muted);
+}
+
+.account-page .account-avatar-upload {
+  border-color: var(--account-gray);
+  border-radius: 0;
+  background: var(--account-paper);
+}
+
+.account-page .account-avatar-upload__preview {
+  border-color: var(--account-ink);
+  border-radius: 50%;
+  background: var(--account-ink);
+  color: var(--account-white);
+}
+
+.account-page .account-avatar-upload__remove,
+.account-page .account-avatar-upload__controls .account-avatar-upload__error {
+  color: var(--account-ink);
+}
+
+.account-page .account-avatar-upload__remove:hover {
+  text-decoration: underline;
+}
+
+.account-page .account-button--save {
+  border-color: var(--account-ink);
+  background: var(--account-ink);
+  color: var(--account-white);
+}
+
+.account-page .account-button--save:hover:not(:disabled) {
+  border-color: var(--account-gray);
+  background: var(--account-gray);
+  color: var(--account-ink);
+}
+
+.account-page .account-button:disabled,
+.account-page .account-plan-cta:disabled,
+.account-page .stepper__button:disabled {
+  border-color: var(--account-gray);
+  background: var(--account-paper);
+  color: var(--account-muted);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+@media (max-width: 620px) {
+  .account-page .account-heading h1 {
+    font-size: clamp(3.25rem, 14vw, 5rem);
+  }
+
+  .account-page .account-plan-card,
+  .account-page .account-plan-card:last-child {
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-page .profile-card.account-profile-card,
+  .account-page .account-button,
+  .account-page .account-plan-cta,
+  .account-page .stepper__button.specular-button {
+    transition: none;
+  }
+}
