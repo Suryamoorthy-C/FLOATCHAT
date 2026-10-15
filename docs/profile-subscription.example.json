@@ -26,45 +26,49 @@
     {
       "id": "starter-float",
       "name": "Starter Float",
-      "description": "A simple starting point for keeping an eye on your floats.",
+      "description": "For students, citizen scientists, and independent researchers.",
       "monthlyPrice": 0,
       "currency": "USD",
       "billingPeriod": "monthly",
+      "pricingStatus": "draft",
       "features": [
-        "Basic float monitoring",
-        "Latest readings and fleet map",
-        "Standard status alerts",
-        "Community support"
+        { "label": "Community Argo fleet viewer", "status": "available" },
+        { "label": "Standard 3D globe visualization", "status": "available" },
+        { "label": "Basic text queries and canned prompts", "status": "available" }
       ]
     },
     {
       "id": "pro-pearl-analyst",
       "name": "Pro Pearl Analyst",
-      "description": "Detailed environmental insight for pearl-farm teams.",
-      "monthlyPrice": null,
+      "description": "For commercial pearl farms, regional aquaculture operators, and marine consultants.",
+      "monthlyPrice": 499,
+      "monthlyPriceLabel": "$499",
+      "annualPriceLabel": "$5,000 / year",
       "currency": "USD",
       "billingPeriod": "monthly",
-      "priceLabel": "Current plan",
+      "pricingStatus": "draft",
       "features": [
-        "Pearl Zone suitability analytics",
-        "Interactive 3D globe and depth layers",
-        "Per-metric score and warning details",
-        "Multi-site monitoring",
-        "Priority support"
+        { "label": "Pearl Production Index environmental screening", "status": "available" },
+        { "label": "Float history and trajectories across cycles", "status": "available" },
+        { "label": "Automated temperature / salinity spike alerts", "status": "planned" },
+        { "label": "Custom region-of-interest polygons", "status": "planned" }
       ]
     },
     {
       "id": "enterprise-fleet",
       "name": "Enterprise Fleet",
-      "description": "Advanced visibility and forecasting for large-scale operations.",
-      "monthlyPrice": 299,
+      "description": "For oceanographic institutes, maritime defense, and global ESG or marine-conservation programs.",
+      "monthlyPrice": 2999,
+      "monthlyPriceLabel": "$2,999+",
+      "annualPriceLabel": "$35,000+ / year",
       "currency": "USD",
       "billingPeriod": "monthly",
+      "pricingStatus": "draft",
       "features": [
-        "Unlimited floats",
-        "3D Depth Map",
-        "Algae Bloom Red Alerts",
-        "AI Yield Forecasting"
+        { "label": "Low-latency raw-data feeds from ERDDAP", "status": "planned" },
+        { "label": "Custom biogeochemical sensor indexing (pH, dissolved oxygen, chlorophyll-a)", "status": "planned" },
+        { "label": "Team workspaces, multi-user audit logs, and exportable compliance reports", "status": "planned" },
+        { "label": "Dedicated API rate limits and SLA support", "status": "planned" }
       ]
     }
   ]

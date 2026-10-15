@@ -71,6 +71,7 @@ function priceLabel(plan, isCurrent) {
     return isCurrent ? "Current plan" : plan.priceLabel || "Contact us";
   }
   if (plan.monthlyPrice === 0) return "Free";
+  if (plan.monthlyPriceLabel) return plan.monthlyPriceLabel;
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: plan.currency || "USD",
@@ -580,9 +581,8 @@ export default function Profile({
                 can review changes before anything is billed.
               </p>
             </div>
-            <div className="account-secure-note">
-              <ShieldCheck size={15} aria-hidden="true" /> Secure plan
-              management
+            <div className="account-secure-note account-pricing-draft">
+              <ShieldCheck size={15} aria-hidden="true" /> DRAFT PRICING · NO CHECKOUT
             </div>
           </div>
           <div className="account-plan-grid">
@@ -622,19 +622,34 @@ export default function Profile({
                   <p className="account-plan-description">{plan.description}</p>
                   <div className="account-plan-price">
                     <strong>{priceLabel(plan, isCurrent)}</strong>
-                    {plan.monthlyPrice !== 0 && (
+                    {plan.monthlyPrice > 0 && (
                       <span>{plan.monthlyPrice == null ? "" : "/ month"}</span>
                     )}
                   </div>
+                  {plan.annualPriceLabel && (
+                    <p className="account-plan-annual">{plan.annualPriceLabel}</p>
+                  )}
                   <ul className="account-feature-list">
-                    {(plan.features || []).map((feature) => (
-                      <li key={feature}>
-                        <span>
-                          <Check size={13} aria-hidden="true" />
-                        </span>
-                        {feature}
-                      </li>
-                    ))}
+                    {(plan.features || []).map((feature, index) => {
+                      const featureLabel = typeof feature === "string" ? feature : feature.label;
+                      const isPlanned = typeof feature !== "string" && feature.status === "planned";
+                      return (
+                        <li
+                          key={`${featureLabel}-${index}`}
+                          className={isPlanned ? "account-feature-is-planned" : "account-feature-is-available"}
+                        >
+                          <span className="account-feature-icon">
+                            {isPlanned ? (
+                              <Clock3 size={12} aria-hidden="true" />
+                            ) : (
+                              <Check size={13} aria-hidden="true" />
+                            )}
+                          </span>
+                          <span className="account-feature-copy">{featureLabel}</span>
+                          {isPlanned && <small className="account-feature-status">Planned</small>}
+                        </li>
+                      );
+                    })}
                   </ul>
                   <button
                     className={`account-plan-cta${isCurrent ? " account-plan-cta--current" : ""}${plan.id === "enterprise-fleet" ? " account-plan-cta--primary" : ""}`}
@@ -654,9 +669,7 @@ export default function Profile({
             })}
           </div>
           <p className="account-plan-disclaimer">
-            <ShieldCheck size={14} aria-hidden="true" /> Plan features and
-            prices are illustrative. Billing and access must be confirmed by
-            your account service.
+            <ShieldCheck size={14} aria-hidden="true" /> Draft commercial proposal: prices and package mapping are illustrative. Items marked Planned are not currently available. This page does not process payments or enforce plan access.
           </p>
         </section>
 

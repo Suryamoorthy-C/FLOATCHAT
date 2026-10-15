@@ -665,3 +665,85 @@
     transition: none;
   }
 }
+
+
+/* Draft pricing and roadmap feature cues */
+.account-page .account-pricing-draft {
+  max-width: 100%;
+  padding: 9px 13px;
+  border: 1px solid var(--account-ink);
+  border-radius: 999px;
+  background: var(--account-white);
+  color: var(--account-ink);
+  font-family: var(--account-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.account-page .account-plan-annual {
+  margin: -5px 0 13px;
+  color: var(--account-muted);
+  font-family: var(--account-mono);
+  font-size: 0.67rem;
+  line-height: 1.4;
+}
+
+.account-page .account-feature-list li {
+  align-items: flex-start;
+}
+
+.account-page .account-feature-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.account-page .account-feature-list li > .account-feature-copy {
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--account-ink);
+  place-items: initial;
+}
+
+.account-page .account-feature-status {
+  flex: none;
+  margin-inline-start: auto;
+  padding: 3px 7px;
+  border: 1px solid var(--account-gray);
+  border-radius: 999px;
+  background: var(--account-paper);
+  color: var(--account-ink);
+  font-family: var(--account-mono);
+  font-size: 0.56rem;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.account-page .account-feature-is-planned .account-feature-icon {
+  border-color: var(--account-ink);
+  background: var(--account-paper);
+  color: var(--account-ink);
+}
+
+.account-page .account-plan-disclaimer {
+  align-items: flex-start;
+  font-size: 0.67rem;
+}
+
+.account-page .account-plan-disclaimer svg {
+  margin-top: 1px;
+}
+
+@media (max-width: 620px) {
+  .account-page .account-pricing-draft {
+    align-self: flex-start;
+    text-align: left;
+  }
+}
