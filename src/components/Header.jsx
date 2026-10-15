@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import GooeyNav from './GooeyNav';
 import SpecularButton from './SpecularButton';
-import { Link, navigate, useRoute } from '../router';
+import { Link, navigate, useRoute, useSection } from '../router';
 import { GITHUB_URL, PROFILE_PATH } from '../routes';
 import './Header.css';
 
@@ -15,6 +15,7 @@ const SECTIONS = [
   { label: 'Home', route: '/' },
   { label: 'Platform', route: '/platform' },
   { label: 'Live data', route: '/data' },
+  { label: 'Launch console', route: '/#console' },
   { label: 'Pearl data', route: '/pearl-zones' },
   { label: 'Docs', route: '/docs' }
 ];
@@ -24,6 +25,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const path = useRoute();
+  const section = useSection();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -33,9 +35,11 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const index = SECTIONS.findIndex(section => section.route === path);
+    const index = path === '/' && section === 'console'
+      ? SECTIONS.findIndex(item => item.route === '/#console')
+      : SECTIONS.findIndex(item => item.route === path);
     if (index >= 0) setActive(index);
-  }, [path]);
+  }, [path, section]);
 
   const go = index => {
     setActive(index);
@@ -75,6 +79,9 @@ export default function Header() {
           <SpecularButton as={Link} to={PROFILE_PATH} size="md" className="site-header__account">
             Account
           </SpecularButton>
+          <SpecularButton as={Link} to="/#console" size="md" className="site-header__cta">
+            Launch console <span aria-hidden="true">→</span>
+          </SpecularButton>
           <a
             className="site-header__source"
             href={GITHUB_URL}
@@ -83,9 +90,6 @@ export default function Header() {
           >
             Source
           </a>
-          <SpecularButton as={Link} to="/#console" size="md" className="site-header__cta">
-            Launch console <span aria-hidden="true">→</span>
-          </SpecularButton>
         </div>
       </div>
 
