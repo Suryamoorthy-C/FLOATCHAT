@@ -19,6 +19,8 @@ import { api } from "../api";
 import SpotlightCard from "../components/SpotlightCard";
 import Stepper, { Step } from "../components/Stepper";
 import ProfileCard from "../components/ProfileCard";
+import GlassSurface from "../components/GlassSurface";
+import RippleDistortion from "../components/RippleDistortion";
 import samplePayload from "../../docs/profile-subscription.example.json";
 import "./Profile.css";
 import "./ProfileTheme.css";
@@ -331,6 +333,28 @@ export default function Profile({
 
   return (
     <main className="account-page">
+      <div className="account-ripple-layer" aria-hidden="true">
+        <RippleDistortion
+          src="/hero-aurora.svg"
+          brushSize={150}
+          strength={0.2}
+          swirl={1}
+          rings={4}
+          grayscale
+          spread={5}
+          fade={3}
+          spacing={15}
+          dispersion={0}
+          glint={0}
+          tint="#8832F7"
+          tintAmount={0.1}
+          highlightColor="#FFFFFF"
+          trigger="hover"
+          clickStrength={2}
+          quality="low"
+          enabled
+        />
+      </div>
       <div className="account-orbit account-orbit--one" aria-hidden="true" />
       <div className="account-orbit account-orbit--two" aria-hidden="true" />
       <div className="account-shell">
@@ -341,7 +365,7 @@ export default function Profile({
             </span>
             <span>
               FLOATCHAT
-              <span className="account-brand__sub">OCEAN INTELLIGENCE</span>
+              <span className="account-brand__sub">Ocean intelligence</span>
             </span>
           </Link>
           <Link className="account-back" to="/">
@@ -350,21 +374,41 @@ export default function Profile({
           </Link>
         </nav>
 
-        <header className="account-heading">
-          <div>
-            <p className="account-eyebrow">
-              ACCOUNT CENTER <span>·</span> PROFILE & BILLING
-            </p>
-            <h1>Your account</h1>
-            <p className="account-heading__lede">
-              Manage your profile, monitor your plan, and explore fleet
-              coverage.
-            </p>
-          </div>
-          <span className="account-demo-tag">
-            <i aria-hidden="true" /> DEMO ACCOUNT
-          </span>
-        </header>
+        <GlassSurface
+          className="account-heading-glass"
+          width="100%"
+          height="auto"
+          borderRadius={18}
+          distortionScale={-180}
+          displace={0.5}
+          backgroundOpacity={0.1}
+          borderWidth={0.07}
+          brightness={50}
+          opacity={0.93}
+          blur={11}
+          saturation={1}
+          redOffset={0}
+          greenOffset={10}
+          blueOffset={20}
+          refraction
+          renderer="auto"
+        >
+          <header className="account-heading">
+            <div>
+              <p className="account-eyebrow">
+                Account center <span>·</span> profile & billing
+              </p>
+              <h1>Your account</h1>
+              <p className="account-heading__lede">
+                Manage your profile, monitor your plan, and explore fleet
+                coverage.
+              </p>
+            </div>
+            <span className="account-demo-tag">
+              <i aria-hidden="true" /> Demo account
+            </span>
+          </header>
+        </GlassSurface>
 
         {notice && (
           <div className="account-notice" role="status" aria-live="polite">
@@ -419,11 +463,11 @@ export default function Profile({
         <section className="account-thresholds" aria-labelledby="thresholds-title">
           <div className="account-thresholds__heading">
             <div>
-              <p className="account-eyebrow">SENSOR ALERTS <span>·</span> PERSONAL LIMITS</p>
+              <p className="account-eyebrow">Sensor alerts <span>·</span> personal limits</p>
               <h2 id="thresholds-title">Custom threshold alerts</h2>
               <p>Choose the temperature and pressure bounds that matter for your operation. Leave a bound blank to disable it.</p>
             </div>
-            <span className="account-thresholds__unit">EMAIL TO {profile.email || "NO EMAIL SET"}</span>
+            <span className="account-thresholds__unit">Email to {profile.email || "no email set"}</span>
           </div>
           <form className="account-threshold-form" onSubmit={saveThresholds}>
             <fieldset disabled={thresholdSaving || thresholdLoading}>
@@ -474,7 +518,7 @@ export default function Profile({
                 <ActivePlanIcon size={18} aria-hidden="true" />
               </div>
               <div>
-                <p className="account-label">CURRENT SUBSCRIPTION</p>
+                <p className="account-label">Current subscription</p>
                 <h2 id="active-plan-title">
                   {currentPlan?.name || "No active plan"}
                 </h2>
@@ -485,8 +529,10 @@ export default function Profile({
               >
                 <i aria-hidden="true" />
                 {subscription.status === "active"
-                  ? "ACTIVE"
-                  : String(subscription.status || "inactive").toUpperCase()}
+                  ? "Active"
+                  : String(subscription.status || "Inactive")
+                    .replaceAll("_", " ")
+                    .replace(/^./, (first) => first.toUpperCase())}
               </span>
             </div>
             <div className="account-cycle-meta">
@@ -524,7 +570,7 @@ export default function Profile({
             </div>
           </div>
           <aside className="account-cycle-aside">
-            <p className="account-label">PLAN TIMELINE</p>
+            <p className="account-label">Plan timeline</p>
             <Stepper
               initialStep={1}
               backButtonText="Back"
@@ -545,7 +591,7 @@ export default function Profile({
                 <div className="account-date-row">
                   <span className="account-date-marker account-date-marker--start" />
                   <div>
-                    <small>PLAN STARTED</small>
+                        <small>Plan started</small>
                     <strong>{formatDate(subscription.startedAt)}</strong>
                   </div>
                 </div>
@@ -554,7 +600,7 @@ export default function Profile({
                 <div className="account-date-row">
                   <span className="account-date-marker account-date-marker--end" />
                   <div>
-                    <small>RENEWS / ENDS</small>
+                        <small>Renews / ends</small>
                     <strong>{formatDate(subscription.currentPeriodEnd)}</strong>
                   </div>
                 </div>
@@ -573,7 +619,7 @@ export default function Profile({
           <div className="account-plans-heading">
             <div>
               <p className="account-eyebrow">
-                FIND YOUR FIT <span>·</span> FLEET PLANS
+                Find your fit <span>·</span> fleet plans
               </p>
               <h2 id="plan-options-title">A clearer view of your ocean.</h2>
               <p>
@@ -582,7 +628,7 @@ export default function Profile({
               </p>
             </div>
             <div className="account-secure-note account-pricing-draft">
-              <ShieldCheck size={15} aria-hidden="true" /> DRAFT PRICING · NO CHECKOUT
+              <ShieldCheck size={15} aria-hidden="true" /> Draft pricing · no checkout
             </div>
           </div>
           <div className="account-plan-grid">
@@ -609,11 +655,11 @@ export default function Profile({
                 >
                   {isCurrent && (
                     <span className="account-current-ribbon">
-                      <CheckCircle2 size={13} aria-hidden="true" /> CURRENT PLAN
+                      <CheckCircle2 size={13} aria-hidden="true" /> Current plan
                     </span>
                   )}
                   {!isCurrent && plan.id === "enterprise-fleet" && (
-                    <span className="account-featured-ribbon">FLEET SCALE</span>
+                    <span className="account-featured-ribbon">Fleet scale</span>
                   )}
                   <div className="account-plan-icon">
                     <Icon size={18} aria-hidden="true" />
@@ -661,7 +707,7 @@ export default function Profile({
                       ? "Current plan"
                       : plan.id === "enterprise-fleet"
                         ? "Upgrade plan"
-                        : "Choose Starter"}
+                        : "Choose starter"}
                     {!isCurrent && <ArrowRight size={15} aria-hidden="true" />}
                   </button>
                 </SpotlightCard>
@@ -678,7 +724,7 @@ export default function Profile({
             <Waves size={14} aria-hidden="true" /> Built for teams working with
             the ocean.
           </span>
-          <span>DEMO DATA · NO BILLING ACTIONS ARE PROCESSED HERE</span>
+          <span>Demo data · no billing actions are processed here</span>
         </footer>
       </div>
 
@@ -694,7 +740,7 @@ export default function Profile({
         <form className="account-edit-form" onSubmit={saveProfile}>
           <div className="account-dialog-heading">
             <div>
-              <p className="account-eyebrow">ACCOUNT DETAILS</p>
+              <p className="account-eyebrow">Account details</p>
               <h2 id="edit-profile-title">Edit profile</h2>
             </div>
             <button

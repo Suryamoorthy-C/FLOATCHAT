@@ -125,7 +125,7 @@ export default function ProfileCard({
         <div className="profile-card__info">
           <div className="profile-card__heading-row">
             <div className="profile-card__name-block">
-              <p className="profile-card__eyebrow">PROFILE</p>
+              <p className="profile-card__eyebrow">Profile</p>
               <h2 id={titleId}>{name || "Your name"}</h2>
             </div>
             {title && (

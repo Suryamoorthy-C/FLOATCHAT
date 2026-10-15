@@ -1,0 +1,56 @@
+.glass-surface {
+  position: relative;
+  display: block;
+  isolation: isolate;
+  overflow: hidden;
+  border: var(--glass-border-width, 1px) solid color-mix(in srgb, var(--account-color-primary, #071BDF) 24%, transparent);
+  background: rgb(255 255 255 / var(--glass-background-opacity, 0.1));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 11px)) brightness(var(--glass-brightness, 0.5)) saturate(var(--glass-saturation, 1));
+  backdrop-filter: blur(var(--glass-blur, 11px)) brightness(var(--glass-brightness, 0.5)) saturate(var(--glass-saturation, 1));
+  box-shadow: var(--account-shadow-sm, inset 0 1px 0 rgb(255 255 255 / 0.08)), var(--account-shadow-xl, 0 12px 30px rgb(0 0 0 / 0.22));
+}
+
+.glass-surface::before,
+.glass-surface::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  content: "";
+}
+
+.glass-surface::before {
+  background:
+    var(--glass-backdrop-image, none) center / cover no-repeat,
+    linear-gradient(118deg,
+      rgb(255 255 255 / 0.48),
+      transparent 34%,
+      color-mix(in srgb, var(--account-color-teal, #5CCFC6) 18%, transparent) 60%,
+      color-mix(in srgb, var(--account-color-purple, #8832F7) 12%, transparent) 76%,
+      rgb(255 255 255 / 0.16));
+  opacity: var(--glass-opacity, 0.93);
+  transform: translateX(var(--glass-shift-x, -9px));
+  transition: opacity 0.22s ease, transform 0.3s cubic-bezier(0.4, 0, 0.1, 1);
+}
+
+.glass-surface::after {
+  border: var(--glass-border-width, 1px) solid rgb(255 255 255 / 0.28);
+  box-shadow:
+    inset var(--glass-red-offset, 0px) 0 0 color-mix(in srgb, var(--account-color-red, #FF4C41) 12%, transparent),
+    inset var(--glass-blue-offset-negative, 0px) 0 0 color-mix(in srgb, var(--account-color-purple, #8832F7) 12%, transparent);
+  opacity: var(--glass-background-opacity, 0.1);
+}
+
+.glass-surface > * {
+  position: relative;
+  z-index: 1;
+}
+
+.glass-surface[data-refraction="true"]::before {
+  background-blend-mode: screen, screen;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-surface::before { transition: none; transform: none; }
+}

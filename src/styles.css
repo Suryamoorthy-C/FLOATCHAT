@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Roboto+Flex:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 /* SCOPE CHANGE: this was :root, which leaked the console's dark palette into
    every route of the site. The console is now one page among many, so its
 theme lives on the .console-route wrapper instead. */
