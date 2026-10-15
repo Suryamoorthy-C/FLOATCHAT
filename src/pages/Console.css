@@ -67,3 +67,48 @@
     height: auto;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Home integration accents
+   The standalone console keeps its original cyan treatment. When the console
+   is embedded on Home, use the site's lime signal accent with cyan telemetry
+   details so the two visual systems read as one FloatChat surface.
+   -------------------------------------------------------------------------- */
+.home-console {
+  --cyan: #c1ff00;
+}
+
+.home-console .brand-mark {
+  background: #c1ff00;
+  box-shadow: 0 0 20px rgba(193, 255, 0, 0.5);
+}
+
+.home-console .query-box:focus-within {
+  border-color: rgba(193, 255, 0, 0.5);
+  box-shadow: 0 0 20px rgba(193, 255, 0, 0.12);
+}
+
+.home-console .query-box button,
+.home-console .bar i {
+  background: #c1ff00;
+  box-shadow: 0 0 16px rgba(193, 255, 0, 0.4);
+}
+
+.home-console .globe-actions button.active,
+.home-console .mode-row button.active,
+.home-console .filter-row button.active {
+  color: #c1ff00;
+  border-color: rgba(193, 255, 0, 0.5);
+  background: rgba(193, 255, 0, 0.08);
+  box-shadow: 0 0 14px rgba(193, 255, 0, 0.12);
+}
+
+.home-console .depth-row input {
+  accent-color: #c1ff00;
+}
+
+.home-console .cite {
+  color: #c1ff00;
+  border-color: rgba(193, 255, 0, 0.35);
+  background: rgba(193, 255, 0, 0.08);
+}
