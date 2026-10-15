@@ -5,7 +5,7 @@ import json
 import sqlite3
 from typing import Any
 
-from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field, root_validator
@@ -155,9 +155,16 @@ def get_user_profile(user_id: str, current_user: dict[str, Any] = Depends(requir
 
 
 @app.post("/api/users/{user_id}/avatar")
-async def upload_user_avatar(user_id: str, file: UploadFile = File(...), current_user: dict[str, Any] = Depends(require_current_user)):
+async def upload_user_avatar(user_id: str, request: Request, current_user: dict[str, Any] = Depends(require_current_user)):
     """Validate, sanitize, and persist a JPEG/PNG profile image."""
     require_owned_user(user_id, current_user)
+    try:
+        form = await request.form()
+        file = form.get("file")
+    except (AssertionError, RuntimeError) as exc:
+        raise HTTPException(status_code=503, detail="Multipart avatar uploads are unavailable on this deployment.") from exc
+    if file is None or not hasattr(file, "read"):
+        raise HTTPException(status_code=422, detail="An avatar file is required.")
     if file.content_type not in {None, "application/octet-stream", *ALLOWED_IMAGE_FORMATS.values()}:
         await file.close()
         raise HTTPException(status_code=415, detail="Only JPEG and PNG images are supported.")
