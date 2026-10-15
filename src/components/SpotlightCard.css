@@ -1,0 +1,94 @@
+@property --spotlight-x {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --spotlight-y {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+.spotlight-card {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--spotlight-color, #fff) var(--spotlight-border-mix, 0%), rgba(255, 255, 255, 0.15));
+  border-radius: var(--spotlight-radius, 22px);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)), #0a1418;
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, 0.26),
+    0 0 28px color-mix(in srgb, var(--spotlight-color, #fff) var(--spotlight-border-mix, 0%), transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  color: #f3f6f7;
+  transition:
+    border-color var(--spotlight-smoothing, 150ms) ease,
+    box-shadow var(--spotlight-smoothing, 150ms) ease,
+    --spotlight-x var(--spotlight-smoothing, 150ms) ease-out,
+    --spotlight-y var(--spotlight-smoothing, 150ms) ease-out;
+}
+
+.spotlight-card--light {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.72)), #f6faf9;
+  color: #102126;
+}
+
+.spotlight-card__spotlight,
+.spotlight-card__flare,
+.spotlight-card__grain {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.spotlight-card__spotlight {
+  background: radial-gradient(
+    circle var(--spotlight-size, 240px) at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    color-mix(in srgb, var(--spotlight-color, #fff) var(--spotlight-intensity, 15%), transparent) 0%,
+    transparent var(--spotlight-softness, 70%),
+    transparent 100%
+  );
+  opacity: var(--spotlight-opacity, 0);
+  transition: opacity 180ms ease;
+}
+
+.spotlight-card--ellipse .spotlight-card__spotlight {
+  background-image: radial-gradient(
+    ellipse var(--spotlight-size, 240px) var(--spotlight-size, 240px) at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    color-mix(in srgb, var(--spotlight-color, #fff) var(--spotlight-intensity, 15%), transparent) 0%,
+    transparent var(--spotlight-softness, 70%),
+    transparent 100%
+  );
+}
+
+.spotlight-card__flare {
+  background: radial-gradient(ellipse 48% 30% at var(--spotlight-x, 50%) var(--spotlight-y, 50%), rgba(255, 255, 255, 0.1), transparent 74%);
+  opacity: calc(var(--spotlight-hot, 0) * 0.82);
+  mix-blend-mode: screen;
+  transition: opacity 180ms ease;
+}
+
+.spotlight-card__grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+  opacity: var(--spotlight-grain, 0);
+  mix-blend-mode: soft-light;
+}
+
+.spotlight-card__content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-card,
+  .spotlight-card__spotlight,
+  .spotlight-card__flare {
+    transition: none;
+  }
+}
