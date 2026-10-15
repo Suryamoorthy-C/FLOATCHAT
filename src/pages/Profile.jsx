@@ -155,7 +155,13 @@ export default function Profile({
     api.userProfile(userId, { signal: controller.signal })
       .then((saved) => {
         setProfile((current) => current.id === userId
-          ? { ...current, avatarUrl: saved.avatarUrl || null }
+          ? {
+            ...current,
+            name: saved.name || current.name,
+            email: saved.email || current.email,
+            role: saved.role || current.role,
+            avatarUrl: saved.avatarUrl || null,
+          }
           : current);
       })
       .catch(() => {});
@@ -409,7 +415,7 @@ export default function Profile({
               </p>
             </div>
             <span className="account-demo-tag">
-              <i aria-hidden="true" /> Demo account
+              <i aria-hidden="true" /> Signed-in account
             </span>
           </header>
         </GlassSurface>

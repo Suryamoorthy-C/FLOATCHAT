@@ -4,6 +4,8 @@
 create table if not exists public.user_profiles (
   user_id text primary key,
   email text,
+  display_name text,
+  role text,
   min_temperature_c double precision,
   max_temperature_c double precision,
   min_pressure_dbar double precision,
@@ -15,6 +17,9 @@ create table if not exists public.user_profiles (
 );
 
 create index if not exists user_profiles_updated_at_idx on public.user_profiles (updated_at desc);
+
+alter table public.user_profiles add column if not exists display_name text;
+alter table public.user_profiles add column if not exists role text;
 
 -- The Python API uses the service-role key, so client roles cannot access this table.
 alter table public.user_profiles enable row level security;

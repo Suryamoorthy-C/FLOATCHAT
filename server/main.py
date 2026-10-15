@@ -5,7 +5,7 @@ import json
 import sqlite3
 from typing import Any
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field, root_validator
@@ -22,12 +22,31 @@ from .profile_avatars import (
     ProfileAvatarStore,
     sanitize_avatar,
 )
-from .supabase_store import SupabaseStoreError
+from .supabase_store import SupabaseStore, SupabaseStoreError
 
 app = FastAPI(title="FLOATCHAT API", version="0.3.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 threshold_store = ThresholdStore()
 profile_avatar_store = ProfileAvatarStore()
+auth_store = SupabaseStore()
+
+
+def require_current_user(request: Request) -> dict[str, Any]:
+    authorization = request.headers.get("authorization", "")
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token.strip():
+        raise HTTPException(status_code=401, detail="A valid Supabase session is required.")
+    try:
+        return auth_store.auth_user(token.strip())
+    except PermissionError as exc:
+        raise HTTPException(status_code=401, detail="Your Supabase session has expired. Sign in again.") from exc
+    except SupabaseStoreError as exc:
+        raise HTTPException(status_code=503, detail="Supabase Auth is unavailable.") from exc
+
+
+def require_owned_user(user_id: str, current_user: dict[str, Any]) -> None:
+    if str(current_user.get("id", "")) != str(user_id):
+        raise HTTPException(status_code=403, detail="You can only access your own account.")
 
 
 class ThresholdSettings(BaseModel):
@@ -50,6 +69,12 @@ class ThresholdProfileUpdate(BaseModel):
     thresholds: ThresholdSettings
 
 
+class AccountProfileUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    email: str = Field(min_length=3, max_length=254)
+    role: str = Field(default="Ocean research operator", max_length=120)
+
+
 class TelemetryIngest(BaseModel):
     user_id: str = Field(min_length=1, max_length=120)
     device_id: str = Field(min_length=1, max_length=120)
@@ -70,8 +95,14 @@ def health():
     return {"status": "ok", "service": "floatchat-api", "data_source": fleet.get("source"), "live": fleet.get("live", False), "fetched_at": fleet.get("fetched_at"), "query_engine": "structured-evidence-v1"}
 
 
+@app.get("/api/auth/me")
+def auth_me(current_user: dict[str, Any] = Depends(require_current_user)):
+    return {"user": current_user}
+
+
 @app.get("/api/users/{user_id}/thresholds")
-def get_user_thresholds(user_id: str):
+def get_user_thresholds(user_id: str, current_user: dict[str, Any] = Depends(require_current_user)):
+    require_owned_user(user_id, current_user)
     profile = threshold_store.get(user_id)
     if profile is None:
         return {"user_id": user_id, "email": None, "thresholds": Thresholds().as_dict(), "updated_at": None}
@@ -79,12 +110,22 @@ def get_user_thresholds(user_id: str):
 
 
 @app.put("/api/users/{user_id}/thresholds")
-def save_user_thresholds(user_id: str, payload: ThresholdProfileUpdate):
+def save_user_thresholds(user_id: str, payload: ThresholdProfileUpdate, current_user: dict[str, Any] = Depends(require_current_user)):
+    require_owned_user(user_id, current_user)
     return threshold_store.save(user_id, payload.email, Thresholds(**payload.thresholds.dict()))
 
 
+@app.put("/api/me/profile")
+def save_my_profile(payload: AccountProfileUpdate, current_user: dict[str, Any] = Depends(require_current_user)):
+    return profile_avatar_store.save_profile(
+        str(current_user["id"]),
+        {"display_name": payload.name, "email": payload.email, "role": payload.role},
+    )
+
+
 @app.get("/api/users/{user_id}/profile")
-def get_user_profile(user_id: str):
+def get_user_profile(user_id: str, current_user: dict[str, Any] = Depends(require_current_user)):
+    require_owned_user(user_id, current_user)
     try:
         return profile_avatar_store.get_profile(user_id)
     except AvatarUploadError as exc:
@@ -94,8 +135,9 @@ def get_user_profile(user_id: str):
 
 
 @app.post("/api/users/{user_id}/avatar")
-async def upload_user_avatar(user_id: str, file: UploadFile = File(...)):
+async def upload_user_avatar(user_id: str, file: UploadFile = File(...), current_user: dict[str, Any] = Depends(require_current_user)):
     """Validate, sanitize, and persist a JPEG/PNG profile image."""
+    require_owned_user(user_id, current_user)
     if file.content_type not in {None, "application/octet-stream", *ALLOWED_IMAGE_FORMATS.values()}:
         await file.close()
         raise HTTPException(status_code=415, detail="Only JPEG and PNG images are supported.")
@@ -115,7 +157,8 @@ async def upload_user_avatar(user_id: str, file: UploadFile = File(...)):
 
 
 @app.get("/api/users/{user_id}/avatar")
-def get_user_avatar(user_id: str):
+def get_user_avatar(user_id: str, current_user: dict[str, Any] = Depends(require_current_user)):
+    require_owned_user(user_id, current_user)
     try:
         avatar = profile_avatar_store.get_avatar(user_id)
     except (AvatarUploadError, SupabaseStoreError) as exc:
@@ -135,7 +178,8 @@ def get_user_avatar(user_id: str):
 
 
 @app.delete("/api/users/{user_id}/avatar")
-def delete_user_avatar(user_id: str):
+def delete_user_avatar(user_id: str, current_user: dict[str, Any] = Depends(require_current_user)):
+    require_owned_user(user_id, current_user)
     try:
         return profile_avatar_store.delete_avatar(user_id)
     except (AvatarUploadError, SupabaseStoreError) as exc:

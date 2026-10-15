@@ -90,8 +90,14 @@ class ProfileAvatarStore:
         with self._connect() as db:
             db.execute("""CREATE TABLE IF NOT EXISTS user_profiles (
                 user_id TEXT PRIMARY KEY, avatar_url TEXT, avatar_data BLOB,
-                avatar_mime_type TEXT, avatar_updated_at TEXT
+                avatar_mime_type TEXT, avatar_updated_at TEXT,
+                display_name TEXT, email TEXT, role TEXT
             )""")
+            for column in ("display_name", "email", "role"):
+                try:
+                    db.execute(f"ALTER TABLE user_profiles ADD COLUMN {column} TEXT")
+                except sqlite3.OperationalError:
+                    pass
 
     @staticmethod
     def _avatar_url(user_id: str, updated_at: str | None) -> str | None:
@@ -106,9 +112,31 @@ class ProfileAvatarStore:
             updated_at = row.get("avatar_updated_at") if row else None
         else:
             with self._connect() as db:
-                row = db.execute("SELECT avatar_updated_at FROM user_profiles WHERE user_id = ?", (user_id,)).fetchone()
+                row = db.execute("SELECT avatar_updated_at, display_name, email, role FROM user_profiles WHERE user_id = ?", (user_id,)).fetchone()
             updated_at = row["avatar_updated_at"] if row else None
-        return {"user_id": user_id, "avatarUrl": self._avatar_url(user_id, updated_at), "updated_at": updated_at}
+        return {
+            "user_id": user_id,
+            "avatarUrl": self._avatar_url(user_id, updated_at),
+            "updated_at": updated_at,
+            "name": row.get("display_name") if isinstance(row, dict) else (row["display_name"] if row else None),
+            "email": row.get("email") if isinstance(row, dict) else (row["email"] if row else None),
+            "role": row.get("role") if isinstance(row, dict) else (row["role"] if row else None),
+        }
+
+    def save_profile(self, user_id: str, values: dict[str, Any]) -> dict[str, Any]:
+        validate_user_id(user_id)
+        display_name = str(values.get("display_name") or "").strip()
+        email = str(values.get("email") or "").strip()
+        role = str(values.get("role") or "Ocean research operator").strip()
+        if self.use_supabase:
+            row = self.supabase.upsert_profile({"user_id": user_id, "display_name": display_name, "email": email, "role": role})
+            return {"user_id": user_id, "name": row.get("display_name", display_name), "email": row.get("email", email), "role": row.get("role", role), "avatarUrl": self._avatar_url(user_id, row.get("avatar_updated_at")), "updated_at": row.get("updated_at")}
+        with self._connect() as db:
+            db.execute("""INSERT INTO user_profiles (user_id, display_name, email, role)
+                VALUES (?, ?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET display_name=excluded.display_name,
+                email=excluded.email, role=excluded.role""", (user_id, display_name, email, role))
+            row = db.execute("SELECT avatar_updated_at FROM user_profiles WHERE user_id = ?", (user_id,)).fetchone()
+        return {"user_id": user_id, "name": display_name, "email": email, "role": role, "avatarUrl": self._avatar_url(user_id, row["avatar_updated_at"] if row else None), "updated_at": None}
 
     def get_avatar(self, user_id: str) -> tuple[bytes, str, str] | None:
         validate_user_id(user_id)

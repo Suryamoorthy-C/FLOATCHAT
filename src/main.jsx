@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import Header from './components/Header';
@@ -8,9 +8,12 @@ import Platform from './pages/Platform';
 import Data from './pages/Data';
 import Docs from './pages/Docs';
 import PearlZones from './pages/PearlZones';
+import Login from './pages/Login';
 import SiteRippleBackground from './components/SiteRippleBackground';
 import { navigate, useRoute, useSection } from './router';
 import { scrollToElement, startSmoothScroll } from './smoothScroll';
+import { getSession, signOut } from './auth';
+import { api } from './api';
 import './theme/tokens.css';
 import './theme/base.css';
 // The shell's own views use the shared page primitives, so make that guarantee
@@ -54,6 +57,36 @@ function ProfileFallback() {
   );
 }
 
+function AuthenticatedProfile() {
+  const [session, setSession] = useState(undefined);
+
+  useEffect(() => {
+    getSession().then((current) => {
+      if (!current) navigate('/login');
+      setSession(current || null);
+    });
+  }, []);
+
+  if (session === undefined || !session) return <ProfileFallback />;
+
+  const user = session.user || {};
+  const metadata = user.user_metadata || {};
+  const profile = {
+    id: user.id,
+    name: metadata.display_name || metadata.full_name || user.email?.split('@')[0] || 'FloatChat user',
+    email: user.email || '',
+    role: metadata.role || 'Ocean research operator',
+  };
+
+  return (
+    <ProfilePage
+      data={{ profile }}
+      onProfileSave={(nextProfile) => api.updateUserProfile(nextProfile)}
+      onLogout={async () => { await signOut(); navigate('/login'); }}
+    />
+  );
+}
+
 function App() {
   const path = useRoute();
   const section = useSection();
@@ -69,11 +102,12 @@ function App() {
   }, [path, section]);
 
   if (path === '/console') return <LegacyConsoleRedirect />;
+  if (path === '/login') return <Login />;
 
   if (path === '/profile') {
     return (
       <Suspense fallback={<ProfileFallback />}>
-        <ProfilePage />
+        <AuthenticatedProfile />
       </Suspense>
     );
   }

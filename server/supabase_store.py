@@ -20,6 +20,7 @@ class SupabaseStore:
     def __init__(self, url: str | None = None, service_role_key: str | None = None):
         self.url = (url or os.getenv("SUPABASE_URL", "")).rstrip("/")
         self.key = service_role_key or os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+        self.auth_key = os.getenv("SUPABASE_ANON_KEY", "") or self.key
         self.bucket = os.getenv("SUPABASE_AVATAR_BUCKET", "avatars")
         self.timeout = float(os.getenv("SUPABASE_TIMEOUT_SECONDS", "12"))
 
@@ -34,6 +35,28 @@ class SupabaseStore:
             "Authorization": f"Bearer {self.key}",
             "Accept": "application/json",
         }
+
+    def auth_user(self, access_token: str) -> dict[str, Any]:
+        """Verify a Supabase access token through the Auth user endpoint."""
+        if not self.url or not self.auth_key:
+            raise SupabaseStoreError("Supabase Auth is not configured.")
+        try:
+            response = requests.get(
+                f"{self.url}/auth/v1/user",
+                headers={
+                    "apikey": self.auth_key,
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/json",
+                },
+                timeout=self.timeout,
+            )
+        except requests.RequestException as exc:
+            raise SupabaseStoreError("Supabase Auth is unavailable.") from exc
+        if response.status_code in {401, 403}:
+            raise PermissionError("Invalid or expired Supabase session.")
+        if not response.ok:
+            raise SupabaseStoreError(f"Supabase Auth request failed ({response.status_code}).")
+        return response.json()
 
     def _request(self, method: str, path: str, **kwargs: Any) -> requests.Response:
         if not self.configured:

@@ -25,6 +25,13 @@ const RAW_BASE = import.meta.env.VITE_API_BASE_URL || ''
 export const API_BASE = RAW_BASE.replace(/\/+$/, '')
 export const isLiveConfigured = Boolean(API_BASE) || import.meta.env.DEV
 
+import { getAccessToken } from './auth';
+
+function authHeaders(headers = {}) {
+  const token = getAccessToken()
+  return { ...headers, ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+}
+
 /** Build a fully-qualified request URL, appending only defined params. */
 function buildUrl(path, params) {
   const search = new URLSearchParams()
@@ -47,7 +54,7 @@ async function getJSON(path, params, { timeout = 12000, signal } = {}) {
   try {
     const res = await fetch(buildUrl(path, params), {
       signal: controller.signal,
-      headers: { accept: 'application/json' },
+      headers: authHeaders({ accept: 'application/json' }),
     })
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
     return await res.json()
@@ -67,7 +74,7 @@ async function postJSON(path, payload, { timeout = 12000, signal } = {}) {
     const res = await fetch(buildUrl(path), {
       method: 'POST',
       signal: controller.signal,
-      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      headers: authHeaders({ accept: 'application/json', 'content-type': 'application/json' }),
       body: JSON.stringify(payload),
     })
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
@@ -88,7 +95,7 @@ async function putJSON(path, payload, { timeout = 12000, signal } = {}) {
     const res = await fetch(buildUrl(path), {
       method: 'PUT',
       signal: controller.signal,
-      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      headers: authHeaders({ accept: 'application/json', 'content-type': 'application/json' }),
       body: JSON.stringify(payload),
     })
     if (!res.ok) {
@@ -114,7 +121,7 @@ async function postFile(path, file, { timeout = 30000, signal } = {}) {
     const res = await fetch(buildUrl(path), {
       method: 'POST',
       signal: controller.signal,
-      headers: { accept: 'application/json' },
+      headers: authHeaders({ accept: 'application/json' }),
       body: form,
     })
     if (!res.ok) {
@@ -137,7 +144,7 @@ async function deleteJSON(path, { timeout = 12000, signal } = {}) {
     const res = await fetch(buildUrl(path), {
       method: 'DELETE',
       signal: controller.signal,
-      headers: { accept: 'application/json' },
+      headers: authHeaders({ accept: 'application/json' }),
     })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
@@ -188,6 +195,7 @@ export const api = {
     const profile = await getJSON(`/api/users/${encodeURIComponent(userId)}/profile`, null, opts)
     return { ...profile, avatarUrl: resolveApiResource(profile.avatarUrl) }
   },
+  updateUserProfile: (profile, opts) => putJSON('/api/me/profile', profile, opts),
   uploadUserAvatar: async (userId, file, opts) => {
     const profile = await postFile(`/api/users/${encodeURIComponent(userId)}/avatar`, file, opts)
     return { ...profile, avatarUrl: resolveApiResource(profile.avatarUrl) }
@@ -236,7 +244,7 @@ export async function streamChat(message, { history = [], context = {}, onToken,
   try {
     const res = await fetch(buildUrl('/api/chat'), {
       method: 'POST',
-      headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+      headers: authHeaders({ 'content-type': 'application/json', accept: 'text/event-stream' }),
       body: JSON.stringify({ message, history: history.slice(-12), context }),
       signal,
     })
