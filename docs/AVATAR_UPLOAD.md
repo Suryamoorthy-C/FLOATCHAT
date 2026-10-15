@@ -21,9 +21,9 @@ The API accepts JPEG/PNG only and limits uploads to **4 MiB** to leave multipart
 
 ## Persistence
 
-The `user_profiles` SQLite table stores `user_id`, `avatar_url`, `avatar_data` (BLOB), `avatar_mime_type`, and `avatar_updated_at`. It uses the same `FLOATCHAT_DB_PATH` database as the existing alert store. Locally, install the Python requirements and run the API as described in `REAL_DATA.md`; the default database file is `./data/floatchat.sqlite3` and is git-ignored.
+Production stores avatar metadata in the Supabase `user_profiles` table and sanitized bytes in the private `avatars` Supabase Storage bucket. Run `supabase/migrations/20261015000000_floatchat_profiles.sql` once and configure `SUPABASE_URL` plus the server-only `SUPABASE_SERVICE_ROLE_KEY`. Locally, when those variables are absent, the SQLite fallback uses the same `FLOATCHAT_DB_PATH` database as the alert store; the default database file is `./data/floatchat.sqlite3` and is git-ignored.
 
-**Deployment note:** standard Vercel serverless functions do not provide a durable writable local filesystem. The SQLite implementation is suitable for local development and a persistent single-host deployment, but Vercel production photos can disappear between instances unless `ProfileAvatarStore` is backed by a managed database/object store. Set up that durable store before relying on long-term profile-photo persistence in production. The app currently has no authentication provider; in a real multi-user deployment, derive `user_id` from a verified session/token instead of trusting the URL parameter.
+**Deployment note:** the Vercel production path uses Supabase so profiles and photos persist across function instances. The app currently has no authentication provider; in a real multi-user deployment, derive `user_id` from a verified session/token instead of trusting the URL parameter.
 
 ## Dependencies
 

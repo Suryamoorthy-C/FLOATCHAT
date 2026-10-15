@@ -11,7 +11,7 @@ The profile page (`src/pages/Profile.jsx`) reads and saves the four nullable fie
 
 A `null` bound is disabled. Equality is not a breach: a notification occurs only when a reading is strictly below its configured minimum or strictly above its configured maximum. Bounds are validated and minimum must be less than maximum. The user table is initialized by `server/threshold_alerts.py`; `docs/profile-subscription.schema.json` describes the matching client profile shape.
 
-SQLite database location is set with `FLOATCHAT_DB_PATH` (default `./data/floatchat.sqlite3`). SQLite is suitable for local development and a single service with durable local storage. Serverless or multi-instance deployments need a durable shared database (for example managed Postgres); Vercel function-local filesystems are not durable.
+Production uses Supabase Postgres through `SUPABASE_URL` and the server-only `SUPABASE_SERVICE_ROLE_KEY`. Run `supabase/migrations/20261015000000_floatchat_profiles.sql` once in the Supabase SQL Editor before deploying. Local development and tests can omit those variables and use SQLite at `FLOATCHAT_DB_PATH` (default `./data/floatchat.sqlite3`).
 
 ## Email configuration
 

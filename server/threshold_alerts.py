@@ -1,8 +1,8 @@
-"""Persistence and evaluation for user-defined agro-float threshold alerts.
+"""Persistence and evaluation for user-defined threshold alerts.
 
-SQLite is a practical single-process prototype store. Production deployments
-should point FLOATCHAT_DB_PATH at durable shared storage / replace this module
-with the application's managed database and derive user_id from authentication.
+Production uses Supabase Postgres when SUPABASE_URL and
+SUPABASE_SERVICE_ROLE_KEY are configured. Explicit SQLite paths remain
+available for local development and the unit tests.
 """
 from __future__ import annotations
 
@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any
 
 import requests
+
+from .supabase_store import SupabaseStore, SupabaseStoreError
 
 
 @dataclass(frozen=True)
@@ -29,8 +31,11 @@ class Thresholds:
 
 class ThresholdStore:
     def __init__(self, db_path: str | None = None):
+        self.use_supabase = db_path is None and bool(os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_SERVICE_ROLE_KEY"))
         self.db_path = db_path or os.getenv("FLOATCHAT_DB_PATH", "./data/floatchat.sqlite3")
-        self._initialize()
+        self.supabase = SupabaseStore() if self.use_supabase else None
+        if not self.use_supabase:
+            self._initialize()
 
     def _connect(self) -> sqlite3.Connection:
         if self.db_path != ":memory:":
@@ -42,38 +47,38 @@ class ThresholdStore:
     def _initialize(self) -> None:
         with self._connect() as db:
             db.execute("""CREATE TABLE IF NOT EXISTS users (
-                user_id TEXT PRIMARY KEY,
-                email TEXT NOT NULL,
-                min_temperature_c REAL,
-                max_temperature_c REAL,
-                min_pressure_dbar REAL,
-                max_pressure_dbar REAL,
+                user_id TEXT PRIMARY KEY, email TEXT NOT NULL,
+                min_temperature_c REAL, max_temperature_c REAL,
+                min_pressure_dbar REAL, max_pressure_dbar REAL,
                 updated_at TEXT NOT NULL
             )""")
 
+    @staticmethod
+    def _from_row(row: dict[str, Any]) -> dict[str, Any]:
+        return {"user_id": row["user_id"], "email": row["email"], "thresholds": {
+            key: row.get(key) for key in Thresholds.__dataclass_fields__
+        }, "updated_at": row["updated_at"]}
+
     def get(self, user_id: str) -> dict[str, Any] | None:
+        if self.use_supabase:
+            row = self.supabase.select_profile(user_id)
+            return self._from_row(row) if row else None
         with self._connect() as db:
             row = db.execute("SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchone()
-        if row is None:
-            return None
-        return {"user_id": row["user_id"], "email": row["email"], "thresholds": {
-            key: row[key] for key in Thresholds.__dataclass_fields__
-        }, "updated_at": row["updated_at"]}
+        return self._from_row(dict(row)) if row else None
 
     def save(self, user_id: str, email: str, thresholds: Thresholds) -> dict[str, Any]:
         values = thresholds.as_dict()
         updated_at = datetime.now(timezone.utc).isoformat()
+        if self.use_supabase:
+            row = self.supabase.upsert_profile({"user_id": user_id, "email": email, **values, "updated_at": updated_at})
+            return self._from_row(row)
         with self._connect() as db:
-            db.execute("""INSERT INTO users (
-                user_id, email, min_temperature_c, max_temperature_c,
-                min_pressure_dbar, max_pressure_dbar, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(user_id) DO UPDATE SET
-                email=excluded.email,
-                min_temperature_c=excluded.min_temperature_c,
-                max_temperature_c=excluded.max_temperature_c,
-                min_pressure_dbar=excluded.min_pressure_dbar,
-                max_pressure_dbar=excluded.max_pressure_dbar,
+            db.execute("""INSERT INTO users (user_id, email, min_temperature_c, max_temperature_c,
+                min_pressure_dbar, max_pressure_dbar, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET email=excluded.email,
+                min_temperature_c=excluded.min_temperature_c, max_temperature_c=excluded.max_temperature_c,
+                min_pressure_dbar=excluded.min_pressure_dbar, max_pressure_dbar=excluded.max_pressure_dbar,
                 updated_at=excluded.updated_at""",
                 (user_id, email, values["min_temperature_c"], values["max_temperature_c"],
                  values["min_pressure_dbar"], values["max_pressure_dbar"], updated_at))
@@ -81,13 +86,10 @@ class ThresholdStore:
 
 
 def evaluate_thresholds(reading: dict[str, Any], thresholds: Thresholds) -> list[dict[str, Any]]:
-    """Return one breach per metric when a configured bound is exceeded."""
     timestamp = reading.get("observed_at") or datetime.now(timezone.utc).isoformat()
     breaches: list[dict[str, Any]] = []
-    metrics = (
-        ("temperature_c", "Temperature", "°C", thresholds.min_temperature_c, thresholds.max_temperature_c),
-        ("pressure_dbar", "Pressure / depth", "dbar", thresholds.min_pressure_dbar, thresholds.max_pressure_dbar),
-    )
+    metrics = (("temperature_c", "Temperature", "°C", thresholds.min_temperature_c, thresholds.max_temperature_c),
+               ("pressure_dbar", "Pressure / depth", "dbar", thresholds.min_pressure_dbar, thresholds.max_pressure_dbar))
     for key, label, unit, lower, upper in metrics:
         value = reading.get(key)
         if value is None:
@@ -97,39 +99,29 @@ def evaluate_thresholds(reading: dict[str, Any], thresholds: Thresholds) -> list
         except (TypeError, ValueError):
             continue
         if lower is not None and numeric < lower:
-            breaches.append({"metric": key, "label": label, "reading": numeric, "unit": unit,
-                             "bound": "minimum", "threshold": lower, "observed_at": timestamp})
+            breaches.append({"metric": key, "label": label, "reading": numeric, "unit": unit, "bound": "minimum", "threshold": lower, "observed_at": timestamp})
         if upper is not None and numeric > upper:
-            breaches.append({"metric": key, "label": label, "reading": numeric, "unit": unit,
-                             "bound": "maximum", "threshold": upper, "observed_at": timestamp})
+            breaches.append({"metric": key, "label": label, "reading": numeric, "unit": unit, "bound": "maximum", "threshold": upper, "observed_at": timestamp})
     return breaches
 
 
 def send_resend_alert(email: str, device_id: str, breach: dict[str, Any]) -> dict[str, Any]:
-    """Send a single alert via Resend. Missing credentials are reported, not faked."""
-    api_key = os.getenv("RESEND_API_KEY")
-    sender = os.getenv("ALERT_FROM_EMAIL")
+    api_key, sender = os.getenv("RESEND_API_KEY"), os.getenv("ALERT_FROM_EMAIL")
     if not api_key or not sender:
         return {"sent": False, "reason": "Email is not configured (set RESEND_API_KEY and ALERT_FROM_EMAIL)."}
     timestamp = str(breach["observed_at"])
-    subject = f"Float alert: {breach['label']} {breach['bound']} threshold breached"
-    body = (f"Agro-float {device_id} crossed your custom {breach['bound']} {breach['label'].lower()} threshold.\n\n"
-            f"Custom threshold: {breach['threshold']} {breach['unit']}\n"
-            f"Live reading: {breach['reading']} {breach['unit']}\n"
-            f"Observed at: {timestamp}\n")
     response = requests.post("https://api.resend.com/emails", json={
-        "from": sender,
-        "to": [email],
-        "subject": subject,
-        "text": body,
+        "from": sender, "to": [email],
+        "subject": f"Float alert: {breach['label']} {breach['bound']} threshold breached",
+        "text": (f"Agro-float {device_id} crossed your custom {breach['bound']} {breach['label'].lower()} threshold.\n\n"
+                  f"Custom threshold: {breach['threshold']} {breach['unit']}\nLive reading: {breach['reading']} {breach['unit']}\nObserved at: {timestamp}\n")
     }, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, timeout=10)
     if not response.ok:
         return {"sent": False, "reason": f"Email provider returned HTTP {response.status_code}."}
     return {"sent": True, "provider_id": response.json().get("id")}
 
 
-def check_and_notify(store: ThresholdStore, user_id: str, reading: dict[str, Any],
-                     sender=send_resend_alert) -> dict[str, Any]:
+def check_and_notify(store: ThresholdStore, user_id: str, reading: dict[str, Any], sender=send_resend_alert) -> dict[str, Any]:
     user = store.get(user_id)
     if user is None:
         return {"user_id": user_id, "breaches": [], "notifications": [], "reason": "No saved threshold profile for this user."}

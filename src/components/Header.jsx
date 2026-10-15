@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import GooeyNav from './GooeyNav';
 import SpecularButton from './SpecularButton';
-import { Link } from '../router';
+import { Link, navigate } from '../router';
 import { CONSOLE_PATH, GITHUB_URL, PROFILE_PATH } from '../routes';
 import { scrollToElement } from '../smoothScroll';
 import './Header.css';
@@ -10,15 +10,15 @@ import './Header.css';
  * Site header — GooeyNav pill nav over a single scrolling page.
  *
  * There are no route redirects between sections: every nav item is a button
- * that smooth-scrolls to its section (home → platform → live data → docs),
- * and a scroll-spy keeps the gooey pill on whichever section is in view.
- * The operations console stays a real route behind the CTA.
+ * that smooth-scrolls to its section, with the console as the route entry in
+ * the former Pearl data slot. Pearl data stays available as a standalone
+ * route behind the right-side CTA.
  */
 const SECTIONS = [
   { label: 'Home', id: 'home' },
   { label: 'Platform', id: 'platform' },
   { label: 'Live data', id: 'data' },
-  { label: 'Pearl zones', id: 'pearl-zones' },
+  { label: 'Launch console', route: CONSOLE_PATH },
   { label: 'Docs', id: 'docs' }
 ];
 
@@ -36,12 +36,12 @@ export default function Header() {
 
   // Scroll-spy: the section crossing the middle of the viewport owns the pill.
   useEffect(() => {
-    const ids = SECTIONS.map(section => section.id);
+    const ids = SECTIONS.map(section => section.id).filter(Boolean);
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
           if (!entry.isIntersecting) return;
-          const index = ids.indexOf(entry.target.id);
+          const index = SECTIONS.findIndex(section => section.id === entry.target.id);
           if (index >= 0) setActive(index);
         });
       },
@@ -57,7 +57,12 @@ export default function Header() {
   const go = index => {
     setActive(index);
     setMobileOpen(false);
-    scrollToElement(document.getElementById(SECTIONS[index].id), { duration: 0.95 });
+    const section = SECTIONS[index];
+    if (section.route) {
+      navigate(section.route);
+      return;
+    }
+    scrollToElement(document.getElementById(section.id), { duration: 0.95 });
   };
 
   return (
@@ -100,8 +105,8 @@ export default function Header() {
           >
             Source
           </a>
-          <SpecularButton as={Link} to={CONSOLE_PATH} size="md" className="site-header__cta">
-            Launch console <span aria-hidden="true">→</span>
+          <SpecularButton as={Link} to="/pearl-zones" size="md" className="site-header__cta">
+            Pearl data <span aria-hidden="true">→</span>
           </SpecularButton>
         </div>
       </div>
@@ -129,8 +134,8 @@ export default function Header() {
             <SpecularButton as={Link} to={PROFILE_PATH} size="md" className="site-header__panel-cta site-header__panel-account" onClick={() => setMobileOpen(false)}>
               Profile &amp; plans <span aria-hidden="true">→</span>
             </SpecularButton>
-            <SpecularButton as={Link} to={CONSOLE_PATH} size="md" className="site-header__panel-cta" onClick={() => setMobileOpen(false)}>
-              Launch console <span aria-hidden="true">→</span>
+            <SpecularButton as={Link} to="/pearl-zones" size="md" className="site-header__panel-cta" onClick={() => setMobileOpen(false)}>
+              Pearl data <span aria-hidden="true">→</span>
             </SpecularButton>
           </div>
         </div>

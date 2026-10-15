@@ -42,3 +42,12 @@
 ## Smooth scrolling and 4G performance
 - [x] Lenis handles page-wheel and section navigation while preserving native touch scrolling and reduced-motion behavior; console/profile routes are excluded from the home-page section scroller, and the Pearl deep-link re-aligns after asynchronously loaded Live Data changes layout, unless the user takes control.
 - [x] Defer the heavy Pearl globe and profile chunks, and progressively render Live Data in 100-row batches with an accessible Show More action so the entire API result remains available without creating a 1,100-row DOM at once.
+
+## Supabase backend migration
+- [x] Preserve the existing FastAPI routes and frontend API response shapes while replacing Vercel-unsafe persistence paths.
+- [x] Add Supabase Postgres persistence for threshold profiles using server-only credentials.
+- [x] Add private Supabase Storage persistence for sanitized JPEG/PNG avatars.
+- [x] Keep explicit SQLite fallback behavior for local development and unit tests when Supabase variables are absent.
+- [x] Add a repeatable Supabase SQL migration and deployment documentation.
+- [ ] Run the migration in the user’s Supabase project and configure Vercel Production/Preview environment variables.
+- [ ] Push the verified changes to `Suryamoorthy-C/FLOATCHAT` and deploy the connected Vercel project.

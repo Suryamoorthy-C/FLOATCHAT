@@ -22,6 +22,7 @@ from .profile_avatars import (
     ProfileAvatarStore,
     sanitize_avatar,
 )
+from .supabase_store import SupabaseStoreError
 
 app = FastAPI(title="FLOATCHAT API", version="0.3.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -88,6 +89,8 @@ def get_user_profile(user_id: str):
         return profile_avatar_store.get_profile(user_id)
     except AvatarUploadError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except SupabaseStoreError as exc:
+        raise HTTPException(status_code=503, detail="Profile storage is unavailable.") from exc
 
 
 @app.post("/api/users/{user_id}/avatar")
@@ -107,7 +110,7 @@ async def upload_user_avatar(user_id: str, file: UploadFile = File(...)):
         return profile_avatar_store.save_avatar(user_id, sanitized, mime_type)
     except AvatarUploadError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except (OSError, sqlite3.Error) as exc:
+    except (OSError, sqlite3.Error, SupabaseStoreError) as exc:
         raise HTTPException(status_code=503, detail="Avatar storage is unavailable.") from exc
 
 
@@ -115,7 +118,7 @@ async def upload_user_avatar(user_id: str, file: UploadFile = File(...)):
 def get_user_avatar(user_id: str):
     try:
         avatar = profile_avatar_store.get_avatar(user_id)
-    except AvatarUploadError as exc:
+    except (AvatarUploadError, SupabaseStoreError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     if avatar is None:
         raise HTTPException(status_code=404, detail="No profile photo is saved for this user.")
@@ -135,7 +138,7 @@ def get_user_avatar(user_id: str):
 def delete_user_avatar(user_id: str):
     try:
         return profile_avatar_store.delete_avatar(user_id)
-    except AvatarUploadError as exc:
+    except (AvatarUploadError, SupabaseStoreError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
