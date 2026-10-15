@@ -23,6 +23,7 @@ from .profile_avatars import (
     sanitize_avatar,
 )
 from .supabase_store import SupabaseStore, SupabaseStoreError
+from .mirofish_bridge import MiroFishBridgeError, seed_scenario, status as mirofish_status
 
 app = FastAPI(title="FLOATCHAT API", version="0.3.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -89,10 +90,29 @@ class ChatRequest(BaseModel):
     context: dict[str, Any] = Field(default_factory=dict)
 
 
+class MiroFishScenarioRequest(BaseModel):
+    requirement: str = Field(min_length=1, max_length=1200)
+    region: str | None = Field(default=None, max_length=80)
+    project_name: str | None = Field(default=None, max_length=120)
+
+
 @app.get("/api/health")
 def health():
     fleet = store.fleet()
     return {"status": "ok", "service": "floatchat-api", "data_source": fleet.get("source"), "live": fleet.get("live", False), "fetched_at": fleet.get("fetched_at"), "query_engine": "structured-evidence-v1"}
+
+
+@app.get("/api/mirofish/status")
+def mirofish_bridge_status():
+    return mirofish_status()
+
+
+@app.post("/api/mirofish/seed")
+def mirofish_seed(payload: MiroFishScenarioRequest):
+    try:
+        return seed_scenario(payload.requirement, payload.region, payload.project_name)
+    except MiroFishBridgeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/api/auth/me")

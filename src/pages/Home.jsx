@@ -14,6 +14,7 @@ import { scrollToElement } from '../smoothScroll';
 import './Home.css';
 import './HomeGlass.css';
 import './Console.css';
+import MiroFishScenario from '../components/MiroFishScenario';
 
 const ArgoExplodedView = lazy(() => import('../components/ArgoExplodedView'));
 
@@ -155,6 +156,7 @@ export default function Home() {
       </section>
 
       <HomeApiAndFishermen />
+      <MiroFishScenario />
 
     </>
   );
