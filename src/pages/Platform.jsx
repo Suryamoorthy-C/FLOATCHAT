@@ -59,9 +59,8 @@ export default function Platform() {
               A working console for the Argo fleet, with a chat interface over the top.
             </h1>
             <p className="page-head__lede">
-              FLOATCHAT reads the configured Argo data window and lets you interrogate it in plain
-              language. It is tuned for Indian Ocean questions, while the pipeline remains usable
-              for other regions when the source provides coverage.
+              FLOATCHAT reads the configured worldwide Argo data window and lets you interrogate it
+              in plain language, with Indian Ocean questions available as a focused regional view.
             </p>
           </header>
         </Reveal>

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Globe3D from '../components/Globe3D'
+import { WORLDWIDE_ARGO_FALLBACK } from '../data/argoFallback'
 import {
   Activity, ArrowUp, ChevronDown, Database, Download, Gauge, Loader2, Menu,
   Pause, Play, RefreshCw, RotateCcw, Send, Thermometer, Waves, X, Zap, Target,
@@ -8,16 +9,7 @@ import { api, streamChat, normaliseFloat } from '../api'
 import '../styles.css'
 
 /* Shown only when the API is unreachable, so the console still renders. */
-const FALLBACK_FLOATS = [
-  { platform_number: '2902746', project_name: 'Arabian Sea', lat: 12.8, lon: 72.4, status: 'active', temperature_c: 27.4, salinity_psu: 34.8, cycle: 184 },
-  { platform_number: '2902751', project_name: 'Bay of Bengal', lat: 16.2, lon: 80.1, status: 'active', temperature_c: 26.9, salinity_psu: 35.1, cycle: 97 },
-  { platform_number: '2902738', project_name: 'Arabian Sea', lat: 8.6, lon: 67.2, status: 'warning', temperature_c: 29.8, salinity_psu: 33.9, cycle: 201 },
-  { platform_number: '2902777', project_name: 'Bay of Bengal', lat: 20.4, lon: 91.3, status: 'active', temperature_c: 25.8, salinity_psu: 34.5, cycle: 65 },
-  { platform_number: '2902699', project_name: 'Equatorial Indian', lat: -2.4, lon: 78.5, status: 'offline', temperature_c: 26.1, salinity_psu: 34.7, cycle: 132 },
-  { platform_number: '2902712', project_name: 'Equatorial Indian', lat: 3.2, lon: 61.6, status: 'active', temperature_c: 28.2, salinity_psu: 34.2, cycle: 118 },
-  { platform_number: '2902810', project_name: 'Subtropical Gyre', lat: -22.1, lon: 76.4, status: 'active', temperature_c: 19.2, salinity_psu: 35.2, cycle: 44 },
-  { platform_number: '2902844', project_name: 'Southern Frontier', lat: -45.6, lon: 83.1, status: 'active', temperature_c: 8.4, salinity_psu: 34.3, cycle: 38 },
-]
+const FALLBACK_FLOATS = WORLDWIDE_ARGO_FALLBACK
 
 const QUICK_QUERIES = ['Salinity anomalies · BoB', 'Thermocline · Arabian Sea', 'Full 4D sweep']
 const STATUS_FILTERS = ['all', 'active', 'warning', 'offline']

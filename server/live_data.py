@@ -23,6 +23,15 @@ FALLBACK_FLOATS = [
     {"platform_number": "2902746", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": 12.8, "lon": 72.4, "status": "active", "temperature_c": 27.4, "salinity_psu": 34.8, "last_seen": "2026-10-14T09:34:00Z"},
     {"platform_number": "2902751", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": 16.2, "lon": 80.1, "status": "active", "temperature_c": 26.9, "salinity_psu": 35.1, "last_seen": "2026-10-14T09:28:00Z"},
     {"platform_number": "2902738", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": 8.6, "lon": 67.2, "status": "active", "temperature_c": 29.8, "salinity_psu": 33.9, "last_seen": "2026-10-14T09:20:00Z"},
+    {"platform_number": "2902777", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": 29.4, "lon": -148.2, "status": "active", "temperature_c": 22.1, "salinity_psu": 34.6, "last_seen": "2026-10-14T09:15:00Z"},
+    {"platform_number": "2902699", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": -2.4, "lon": 78.5, "status": "active", "temperature_c": 26.1, "salinity_psu": 34.7, "last_seen": "2026-10-14T09:10:00Z"},
+    {"platform_number": "2902712", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": -18.7, "lon": -24.8, "status": "active", "temperature_c": 21.4, "salinity_psu": 35.3, "last_seen": "2026-10-14T09:05:00Z"},
+    {"platform_number": "2902810", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": -22.1, "lon": 76.4, "status": "active", "temperature_c": 19.2, "salinity_psu": 35.2, "last_seen": "2026-10-14T09:00:00Z"},
+    {"platform_number": "2902844", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": -45.6, "lon": 83.1, "status": "active", "temperature_c": 8.4, "salinity_psu": 34.3, "last_seen": "2026-10-14T08:55:00Z"},
+    {"platform_number": "2902861", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": 39.6, "lon": -42.7, "status": "active", "temperature_c": 17.8, "salinity_psu": 35.5, "last_seen": "2026-10-14T08:50:00Z"},
+    {"platform_number": "2902875", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": -32.8, "lon": -111.5, "status": "active", "temperature_c": 16.7, "salinity_psu": 35.1, "last_seen": "2026-10-14T08:45:00Z"},
+    {"platform_number": "2902888", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": 35.1, "lon": 18.4, "status": "warning", "temperature_c": 23.9, "salinity_psu": 38.1, "last_seen": "2026-10-14T08:40:00Z"},
+    {"platform_number": "2902894", "project_name": "Global ARGO array", "pi_name": "ARGO", "lat": 4.8, "lon": 154.7, "status": "active", "temperature_c": 29.0, "salinity_psu": 34.4, "last_seen": "2026-10-14T08:35:00Z"},
 ]
 
 

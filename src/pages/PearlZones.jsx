@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { api } from '../api';
+import { api, normaliseFloat } from '../api';
+import { WORLDWIDE_ARGO_FALLBACK } from '../data/argoFallback';
 import './PearlZones.css';
 
 const Globe3D = lazy(() => import('../components/Globe3D'));
@@ -46,8 +47,10 @@ const INITIAL_METRICS = [
 const LAYERS = [
   { key: 'suitability', label: 'Suitability' },
   { key: 'depth', label: 'Graticule' },
-  { key: 'floats', label: 'Demo site markers' },
+  { key: 'floats', label: 'Worldwide Argo floats' },
 ];
+
+const GLOBAL_MARKER_LIMIT = 1600;
 
 function formatAge(timestamp) {
   const age = Math.max(0, Math.round((Date.now() - new Date(timestamp).getTime()) / 60000));
@@ -65,6 +68,8 @@ export default function PearlZones() {
   const [thresholds, setThresholds] = useState(null);
   const [dataMode, setDataMode] = useState('DEMO');
   const [busy, setBusy] = useState(true);
+  const [argoFloats, setArgoFloats] = useState(() => WORLDWIDE_ARGO_FALLBACK.map((row) => normaliseFloat(row)));
+  const [argoFeed, setArgoFeed] = useState({ live: false, source: 'Worldwide Argo fallback', fetchedAt: null });
 
   useEffect(() => {
     const host = globeHostRef.current;
@@ -85,6 +90,7 @@ export default function PearlZones() {
 
   const selectedSample = { ...DEMO_SAMPLES[selectedZone.id], species };
   const activeResult = result?.device_id === selectedSample.device_id && result?.species_profile === species ? result : null;
+  const argoMarkers = useMemo(() => argoFloats.slice(0, GLOBAL_MARKER_LIMIT), [argoFloats]);
   const pearlMarkers = useMemo(() => ZONES.map((zone) => {
     const sample = DEMO_SAMPLES[zone.id];
     return {
@@ -99,6 +105,27 @@ export default function PearlZones() {
       anomaly: sample.dissolved_oxygen_mg_l < 5 || sample.turbidity_ntu > 10,
     };
   }), []);
+
+  useEffect(() => {
+    let active = true;
+    api.floats({ live: true }, { timeout: 15000 })
+      .then((response) => {
+        if (!active) return;
+        const rows = response?.data?.length ? response.data : WORLDWIDE_ARGO_FALLBACK;
+        setArgoFloats(rows.map((row) => normaliseFloat(row)));
+        setArgoFeed({
+          live: Boolean(response?.live && response?.data?.length),
+          source: response?.source || 'Worldwide Argo fallback',
+          fetchedAt: response?.fetched_at || null,
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setArgoFloats(WORLDWIDE_ARGO_FALLBACK.map((row) => normaliseFloat(row)));
+        setArgoFeed({ live: false, source: 'Worldwide Argo fallback', fetchedAt: null });
+      });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -165,13 +192,13 @@ export default function PearlZones() {
               <option value="pinctada_maxima">Pinctada maxima</option>
               <option value="pinctada_fucata">Pinctada fucata · controlled study</option>
             </select>
-            <span className="pearl-demo-pill"><i />{dataMode}</span>
+            <span className="pearl-demo-pill"><i />{argoFeed.live ? 'LIVE WORLDWIDE ARGO' : dataMode}</span>
           </div>
         </header>
 
         <div className="pearl-notice" role="note">
           <span className="pearl-notice-mark">i</span>
-          <span><strong>Illustrative demo:</strong> the four records and map geometry are static UI samples, not live farm observations or navigation data. PPI is an environmental screen, not measured suitability or predicted pearl yield.</span>
+          <span><strong>Data boundary:</strong> worldwide Argo markers use the latest available global fleet window; the four local zone records remain illustrative samples, not live farm observations or navigation data. PPI is an environmental screen, not measured suitability or predicted pearl yield.</span>
         </div>
 
         <section className="pearl-kpis" aria-label="Area overview">
@@ -188,7 +215,7 @@ export default function PearlZones() {
         <section className="pearl-workspace">
           <div className="pearl-map-panel">
             <div className="pearl-panel-head">
-              <div><span className="pearl-panel-kicker">3D GLOBE / INDONESIAN SEAS · DEMO</span><h2>Environmental suitability</h2></div>
+              <div><span className="pearl-panel-kicker">3D GLOBE / WORLDWIDE ARGO + LOCAL SCREEN</span><h2>Environmental suitability</h2></div>
               <button className="pearl-map-reset" type="button" onClick={() => { setSelectedZone(ZONES[0]); setGlobeKey((key) => key + 1); }}>Reset view</button>
             </div>
             <div className="pearl-map pearl-globe-stage" ref={globeHostRef}>
@@ -196,7 +223,7 @@ export default function PearlZones() {
                 <Suspense fallback={<div className="globe-loading">INITIALIZING PEARL GLOBE…</div>}>
                   <Globe3D
                     key={globeKey}
-                    markers={layers.floats ? pearlMarkers : []}
+                    markers={layers.floats ? [...argoMarkers, ...pearlMarkers] : []}
                     mode={layers.suitability ? 'suitability' : 'telemetry'}
                     rotating
                     rotationSpeed={0.00012}
@@ -214,11 +241,11 @@ export default function PearlZones() {
               ) : (
                 <div className="globe-loading" aria-busy="true">INITIALIZING PEARL GLOBE…</div>
               )}
-              <div className="pearl-globe-caption">DRAG TO ROTATE · SCROLL TO ZOOM · DEMO COORDINATES · NOT FOR NAVIGATION</div>
+              <div className="pearl-globe-caption">DRAG TO ROTATE · SCROLL TO ZOOM · {argoFeed.live ? 'LIVE WORLDWIDE ARGO' : 'WORLDWIDE FALLBACK'} · NOT FOR NAVIGATION</div>
             </div>
             <div className="pearl-layer-row" aria-label="Map layers">
               {LAYERS.map((layer) => <button key={layer.key} type="button" className={layers[layer.key] ? 'active' : ''} aria-pressed={layers[layer.key]} onClick={() => toggleLayer(layer.key)}><i className={`layer-icon layer-icon--${layer.key}`} />{layer.label}</button>)}
-              <div className="pearl-map-time">Updated {formatAge(selectedSample.observed_at)}</div>
+              <div className="pearl-map-time">{argoFeed.live ? `ARGO updated ${formatAge(argoFeed.fetchedAt)}` : 'ARGO fallback markers'} · {argoMarkers.length} floats</div>
             </div>
             <div className="pearl-zone-pills" aria-label="Select a zone">
               {ZONES.map((zone) => <button key={zone.id} className={selectedZone.id === zone.id ? 'selected' : ''} type="button" onClick={() => setSelectedZone(zone)}><span className="zone-dot" />{zone.name}<b>—</b></button>)}
