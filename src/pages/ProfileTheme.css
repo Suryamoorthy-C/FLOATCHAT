@@ -755,26 +755,26 @@
    remain available for the uploader, thresholds, and established layouts.
    -------------------------------------------------------------------------- */
 .account-page {
-  --account-ink: #18161D;
-  --account-white: #FFFFFF;
-  --account-paper: #F0F1FA;
-  --account-gray: #C2C3C7;
-  --account-muted: #071BDF;
-  --account-color-primary: #071BDF;
-  --account-color-link: #1A2FFB;
-  --account-color-body: #D6E2EE;
-  --account-color-light: #F4F4F5;
-  --account-color-purple: #8832F7;
+  --account-ink: #e4f6f7;
+  --account-white: #0b171b;
+  --account-paper: #060d0d;
+  --account-gray: #29454d;
+  --account-muted: #86a5ad;
+  --account-color-primary: #c1ff00;
+  --account-color-link: #66e4e0;
+  --account-color-body: #c4dfe3;
+  --account-color-light: #f4ffff;
+  --account-color-purple: #66e4e0;
   --account-color-error: #E90000;
   --account-color-red: #FF4C41;
   --account-color-alert: #F40009;
-  --account-color-teal: #5CCFC6;
-  --account-color-aqua: #45DDCF;
+  --account-color-teal: #00f2fe;
+  --account-color-aqua: #66e4e0;
   --account-color-white-gray: #E4E6EF;
   --account-color-lime: #C1FF00;
-  --account-color-surface-aqua: #8DDBDD;
-  --account-color-surface-gold: #FFE58C;
-  --account-color-surface-mint: #9AFFF2;
+  --account-color-surface-aqua: #12343b;
+  --account-color-surface-gold: #17343a;
+  --account-color-surface-mint: #123f42;
   --account-color-cyan: #66E4E0;
   --account-font: "Space Grotesk", "Manrope", "Roboto Flex", Arial, "IBM Plex Mono", "Times New Roman", sans-serif;
   --account-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -828,7 +828,7 @@
   padding: var(--account-space-12) var(--account-space-11) var(--account-space-18);
   background: var(--account-paper);
   color: var(--account-ink);
-  color-scheme: light;
+  color-scheme: dark;
   font-family: var(--account-font);
   font-size: var(--account-text-base);
   font-weight: var(--account-weight-regular);
@@ -1117,4 +1117,70 @@
 .account-page .account-dialog-heading .account-eyebrow,
 .account-page .profile-card__status {
   text-transform: none;
+}
+
+/* Match the main FloatChat surface: lime is the signal accent; cyan carries
+   telemetry and secondary interaction states. */
+.account-page {
+  background:
+    radial-gradient(circle at 84% 0%, rgba(0, 242, 254, 0.12), transparent 34%),
+    radial-gradient(circle at 8% 72%, rgba(193, 255, 0, 0.06), transparent 30%),
+    var(--account-paper);
+}
+
+.account-page .account-brand__mark {
+  border-color: rgba(193, 255, 0, 0.55);
+  background: rgba(193, 255, 0, 0.1);
+  color: #c1ff00;
+}
+
+.account-page .account-brand:hover,
+.account-page .account-back:hover,
+.account-page .account-eyebrow span,
+.account-page .account-label,
+.account-page .account-threshold-row label > span {
+  color: #c1ff00;
+}
+
+.account-page .account-button,
+.account-page .account-plan-cta,
+.account-page .stepper__button.specular-button {
+  border-color: rgba(193, 255, 0, 0.38);
+  background: rgba(193, 255, 0, 0.08);
+  color: #e4f6f7;
+}
+
+.account-page .account-button:hover:not(:disabled),
+.account-page .account-plan-cta:hover:not(:disabled),
+.account-page .stepper__button.specular-button:hover:not(:disabled) {
+  border-color: #c1ff00;
+  background: rgba(193, 255, 0, 0.16);
+  color: #c1ff00;
+}
+
+.account-page .account-section-icon,
+.account-page .account-status {
+  border-color: rgba(0, 242, 254, 0.5);
+  background: rgba(0, 242, 254, 0.1);
+  color: #66e4e0;
+}
+
+.account-page .account-status i,
+.account-page .account-demo-tag i {
+  background: #c1ff00;
+  box-shadow: 0 0 11px rgba(193, 255, 0, 0.58);
+}
+
+.account-page .account-progress-track span {
+  background: linear-gradient(90deg, #00f2fe, #c1ff00);
+  box-shadow: 0 0 16px rgba(193, 255, 0, 0.3);
+}
+
+.account-page .account-button:focus-visible,
+.account-page .account-plan-cta:focus-visible,
+.account-page .account-dialog-close:focus-visible,
+.account-page .stepper__indicator:focus-visible,
+.account-page .stepper__button:focus-visible,
+.account-page .account-avatar-upload__remove:focus-visible {
+  outline-color: #c1ff00;
 }
