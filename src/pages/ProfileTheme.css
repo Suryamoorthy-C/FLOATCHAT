@@ -1200,3 +1200,320 @@
 .account-page .account-thresholds { order: 6; }
 .account-page .account-plans-section { order: 7; }
 .account-page .account-footer { order: 8; }
+
+/* --------------------------------------------------------------------------
+   Premium scientific account skin
+   Calm oceanographic dashboard palette: matte slate surfaces, restrained blue
+   actions, seafoam data cues, and muted green success states.
+   -------------------------------------------------------------------------- */
+.account-page {
+  --account-ink: #e8edf5;
+  --account-white: #111c2e;
+  --account-paper: #0b1220;
+  --account-gray: #2a394d;
+  --account-muted: #94a3b8;
+  --account-color-primary: #5b8def;
+  --account-color-link: #5b8def;
+  --account-color-body: #e8edf5;
+  --account-color-light: #e8edf5;
+  --account-color-purple: #7ccfc3;
+  --account-color-teal: #7ccfc3;
+  --account-color-aqua: #7ccfc3;
+  --account-color-lime: #5b8def;
+  --account-color-cyan: #7ccfc3;
+  --account-color-surface-aqua: #182538;
+  --account-color-surface-gold: #182538;
+  --account-color-surface-mint: #182538;
+  --account-color-white-gray: #2a394d;
+  --account-shadow-md: 0 4px 14px rgba(0, 0, 0, 0.16);
+  --account-shadow-lg: 0 6px 18px rgba(0, 0, 0, 0.18);
+  --account-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --account-shadow-card: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: #0b1220;
+  color: #e8edf5;
+}
+
+.account-page .account-orbit,
+.account-page .account-ripple-layer {
+  display: none;
+}
+
+.account-page .account-nav {
+  border-color: #2a394d;
+}
+
+.account-page .account-brand,
+.account-page .account-heading h1,
+.account-page .account-section-topline h2,
+.account-page .account-thresholds__heading h2,
+.account-page .account-plans-heading h2 {
+  color: #e8edf5;
+}
+
+.account-page .account-brand__mark {
+  border-color: #2a394d;
+  background: #111c2e;
+  color: #7ccfc3;
+}
+
+.account-page .account-brand__sub,
+.account-page .account-heading__lede,
+.account-page .account-profile-hint,
+.account-page .account-cycle-meta,
+.account-page .account-progress-copy,
+.account-page .account-thresholds__unit,
+.account-page .account-plans-heading p:not(.account-eyebrow),
+.account-page .account-thresholds__heading p:last-child,
+.account-page .account-threshold-form__footer p {
+  color: #94a3b8;
+}
+
+.account-page .account-eyebrow,
+.account-page .account-label,
+.account-page .account-email,
+.account-page .account-secure-note,
+.account-page .account-cycle-meta > span svg,
+.account-page .account-cycle-foot,
+.account-page .account-cycle-foot svg {
+  color: #7ccfc3;
+}
+
+.account-page .account-eyebrow span {
+  color: #5b8def;
+}
+
+.account-page .account-back {
+  color: #94a3b8;
+}
+
+.account-page .account-back:hover,
+.account-page .account-brand:hover {
+  color: #5b8def;
+}
+
+.account-page .account-heading-glass {
+  border: 1px solid #2a394d !important;
+  background: #111c2e !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+  backdrop-filter: none !important;
+}
+
+.account-page .account-demo-tag,
+.account-page .account-notice,
+.account-page .account-section-icon,
+.account-page .account-status,
+.account-page .account-role,
+.account-page .profile-card__role {
+  border-color: #2a394d;
+  background: #182538;
+  color: #7ccfc3;
+}
+
+.account-page .account-demo-tag i,
+.account-page .account-status i,
+.account-page .profile-card__status i,
+.account-page .profile-card__presence {
+  background: #6fcf97;
+  box-shadow: none;
+}
+
+.account-page .account-notice {
+  color: #e8edf5;
+}
+
+.account-page .account-notice > svg {
+  color: #7ccfc3;
+}
+
+/* Matte identity card: no hologram, pale fill, or neon edge. */
+.account-page .profile-card.account-profile-card {
+  border: 1px solid #2a394d;
+  background: #182538;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  color: #e8edf5;
+}
+
+.account-page .profile-card.account-profile-card::before,
+.account-page .profile-card.account-profile-card::after {
+  display: none;
+}
+
+.account-page .profile-card.account-profile-card[data-tilted="true"] {
+  border-color: #5b8def;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.account-page .profile-card__avatar {
+  border-color: #2a394d;
+  background: #111c2e;
+  box-shadow: none;
+  color: #7ccfc3;
+}
+
+.account-page .profile-card__avatar::after {
+  display: none;
+}
+
+.account-page .profile-card__eyebrow,
+.account-page .profile-card__handle,
+.account-page .profile-card__description {
+  color: #94a3b8;
+}
+
+.account-page .profile-card__name-block h2,
+.account-page .profile-card__email {
+  color: #e8edf5;
+}
+
+.account-page .profile-card__handle svg,
+.account-page .profile-card__email svg {
+  color: #7ccfc3;
+}
+
+.account-page .profile-card__status {
+  color: #6fcf97;
+}
+
+.account-page .account-profile-card,
+.account-page .account-plan-overview,
+.account-page .account-plan-card,
+.account-page .account-thresholds {
+  border-color: #2a394d;
+  background: #111c2e;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.account-page .account-button,
+.account-page .account-plan-cta,
+.account-page .stepper__button.specular-button {
+  border-color: #2a394d;
+  background: #182538;
+  color: #e8edf5;
+  box-shadow: none;
+}
+
+.account-page .account-button:hover:not(:disabled),
+.account-page .account-plan-cta:hover:not(:disabled),
+.account-page .stepper__button.specular-button:hover:not(:disabled) {
+  border-color: #5b8def;
+  background: #223451;
+  color: #e8edf5;
+  transform: translateY(-1px);
+}
+
+.account-page .account-button--logout {
+  color: #94a3b8;
+}
+
+.account-page .account-button--logout:hover:not(:disabled) {
+  border-color: #2a394d;
+  background: #111c2e;
+  color: #e8edf5;
+}
+
+.account-page .account-section-icon {
+  color: #5b8def;
+}
+
+.account-page .account-status {
+  color: #6fcf97;
+}
+
+.account-page .account-status[data-status="past_due"],
+.account-page .account-status[data-status="canceled"],
+.account-page .account-status[data-status="inactive"],
+.account-page .account-status[data-status="trialing"] {
+  border-color: #2a394d;
+  background: #182538;
+  color: #94a3b8;
+}
+
+.account-page .account-cycle-meta,
+.account-page .account-cycle-aside,
+.account-page .account-plan-price,
+.account-page .account-threshold-row {
+  border-color: #2a394d;
+}
+
+.account-page .account-cycle-meta strong,
+.account-page .account-date-row strong,
+.account-page .account-profile-title h2,
+.account-page .account-plan-price strong {
+  color: #e8edf5;
+}
+
+.account-page .account-date-marker,
+.account-page .account-date-marker--end {
+  border-color: #7ccfc3;
+  background: #111c2e;
+  box-shadow: none;
+}
+
+.account-page .account-date-connector {
+  border-color: #2a394d;
+}
+
+.account-page .account-progress-track {
+  border-color: #2a394d;
+  background: #182538;
+}
+
+.account-page .account-progress-track span {
+  background: #5b8def;
+  box-shadow: none;
+}
+
+.account-page .account-plan-card:hover,
+.account-page .account-plan-card.is-current {
+  border-color: #5b8def;
+  background: #182538;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.account-page .account-plan-card.is-enterprise {
+  border-color: #2a394d;
+}
+
+.account-page .account-plan-description,
+.account-page .account-plan-price span,
+.account-page .account-feature-list li,
+.account-page .account-plan-annual,
+.account-page .account-plan-disclaimer {
+  color: #94a3b8;
+}
+
+.account-page .account-current-ribbon,
+.account-page .account-featured-ribbon {
+  border-color: #2a394d;
+  background: #182538;
+  color: #7ccfc3;
+}
+
+.account-page .account-plan-icon,
+.account-page .is-current .account-plan-icon,
+.account-page .is-enterprise .account-plan-icon {
+  border-color: #2a394d;
+  background: #182538;
+  color: #7ccfc3;
+}
+
+.account-page :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #5b8def;
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+.account-page .account-threshold-row input,
+.account-page .account-dialog,
+.account-page .account-avatar-upload {
+  border-color: #2a394d;
+  background: #182538;
+  color: #e8edf5;
+  box-shadow: none;
+}
+
+.account-page .account-threshold-row input:focus,
+.account-page .account-avatar-upload:focus-within {
+  border-color: #5b8def;
+  box-shadow: none;
+}
