@@ -37,10 +37,6 @@ export default function Home() {
 
   return (
     <>
-      <section className="console-route home-console" id="console" aria-label="FloatChat operations console">
-        <ConsoleApp />
-      </section>
-
       <h1 className="u-visually-hidden">FLOATCHAT — ocean intelligence for the Argo fleet</h1>
 
       <section className="home-hero" id="home" aria-label="FLOATCHAT introduction">
@@ -151,6 +147,10 @@ export default function Home() {
       <DeferredArgoStory />
 
       <BentoShowcase />
+
+      <section className="console-route home-console" id="console" aria-label="FloatChat operations console">
+        <ConsoleApp />
+      </section>
 
     </>
   );
