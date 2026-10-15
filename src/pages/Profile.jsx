@@ -8,11 +8,8 @@ import {
   Clock3,
   CreditCard,
   LogOut,
-  Mail,
-  Pencil,
   ShieldCheck,
   Sparkles,
-  UserRound,
   Waves,
   X,
 } from "lucide-react";
@@ -20,6 +17,7 @@ import { Link } from "../router";
 import { api } from "../api";
 import SpotlightCard from "../components/SpotlightCard";
 import Stepper, { Step } from "../components/Stepper";
+import ProfileCard from "../components/ProfileCard";
 import samplePayload from "../../docs/profile-subscription.example.json";
 import "./Profile.css";
 
@@ -66,19 +64,6 @@ function getCycleMetrics(subscription, now = Date.now()) {
   };
 }
 
-function initials(name = "") {
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase() || "AF"
-  );
-}
-
 function priceLabel(plan, isCurrent) {
   if (plan.monthlyPrice === null || plan.monthlyPrice === undefined) {
     return isCurrent ? "Current plan" : plan.priceLabel || "Contact us";
@@ -123,7 +108,6 @@ export default function Profile({
   const [notice, setNotice] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [avatarFailed, setAvatarFailed] = useState(false);
   const [thresholdSaving, setThresholdSaving] = useState(false);
   const [thresholdLoading, setThresholdLoading] = useState(true);
   const dialogRef = useRef(null);
@@ -158,8 +142,6 @@ export default function Profile({
     if (editOpen && !dialog.open) dialog.showModal();
     if (!editOpen && dialog.open) dialog.close();
   }, [editOpen]);
-
-  useEffect(() => setAvatarFailed(false), [profile.avatarUrl]);
 
   const currentPlan = useMemo(
     () => plans.find((plan) => plan.id === subscription.planId) || null,
@@ -332,58 +314,41 @@ export default function Profile({
           </div>
         )}
 
-        <section
+        <ProfileCard
           className="account-profile-card"
-          aria-labelledby="profile-name"
+          titleId="profile-name"
+          name={profile.name || "Your name"}
+          title={profile.role || "Role not set"}
+          handle={profile.id}
+          email={profile.email || "Email not set"}
+          status={
+            subscription.status === "active"
+              ? "Active plan"
+              : String(subscription.status || "Demo profile")
+          }
+          description="Your personal details are visible only to your workspace."
+          contactText="Edit profile"
+          avatarUrl={profile.avatarUrl}
+          holo={0.8}
+          glare={0.5}
+          tiltStrength={12}
+          parallax={8}
+          radius={16}
+          enableTilt
+          intro
+          showUserInfo
+          enableMobileTilt={false}
+          theme="dark"
+          onContactClick={openEditor}
         >
-          <div className="account-avatar" aria-hidden="true">
-            {profile.avatarUrl && !avatarFailed ? (
-              <img
-                src={profile.avatarUrl}
-                alt=""
-                onError={() => setAvatarFailed(true)}
-              />
-            ) : (
-              <span>{initials(profile.name)}</span>
-            )}
-            <i className="account-avatar__online" />
-          </div>
-          <div className="account-profile-info">
-            <div className="account-profile-title">
-              <div>
-                <p className="account-label">PROFILE</p>
-                <h2 id="profile-name">{profile.name || "Your name"}</h2>
-              </div>
-              <span className="account-role">
-                <ShieldCheck size={13} aria-hidden="true" />
-                {profile.role || "Role not set"}
-              </span>
-            </div>
-            <p className="account-email">
-              <Mail size={15} aria-hidden="true" />
-              {profile.email || "Email not set"}
-            </p>
-            <p className="account-profile-hint">
-              Your personal details are visible only to your workspace.
-            </p>
-          </div>
-          <div className="account-profile-actions">
-            <button
-              className="account-button account-button--soft"
-              type="button"
-              onClick={openEditor}
-            >
-              <Pencil size={15} aria-hidden="true" /> Edit profile
-            </button>
-            <button
-              className="account-button account-button--logout"
-              type="button"
-              onClick={logout}
-            >
-              <LogOut size={15} aria-hidden="true" /> Log out
-            </button>
-          </div>
-        </section>
+          <button
+            className="account-button account-button--logout"
+            type="button"
+            onClick={logout}
+          >
+            <LogOut size={15} aria-hidden="true" /> Log out
+          </button>
+        </ProfileCard>
 
         <section className="account-thresholds" aria-labelledby="thresholds-title">
           <div className="account-thresholds__heading">

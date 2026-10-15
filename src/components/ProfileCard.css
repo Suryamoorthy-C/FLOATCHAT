@@ -1,0 +1,375 @@
+.profile-card.account-profile-card {
+  --profile-pointer-x: 54%;
+  --profile-pointer-y: 48%;
+  --profile-rotate-x: 0deg;
+  --profile-rotate-y: 0deg;
+  --profile-shift-x: 0px;
+  --profile-shift-y: 0px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  min-height: 148px;
+  padding: 21px 23px;
+  overflow: hidden;
+  border: 1px solid rgba(120, 211, 211, 0.22);
+  border-radius: var(--profile-radius, 16px);
+  background:
+    radial-gradient(760px 260px at 8% 0%, rgba(54, 205, 194, 0.085), transparent 58%),
+    linear-gradient(115deg, rgba(18, 31, 37, 0.98), rgba(10, 22, 29, 0.97) 54%, rgba(12, 25, 34, 0.98));
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  transform: perspective(1300px) rotateX(var(--profile-rotate-x)) rotateY(var(--profile-rotate-y));
+  transform-style: preserve-3d;
+  transition:
+    transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+  will-change: transform;
+}
+
+.profile-card.account-profile-card::before,
+.profile-card.account-profile-card::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  border-radius: inherit;
+}
+
+.profile-card.account-profile-card::before {
+  background:
+    radial-gradient(360px circle at var(--profile-pointer-x) var(--profile-pointer-y), rgba(121, 255, 232, 0.2), transparent 68%),
+    linear-gradient(112deg, transparent 12%, rgba(81, 237, 222, 0.035) 35%, rgba(138, 157, 255, 0.06) 63%, transparent 88%);
+  opacity: calc(0.12 + var(--profile-holo, 0.8) * 0.42);
+  mix-blend-mode: screen;
+  transition: opacity 220ms ease;
+}
+
+.profile-card.account-profile-card::after {
+  inset: 1px;
+  border: 1px solid rgba(215, 255, 250, 0.035);
+  background:
+    repeating-linear-gradient(116deg, transparent 0 10px, rgba(255, 255, 255, 0.012) 11px 12px, transparent 13px 25px),
+    radial-gradient(400px circle at var(--profile-pointer-x) var(--profile-pointer-y), rgba(255, 255, 255, 0.12), transparent 62%);
+  opacity: calc(0.16 + var(--profile-glare, 0.5) * 0.5);
+  mix-blend-mode: screen;
+}
+
+.profile-card.account-profile-card[data-tilted="true"] {
+  border-color: rgba(115, 239, 219, 0.38);
+  box-shadow:
+    0 28px 82px rgba(0, 0, 0, 0.28),
+    0 0 34px rgba(39, 219, 197, 0.075),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.profile-card--intro {
+  animation: profile-card-arrive 720ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+@keyframes profile-card-arrive {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+    scale: 0.99;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    filter: blur(0);
+  }
+}
+
+.profile-card__avatar-wrap,
+.profile-card__info,
+.profile-card__actions {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  transform: translate3d(var(--profile-shift-x), var(--profile-shift-y), 18px);
+  transition: transform 220ms ease;
+}
+
+.profile-card__avatar-wrap {
+  width: 82px;
+  height: 82px;
+}
+
+.profile-card__avatar {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(93, 222, 211, 0.48);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(59, 222, 207, 0.25), transparent 58%),
+    linear-gradient(145deg, rgba(32, 92, 94, 0.66), rgba(17, 41, 51, 0.95));
+  box-shadow:
+    0 0 0 5px rgba(85, 225, 207, 0.035),
+    0 12px 30px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  color: #a6fff0;
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: 0.035em;
+}
+
+.profile-card__avatar::after {
+  position: absolute;
+  inset: 0;
+  background-image: var(--profile-card-icon, none), radial-gradient(rgba(202, 255, 247, 0.15) 1px, transparent 1.4px);
+  background-position: center, 0 0;
+  background-size: cover, 13px 13px;
+  opacity: 0.22;
+  pointer-events: none;
+  content: "";
+}
+
+.profile-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-card__presence {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  z-index: 2;
+  width: 13px;
+  height: 13px;
+  border: 2px solid #102127;
+  border-radius: 50%;
+  background: #62e6a9;
+  box-shadow: 0 0 12px rgba(98, 230, 169, 0.52);
+}
+
+.profile-card__heading-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.profile-card__eyebrow {
+  margin: 0 0 6px;
+  color: #75959c;
+  font: 8px "JetBrains Mono", monospace;
+  letter-spacing: 0.2em;
+}
+
+.profile-card__name-block h2 {
+  margin: 0;
+  color: #eff8f8;
+  font: 500 clamp(21px, 2.1vw, 27px) / 1.12 var(--font-family-display, Inter, system-ui, sans-serif);
+  letter-spacing: -0.04em;
+}
+
+.profile-card__role {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(90, 210, 200, 0.23);
+  border-radius: 99px;
+  background: rgba(47, 167, 162, 0.09);
+  color: #b2ded9;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.profile-card__meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 8px;
+}
+
+.profile-card__handle,
+.profile-card__status,
+.profile-card__email {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.profile-card__handle {
+  color: #7f9ca4;
+  font: 9px "JetBrains Mono", monospace;
+}
+
+.profile-card__handle svg,
+.profile-card__email svg {
+  flex: none;
+  color: #7cabb0;
+}
+
+.profile-card__status {
+  color: #83d4aa;
+  font: 8px "JetBrains Mono", monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.profile-card__status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #63dfa0;
+  box-shadow: 0 0 9px rgba(99, 223, 160, 0.5);
+}
+
+.profile-card__email {
+  margin: 10px 0 0;
+  color: #bac9cc;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.profile-card__description {
+  margin: 7px 0 0;
+  color: #718890;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.profile-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.profile-card__action {
+  min-height: 40px;
+  padding-inline: 14px;
+  white-space: nowrap;
+}
+
+.profile-card--light {
+  color-scheme: light;
+}
+
+.profile-card--light.profile-card.account-profile-card {
+  border-color: rgba(18, 73, 82, 0.18);
+  background: linear-gradient(120deg, #f5fbfb, #e8f5f4);
+  color: #16343a;
+}
+
+.profile-card--light .profile-card__name-block h2 {
+  color: #16343a;
+}
+
+.profile-card--light .profile-card__email {
+  color: #43636a;
+}
+
+@media (max-width: 850px) {
+  .profile-card.account-profile-card {
+    grid-template-columns: 68px minmax(0, 1fr) auto;
+    gap: 15px;
+    padding: 18px;
+  }
+
+  .profile-card__avatar-wrap {
+    width: 68px;
+    height: 68px;
+  }
+
+  .profile-card__avatar {
+    border-radius: 20px;
+    font-size: 21px;
+  }
+
+  .profile-card__role {
+    min-height: 30px;
+    padding-inline: 9px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 620px) {
+  .profile-card.account-profile-card {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .profile-card__avatar-wrap {
+    width: 56px;
+    height: 56px;
+  }
+
+  .profile-card__avatar {
+    border-radius: 17px;
+    font-size: 18px;
+  }
+
+  .profile-card__heading-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .profile-card__name-block h2 {
+    font-size: 19px;
+  }
+
+  .profile-card__role {
+    min-height: 27px;
+    white-space: normal;
+  }
+
+  .profile-card__meta-row {
+    gap: 6px 10px;
+  }
+
+  .profile-card__email {
+    font-size: 10px;
+  }
+
+  .profile-card__description {
+    font-size: 9px;
+  }
+
+  .profile-card__actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-card__action,
+  .profile-card__actions > .account-button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-card--intro {
+    animation: none;
+  }
+
+  .profile-card.account-profile-card {
+    transform: none !important;
+    transition: none;
+  }
+
+  .profile-card__avatar-wrap,
+  .profile-card__info,
+  .profile-card__actions {
+    transform: none;
+    transition: none;
+  }
+}
