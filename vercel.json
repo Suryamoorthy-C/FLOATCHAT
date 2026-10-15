@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/mirofish/:path*",
+      "destination": "/api/mirofish.py"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/index.py"
     }
