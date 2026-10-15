@@ -1184,3 +1184,19 @@
 .account-page .account-avatar-upload__remove:focus-visible {
   outline-color: #c1ff00;
 }
+
+/* Account flow: identity first, then the current subscription, followed by
+   operational alerts and finally the plan comparison. */
+.account-page .account-shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-page .account-nav { order: 1; }
+.account-page .account-heading-glass { order: 2; }
+.account-page .account-notice { order: 3; }
+.account-page .account-profile-card { order: 4; }
+.account-page .account-plan-overview { order: 5; }
+.account-page .account-thresholds { order: 6; }
+.account-page .account-plans-section { order: 7; }
+.account-page .account-footer { order: 8; }

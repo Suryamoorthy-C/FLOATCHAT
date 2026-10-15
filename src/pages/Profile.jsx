@@ -127,6 +127,10 @@ export default function Profile({
   });
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
+
+  useEffect(() => {
     setProfile(data.profile || samplePayload.profile);
     setSubscription(data.subscription || samplePayload.subscription);
     setPlans(data.plans || samplePayload.plans);

@@ -26,7 +26,7 @@ const ProfilePage = lazy(() => import('./pages/Profile'));
  * is intentionally not mounted on Home.
  */
 const ROUTE_SECTION = {
-  '/': 'console',
+  '/': 'home',
   '/platform': 'platform',
   '/data': 'data',
   '/pearl-zones': 'pearl-zones',
