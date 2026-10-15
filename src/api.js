@@ -77,10 +77,7 @@ async function postJSON(path, payload, { timeout = 12000, signal } = {}) {
       headers: authHeaders({ accept: 'application/json', 'content-type': 'application/json' }),
       body: JSON.stringify(payload),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.detail || `${res.status} ${res.statusText}`)
-    }
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
     return await res.json()
   } finally {
     clearTimeout(timer)
@@ -168,13 +165,6 @@ function resolveApiResource(resource) {
 export const api = {
   /** {status, service, data_source, live, fetched_at} */
   health: (opts) => getJSON('/api/health', null, opts),
-
-  /** Optional MiroFish bridge readiness. */
-  mirofishStatus: (opts) => getJSON('/api/mirofish/status', null, opts),
-
-  /** Seed a MiroFish project with an attributed Argo snapshot. */
-  mirofishSeed: ({ requirement, region, project_name } = {}, opts) =>
-    postJSON('/api/mirofish/seed', { requirement, region, project_name }, { ...opts, timeout: 60000 }),
 
   /** {count, data:[float], source, source_url, fetched_at, live, window_days} */
   floats: ({ status, region, live = true, refresh = false } = {}, opts) =>
